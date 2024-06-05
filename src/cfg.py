@@ -1,7 +1,7 @@
 from netpyne import specs
 
 cfg = specs.SimConfig()
-cfg.hParams['celsius'] = 37
+cfg.hParams['celsius'] = 37 # to reproduce fast bursting, set to 36 (along with other parameters described in Fig 6A)
 cfg.hParams['v_init'] = -60.0
 cfg.duration = 6000
 cfg.recordCells = [0]

@@ -22,9 +22,9 @@ netParams.popParams['STN_pop'] = {'cellType': 'STN_cell', 'numCells': 1}
 
 # # rebound burst
 # netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 770, 'dur': 500, 'amp': -0.25}
-# # slow bursting
-# netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 0, 'dur': 40000, 'amp': -0.25}
-# fast bursting
-netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 0, 'dur': 40000, 'amp': -0.35}
+# slow bursting
+netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 0, 'dur': 40000, 'amp': -0.25}
+# # fast bursting
+# netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 0, 'dur': 40000, 'amp': -0.35}
 
 netParams.stimTargetParams['clamp->all'] = {'source': 'clamp', 'conds': {'cellType': 'STN_cell'}, 'sec': 'soma', 'loc': 0.5}

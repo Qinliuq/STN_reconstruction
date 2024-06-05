@@ -20,12 +20,13 @@ cell.secs.soma.hObj.gna_NaL = 1.108670852e-05
 set_values_from_file(cell, "gk_KDR")  
 set_values_from_file(cell, "gk_Kv31")
 set_values_from_file(cell, "gk_Ih")
+set_values_from_file(cell, "gcaN_HVA")
 
 set_values_from_file(cell, "gcaT_CaT")
-# set_values_from_file(cell, "gcaT_CaT", dend_scale=1.2) # (modulate CaT as in Fig. 6C)
+# set_values_from_file(cell, "gcaT_CaT", dend_scale=1.2) # modulate CaT as e.g. in Fig. 6C
 
-set_values_from_file(cell, "gcaN_HVA")
-# set_values_from_file(cell, "gcaL_HVA", "d0.9")
+set_values_from_file(cell, "gcaL_HVA")
+# set_values_from_file(cell, "gcaL_HVA", "dl0.9") # 10% decrease in dendritic linear CaL (see Figure 6A, 8A)
 
 # set_values_from_file(cell, "gk_sKCa") # no apamin
 set_values_from_file(cell, "gk_sKCa", "apamin0.9") # apply apamin
