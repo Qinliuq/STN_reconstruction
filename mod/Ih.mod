@@ -1,4 +1,4 @@
-TITLE Potassium Ih channel for STh
+TITLE Potassium Ih channel for STh (HCN)
 
 COMMENT
  Ih from Huguenard & McCormick 92 LGN relay

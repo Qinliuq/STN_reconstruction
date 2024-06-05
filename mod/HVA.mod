@@ -1,4 +1,4 @@
-TITLE calcium HVA channels for STh
+TITLE calcium HVA channels for STh (CaL and CaN)
 
 COMMENT
  High threshold calcium channel (N/L-type), Brown et al. 1993. & Fox
