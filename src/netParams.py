@@ -20,13 +20,6 @@ stnParams.secs.soma['threshold'] = -30
 
 netParams.popParams['STN_pop'] = {'cellType': 'STN_cell', 'numCells': 1}
 
-netParams.synMechParams['AMPA'] = {
-    'mod': 'Exp2Syn',
-    'tau1': 0.1,
-    'tau2': 1.0,
-    'e': 0
-}
-
 # # rebound burst
 # netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 770, 'dur': 500, 'amp': -0.25}
 # # slow bursting

@@ -41,8 +41,6 @@ for sec in h.allsec():
 # apply_CSF_Beurrier()
 apply_CSF_Bevan()
 
-set_values_from_file(cell, "gcaL_HVA", "dl1.1")
-
 sim.simulate()
 sim.analyze()
 
