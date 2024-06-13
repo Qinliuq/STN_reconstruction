@@ -46,7 +46,7 @@ set_values_from_file(cell, "gcaL_HVA")
 # set_values_from_file(cell, "gcaL_HVA", "dl0.9") # 10% decrease in dendritic linear CaL (see Figure 6A, 8A)
 
 set_values_from_file(cell, "gk_sKCa", soma_scale=gSK_scale, dend_scale=gSK_scale)
-set_values_from_file(cell, "gk_sKCa", "apamin0.9") # apply apamin
+# set_values_from_file(cell, "gk_sKCa", "apamin0.9") # apply apamin
 
 from neuron import h
 for sec in h.allsec():
