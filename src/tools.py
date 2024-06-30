@@ -6,6 +6,8 @@ def set_values_from_file(cell, conductance, modifier=None, soma_scale=1.0, dend_
 
     modif = f'-{modifier}' if modifier else ''
     f = open(f'cells/sth-data/cell-{conductance}{modif}', 'r')
+    totval=0
+    numval = 0
     for line in f:
         tree, sec, loc, val = line.strip().split(' ')
         loc = float(loc)
@@ -17,7 +19,10 @@ def set_values_from_file(cell, conductance, modifier=None, soma_scale=1.0, dend_
         else:
             hObj = getattr(cell.secs, f'dend{tree}_{sec}').hObj
             val *= dend_scale
+            totval += val
+            numval += 1
         setattr(hObj(loc), conductance, val)
+    # print(f"Cond {conductance} avg {totval/numval} (n. {numval})")
 
 def apply_CSF_Beurrier():
     print("Setting in vitro parameters based on Beurrier et al (1999)")

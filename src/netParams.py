@@ -1,6 +1,6 @@
-
-
 from netpyne import specs
+
+from __main__ import cfg
 
 netParams = specs.NetParams()
 
@@ -18,13 +18,25 @@ stnParams = netParams.importCellParams(label='STN_cell', fileName='cells/SThprot
 
 stnParams.secs.soma['threshold'] = -30
 
-netParams.popParams['STN_pop'] = {'cellType': 'STN_cell', 'numCells': 1}
+netParams.popParams['STN_pop'] = {'cellType': 'STN_cell', 'numCells': cfg.num_vals}
 
 # # rebound burst
-# netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 770, 'dur': 500, 'amp': -0.25}
+# cfg.IClamp_amp = -0.35
+# netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 600, 'dur': 1000, 'amp': cfg.IClamp_amp}
+
 # slow bursting
-netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 0, 'dur': 40000, 'amp': -0.25}
-# # fast bursting
-# netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 0, 'dur': 40000, 'amp': -0.35}
+cfg.IClamp_amp = -0.25
+netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 0, 'dur': 40000, 'amp': cfg.IClamp_amp}
+
+# # # fast bursting
+# cfg.IClamp_amp = -0.35
+# netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 0, 'dur': 40000, 'amp': cfg.IClamp_amp}
 
 netParams.stimTargetParams['clamp->all'] = {'source': 'clamp', 'conds': {'cellType': 'STN_cell'}, 'sec': 'soma', 'loc': 0.5}
+
+# # alternatively, to search through multiple amps:
+# import numpy as np
+# iapps = np.linspace(0, 10, cfg.num_vals) / 100
+# for i, amp in enumerate(iapps):
+#     netParams.stimSourceParams[f'clamp{i}'] = {'type': 'IClamp', 'del': 0, 'dur': 40000, 'amp': amp}
+#     netParams.stimTargetParams[f'clamp{i}->{i}'] = {'source': f'clamp{i}', 'conds': {'cellList': [i]}, 'sec': 'soma', 'loc': 0.5}
