@@ -15,25 +15,21 @@ sim.create(netParams, cfg)
 
 import numpy as np
 
-saveFolder = 'bursts_37_bevan'
-
 # using PV+ "best candidate" params:
 cat, cal, hcn, sk = 1.4, 0.86, 0.65, 0.9 # 28/20, */5, 1.3/2, 0.9
-cats, cals, hcns, sks = [cat] * cfg.num_vals, [cal] * cfg.num_vals, [hcn] * cfg.num_vals, [sk] * cfg.num_vals # for consistency with more general way below
-cfg.filename = f'{saveFolder}/cat{cat}_cal{cal}_hcn{hcn}_sk{sk}_iclamp_{cfg.IClamp_amp}'
-
-# # or, using search through either of parameters' values (others will be fixed):
-# # E.g., search through CaL, as in Fig. 1 in park et al.
-# cals = np.linspace(0, 40, cfg.num_vals)
-# cals /= 5 # normalize with respect to default CaL value (i.e. 5) from Park et al.
-# cfg.filename = f'{saveFolder}/cat{cat}_cals{cals[0]}-{cals[-1]}_hcn{hcn}_sk{sk}_iclamp_{cfg.IClamp_amp}'
 
 for i, cell in enumerate(sim.net.cells):
-    # cell = sim.net.cells[0]
-    gCaT_scale = cats[i] if cats is not None else 1
-    gCaL_scale = cals[i] if cals is not None else 1
-    gHCN_scale = hcns[i] if hcns is not None else 1
-    gSK_scale = sks[i]
+
+    if cell.tags['pop'] == 'PVP_pop': # PV+ params
+        gCaT_scale = cat
+        gCaL_scale = cal
+        gHCN_scale = hcn
+        gSK_scale = sk
+    else: # PV- params
+        gCaT_scale = 1
+        gCaL_scale = 1
+        gHCN_scale = 1
+        gSK_scale = 1
 
     # Na   
     default_gNa_soma = 1.483419823e-02 
@@ -43,11 +39,6 @@ for i, cell in enumerate(sim.net.cells):
     default_gNaL_soma = 1.108670852e-05
     default_gNaL_dend = 0.81e-5
     cell.secs.soma.hObj.gna_NaL = default_gNaL_soma
-
-    if isBatchRun:
-        # using values from cfg that are variable across batch iterations
-        gCaT_scale = cfg.gCaT_scale
-        gSK_scale = cfg.gSK_scale
 
     # linear conductances (loaded from files)...
     set_values_from_file(cell, "gk_KDR")  

@@ -1,9 +1,11 @@
 from netpyne import specs
+import numpy as np
 
 from __main__ import cfg
 
 netParams = specs.NetParams()
 
+# ------------------------------------------------ CELL TYPES ------------------------------------------------
 from neuron import h
 resultCode = h.load_file('cells/SThprotocell.hoc')
 if resultCode:
@@ -11,32 +13,44 @@ if resultCode:
 else:
     raise RuntimeError("Couldn't load prototype STN cell from `cells/STHprotocell.hoc")
 
-stnParams = netParams.importCellParams(label='STN_cell', fileName='cells/SThprotocell.hoc', cellName='SThcell', cellArgs=[0, protoCell]) # 0 in cellArgs is just placeholder
-# # modifing arbitrary properties, e,g:
-# for iSec, sec in stnParams.secs.items():
-#     sec.mechs.Kv31.gk = 0
+pvp = netParams.importCellParams(label='PVP_cell', fileName='cells/SThprotocell.hoc', cellName='SThcell', cellArgs=[0, protoCell]) # 0 in cellArgs is just placeholder
+pvn = netParams.importCellParams(label='PVN_cell', fileName='cells/SThprotocell.hoc', cellName='SThcell', cellArgs=[0, protoCell])
+# so far they are identical. Difference in some param values will be introduced after network is created in init.py
 
-stnParams.secs.soma['threshold'] = -30
+pvp.secs.soma['threshold'] = -30
+pvn.secs.soma['threshold'] = -30
 
-netParams.popParams['STN_pop'] = {'cellType': 'STN_cell', 'numCells': cfg.num_vals}
 
-# # rebound burst
-# cfg.IClamp_amp = -0.35
-# netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 600, 'dur': 1000, 'amp': cfg.IClamp_amp}
+# ------------------------------------------------ NETWORK & POPULATIONS ------------------------------------------------
+popOrder = 10 # we can start with lower value for speed, and then increase gradually
+popScales = 1.5, 0.3
 
-# slow bursting
+def generate_locs_PVP(num):
+    randGen = np.random.default_rng(seed=cfg.seeds['loc'])
+    rawLocsX = randGen.uniform(0, netParams.sizeX, int(num))
+    rawLocsY = randGen.uniform(0, netParams.sizeY, int(num))
+
+    # now we can apply any transform to the raw locations (maybe multiply with some matrix, or use any custom rule)
+    # ...
+    # ...
+
+    return [{'x': x, 'y': y} for x,y in zip(rawLocsX, rawLocsY)] # alternatively, `x_norm` and/or `y_norm` can be used, presuming that values are within the range [0,1]
+
+def generate_locs_PVN(num):
+    # TODO: jjust using placeholder, replace with proper logic
+    return generate_locs_PVP(num)
+
+pvpLocs = generate_locs_PVP(popOrder * popScales[0])
+pvnLocs = generate_locs_PVN(popOrder * popScales[1])
+
+netParams.popParams['PVP_pop'] = {'cellType': 'PVP_cell', 'cellsList': pvpLocs}
+netParams.popParams['PVN_pop'] = {'cellType': 'PVN_cell','cellsList': pvnLocs}
+
+# ------------------------------------------------ CONNECTIONS ------------------------------------------------
+# to be defined..
+
+# ------------------------------------------------ STIMULATION ------------------------------------------------
+
 cfg.IClamp_amp = -0.16
 netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 0, 'dur': 40000, 'amp': cfg.IClamp_amp}
-
-# # # fast bursting
-# cfg.IClamp_amp = -0.35
-# netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 0, 'dur': 40000, 'amp': cfg.IClamp_amp}
-
-netParams.stimTargetParams['clamp->all'] = {'source': 'clamp', 'conds': {'cellType': 'STN_cell'}, 'sec': 'soma', 'loc': 0.5}
-
-# # alternatively, to search through multiple amps:
-# import numpy as np
-# iapps = np.linspace(0, 10, cfg.num_vals) / 100
-# for i, amp in enumerate(iapps):
-#     netParams.stimSourceParams[f'clamp{i}'] = {'type': 'IClamp', 'del': 0, 'dur': 40000, 'amp': amp}
-#     netParams.stimTargetParams[f'clamp{i}->{i}'] = {'source': f'clamp{i}', 'conds': {'cellList': [i]}, 'sec': 'soma', 'loc': 0.5}
+netParams.stimTargetParams['clamp->all'] = {'source': 'clamp', 'conds': {'cellType': 'PVP_cell'}, 'sec': 'soma', 'loc': 0.5}
