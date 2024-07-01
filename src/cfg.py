@@ -11,7 +11,6 @@ cfg.recordTraces = {'V_soma': {'sec':'soma', 'loc':0.5, 'var':'v'},
                     }
 
 cfg.num_vals = 1 # optionally, we can try multiple values of certain parameter in single simulation by having N unconnected cells, and each of which getting different value (implemente in init.py and/or netParams.py)
-cfg.IClamp_amp = -0.35
 
 cfg.savePickle = True
 # cfg.verbose = True

@@ -17,15 +17,15 @@ import numpy as np
 
 saveFolder = 'bursts_37_bevan'
 
-# using "best candidate" params:
-cat, cal, hcn, sk = 1.4, 0.9, 0.65, 0.9 # 28/20, 4.5/5, 1.3/2, 0.9
+# using PV+ "best candidate" params:
+cat, cal, hcn, sk = 1.4, 0.86, 0.65, 0.9 # 28/20, */5, 1.3/2, 0.9
 cats, cals, hcns, sks = [cat] * cfg.num_vals, [cal] * cfg.num_vals, [hcn] * cfg.num_vals, [sk] * cfg.num_vals # for consistency with more general way below
 cfg.filename = f'{saveFolder}/cat{cat}_cal{cal}_hcn{hcn}_sk{sk}_iclamp_{cfg.IClamp_amp}'
 
 # # or, using search through either of parameters' values (others will be fixed):
 # # E.g., search through CaL, as in Fig. 1 in park et al.
 # cals = np.linspace(0, 40, cfg.num_vals)
-# cals /= 5 # normalize with respect to default CaT value (i.e. 20) from Park et al.
+# cals /= 5 # normalize with respect to default CaL value (i.e. 5) from Park et al.
 # cfg.filename = f'{saveFolder}/cat{cat}_cals{cals[0]}-{cals[-1]}_hcn{hcn}_sk{sk}_iclamp_{cfg.IClamp_amp}'
 
 for i, cell in enumerate(sim.net.cells):

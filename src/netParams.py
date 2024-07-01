@@ -25,7 +25,7 @@ netParams.popParams['STN_pop'] = {'cellType': 'STN_cell', 'numCells': cfg.num_va
 # netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 600, 'dur': 1000, 'amp': cfg.IClamp_amp}
 
 # slow bursting
-cfg.IClamp_amp = -0.25
+cfg.IClamp_amp = -0.16
 netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 0, 'dur': 40000, 'amp': cfg.IClamp_amp}
 
 # # # fast bursting
