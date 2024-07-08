@@ -1,5 +1,6 @@
 from netpyne import specs
 import numpy as np
+from scipy.stats import skewnorm
 
 from __main__ import cfg
 
@@ -62,16 +63,16 @@ def generate_locs(num,pv_percent):
     for i in range(n_grids):
         end_idx = start_idx + pvp_points_per_grid[i]
         if end_idx > start_idx:  # Avoid empty ranges
-            pvp_x[start_idx:end_idx] = randGen(grid_centers[i], grid_centers[i+1], size=(end_idx - start_idx))
-            pvp_y[start_idx:end_idx] = randGen(grid_centers[i], grid_centers[i+1], size=(end_idx - start_idx))
+            pvp_x[start_idx:end_idx] = randGen.normal(grid_centers[i], grid_centers[i+1], size=(end_idx - start_idx))
+            pvp_y[start_idx:end_idx] = randGen.normal(grid_centers[i], grid_centers[i+1], size=(end_idx - start_idx))
         start_idx = end_idx
         
     start_idx = 0
     for i in range(n_grids):
         end_idx = start_idx + pvn_points_per_grid[i]
         if end_idx > start_idx:  # Avoid empty ranges
-            pvn_x[start_idx:end_idx] = randGen(grid_centers[i], grid_centers[i+1], size=(end_idx - start_idx))
-            pvn_y[start_idx:end_idx] = randGen(grid_centers[i], grid_centers[i+1], size=(end_idx - start_idx))
+            pvn_x[start_idx:end_idx] = randGen.normal(grid_centers[i], grid_centers[i+1], size=(end_idx - start_idx))
+            pvn_y[start_idx:end_idx] = randGen.normal(grid_centers[i], grid_centers[i+1], size=(end_idx - start_idx))
         start_idx = end_idx
 
     return [{'x': x, 'y': y} for x,y in zip(pvp_x, pvp_y)],[{'x': x, 'y': y} for x,y in zip(pvn_x, pvn_y)] # alternatively, `x_norm` and/or `y_norm` can be used, presuming that values are within the range [0,1]
