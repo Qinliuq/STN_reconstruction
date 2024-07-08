@@ -20,7 +20,11 @@ cat, cal, hcn, sk = 1.4, 0.86, 0.65, 0.9 # 28/20, */5, 1.3/2, 0.9
 
 for i, cell in enumerate(sim.net.cells):
 
-    if cell.tags['pop'] == 'PVP_pop': # PV+ params
+    cellType = cell.tags.get('cellType')
+    if cellType not in ['PVP_cell', 'PVN_cell']:
+        continue
+
+    if cellType == 'PVP_cell': # PV+ params
         gCaT_scale = cat
         gCaL_scale = cal
         gHCN_scale = hcn
