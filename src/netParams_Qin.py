@@ -23,7 +23,7 @@ pvn.secs.soma['threshold'] = -30
 
 
 # ------------------------------------------------ NETWORK & POPULATIONS ------------------------------------------------
-popOrder = 10 # we can start with lower value for speed, and then increase gradually
+popOrder = 30 # we can start with lower value for speed, and then increase gradually
 popScale = 0.2 # the percentage of PVP neurons; 1-popScale is the percetage of PVN neurons; cholinergic interneurons neglected for now
 
 def generate_locs(num,pv_percent):
@@ -38,7 +38,7 @@ def generate_locs(num,pv_percent):
     total_points = num*pv_percent
 
     # Define parameters for the skew normal distribution
-    n_grids = 10
+    n_grids = 12
     peak_grid = 7
     mean = (peak_grid - 1) / n_grids
     std_dev = 0.4  # Standard deviation
@@ -51,8 +51,12 @@ def generate_locs(num,pv_percent):
 
     # Allocate the number of data points to each grid based on the skewed distribution
     pvp_points_per_grid = (skewed_dist * total_points).astype(int)
-    points_per_grid = num/n_grids
-    pvn_points_per_grid = np.array([np.int(points_per_grid-i) for i in pvp_points_per_grid])
+    error = total_points - pvp_points_per_grid.sum()
+    pvp_points_per_grid[6]+= error
+
+    temp = num/(n_grids-2)
+    points_per_grid = [temp*.3,temp*.7,temp,temp,temp,temp,temp,temp,temp,temp,temp*.7,temp*.3]
+    pvn_points_per_grid = np.array([np.int(points_per_grid[i]-pvp_points_per_grid[i]) for i in range(n_grids)])
 
     pvp_x = np.zeros(pvp_points_per_grid.sum(),)
     pvp_y = np.zeros(pvp_points_per_grid.sum(),)
@@ -63,16 +67,16 @@ def generate_locs(num,pv_percent):
     for i in range(n_grids):
         end_idx = start_idx + pvp_points_per_grid[i]
         if end_idx > start_idx:  # Avoid empty ranges
-            pvp_x[start_idx:end_idx] = randGen.normal(grid_centers[i], grid_centers[i+1], size=(end_idx - start_idx))
-            pvp_y[start_idx:end_idx] = randGen.normal(grid_centers[i], grid_centers[i+1], size=(end_idx - start_idx))
+            pvp_x[start_idx:end_idx] = randGen.normal(loc=grid_centers[i], scale=0.05, size=(end_idx - start_idx))
+            pvp_y[start_idx:end_idx] = randGen.normal(loc=grid_centers[i], scale=0.05, size=(end_idx - start_idx))
         start_idx = end_idx
         
     start_idx = 0
     for i in range(n_grids):
         end_idx = start_idx + pvn_points_per_grid[i]
         if end_idx > start_idx:  # Avoid empty ranges
-            pvn_x[start_idx:end_idx] = randGen.normal(grid_centers[i], grid_centers[i+1], size=(end_idx - start_idx))
-            pvn_y[start_idx:end_idx] = randGen.normal(grid_centers[i], grid_centers[i+1], size=(end_idx - start_idx))
+            pvn_x[start_idx:end_idx] = randGen.normal(loc=grid_centers[i], scale=0.05, size=(end_idx - start_idx))
+            pvn_y[start_idx:end_idx] = randGen.normal(loc=grid_centers[i], scale=0.05, size=(end_idx - start_idx))
         start_idx = end_idx
 
     return [{'x': x, 'y': y} for x,y in zip(pvp_x, pvp_y)],[{'x': x, 'y': y} for x,y in zip(pvn_x, pvn_y)] # alternatively, `x_norm` and/or `y_norm` can be used, presuming that values are within the range [0,1]
@@ -83,8 +87,47 @@ def generate_locs(num,pv_percent):
 
 pvpLocs,pvnLocs = generate_locs(popOrder,popScale)
 
+# STN pops
 netParams.popParams['PVP_pop'] = {'cellType': 'PVP_cell', 'cellsList': pvpLocs}
-netParams.popParams['PVN_pop'] = {'cellType': 'PVN_cell','cellsList': pvnLocs}
+netParams.popParams['PVN_pop'] = {'cellType': 'PVN_cell', 'cellsList': pvnLocs}
+
+# External pops:
+# Noisy excitation from cortex
+netParams.popParams['Ctx_pop'] = {'cellModel': 'NetStim', 'numCells': int(popOrder*2), 'start': '300 + uniform(-2, 2)', 'interval': 'normal(35,5)', 'number': 1e9, 'noise': 0.3}
+
+# rhythmic inhiibiitiion from GPe
+spikePat = {'type': 'rhythmic', 'start': -1, 'startMin':340, 'startMax': 360, 'stop': 10000, 'freq': 15, 'freqStd': 1, 'distribution': 'normal', 'eventsPerCycle': 1, 'repeats': 45} # 'freqStd': 50
+netParams.popParams['GPe_pop'] = {'cellModel': 'VecStim', 'numCells': popOrder, 'spikePattern': spikePat}
+
+# healthy inhibition from GPe
+
+# ------------------------------------------------ SYNAPTIC MECHS ------------------------------------------------
+netParams.synMechParams['glut'] = {'mod': 'Exp2Syn', 'e': 0, 'tau1': 1.0, 'tau2': 5.0}
+netParams.synMechParams['GABA'] = {'mod': 'Exp2Syn', 'e': -85, 'tau1': 2, 'tau2': 15.0}
+
+
+# ------------------------------------------------ CONNECTIONS ------------------------------------------------
+# # noisy input (poisson)
+# strengthFun = ''
+# netParams.connParams['Ctx->PVP'] = {'synMech': 'exc', 'preConds': {'pop': 'Ctx_pop'}, 'postConds': {'pop': 'PVP_pop'}}
+# netParams.connParams['Ctx->PVN'] = {'synMech': 'exc', 'preConds': {'pop': 'Ctx_pop'}, 'postConds': {'cellType': 'PVN_pop'}}
+
+I_ratio = 0.9 #PVP/PVN
+E_ratio = 0.6 #PVP/PVN 
+
+#netParams.connParams['Ctx->STN'] = {'synMech': 'glut', 'preConds': {'pop': 'Ctx_pop'}, 'postConds': {'pop': ['PVP_pop', 'PVN_pop']}, 'probability': 0.75, 'weight': 0.0002, 'delay': 1}
+netParams.connParams['Ctx->PVP'] = {'synMech': 'glut', 'preConds': {'pop': 'Ctx_pop'}, 'postConds': {'pop': 'PVP_pop'}, 'probability':  0.5, 'weight': E_ratio * 0.0002, 'delay': 1}
+netParams.connParams['Ctx->PVN'] = {'synMech': 'glut', 'preConds': {'pop': 'Ctx_pop'}, 'postConds': {'pop': 'PVN_pop'}, 'probability':  0.5, 'weight': 0.0002, 'delay': 1}
+
+netParams.connParams['GPe->PVP'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_pop'}, 'postConds': {'pop': 'PVP_pop'}, 'probability':  0.5, 'weight': I_ratio * 0.00002, 'delay': 1}
+netParams.connParams['GPe->PVN'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_pop'}, 'postConds': {'pop': 'PVN_pop'}, 'probability':  0.5, 'weight': 0.00002, 'delay': 1}
+
+# # STN->STN - free parameter
+netParams.probLengthConst = .1
+
+netParams.connParams['PVP->all'] = {'synMech': 'glut', 'preConds': {'pop': 'PVP_pop'}, 'postConds': {'pop': ['PVP_pop', 'PVN_pop']}, 'probability': 'exp(-dist_3D/probLengthConst) * 0.25', 'weight': 0.001, 'delay': 0.5} # 'connList': [[0,1], [0,2]]
+
+netParams.connParams['PVN->all'] = {'synMech': 'glut', 'preConds': {'pop': 'PVN_pop'}, 'postConds': {'pop': ['PVP_pop', 'PVN_pop']}, 'probability': 'exp(-dist_3D/probLengthConst) * 0.25', 'weight': 0.001, 'delay': 0.5}
 
 # ------------------------------------------------ CONNECTIONS ------------------------------------------------
 # to be defined..
