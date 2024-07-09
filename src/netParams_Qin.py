@@ -55,7 +55,7 @@ def generate_locs(num,pv_percent):
     pvp_points_per_grid[6]+= error
 
     temp = num/(n_grids-2)
-    points_per_grid = [temp*.3,temp*.7,temp,temp,temp,temp,temp,temp,temp,temp,temp*.7,temp*.3]
+    points_per_grid = [temp*.3,temp*.7,temp,temp,temp,temp,temp,temp,temp,temp,temp*.7,temp*.3] #a temporary hack!!
     pvn_points_per_grid = np.array([np.int(points_per_grid[i]-pvp_points_per_grid[i]) for i in range(n_grids)])
 
     pvp_x = np.zeros(pvp_points_per_grid.sum(),)
