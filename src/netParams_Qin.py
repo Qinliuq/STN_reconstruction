@@ -96,10 +96,12 @@ netParams.popParams['PVN_pop'] = {'cellType': 'PVN_cell', 'cellsList': pvnLocs}
 netParams.popParams['Ctx_pop'] = {'cellModel': 'NetStim', 'numCells': int(popOrder*2), 'start': '300 + uniform(-2, 2)', 'interval': 'normal(35,5)', 'number': 1e9, 'noise': 0.3}
 
 # rhythmic inhiibiitiion from GPe
-spikePat = {'type': 'rhythmic', 'start': -1, 'startMin':340, 'startMax': 360, 'stop': 10000, 'freq': 15, 'freqStd': 1, 'distribution': 'normal', 'eventsPerCycle': 1, 'repeats': 45} # 'freqStd': 50
+spikePat = {'type': 'rhythmic', 'start': -1, 'startMin':340, 'startMax': 360, 'stop': 10000, 'freq': 15, 'freqStd': 1, 'distribution': 'normal', 'eventsPerCycle': 1, 'repeats': 5} # 'freqStd': 50
 netParams.popParams['GPe_pop'] = {'cellModel': 'VecStim', 'numCells': popOrder, 'spikePattern': spikePat}
 
 # healthy inhibition from GPe
+netParams.popParams['GPe_H_pop'] = {'cellModel': 'NetStim', 'numCells': int(popOrder*2), 'start': '300 + uniform(-2, 2)', 'interval': 'normal(12,5)', 'number': 1e9, 'noise': 1.}
+
 
 # ------------------------------------------------ SYNAPTIC MECHS ------------------------------------------------
 netParams.synMechParams['glut'] = {'mod': 'Exp2Syn', 'e': 0, 'tau1': 1.0, 'tau2': 5.0}
@@ -121,6 +123,8 @@ netParams.connParams['Ctx->PVN'] = {'synMech': 'glut', 'preConds': {'pop': 'Ctx_
 
 netParams.connParams['GPe->PVP'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_pop'}, 'postConds': {'pop': 'PVP_pop'}, 'probability':  0.5, 'weight': I_ratio * 0.00002, 'delay': 1}
 netParams.connParams['GPe->PVN'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_pop'}, 'postConds': {'pop': 'PVN_pop'}, 'probability':  0.5, 'weight': 0.00002, 'delay': 1}
+netParams.connParams['GPeH->PVP'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_H_pop'}, 'postConds': {'pop': 'PVP_pop'}, 'probability':  0.5, 'weight': I_ratio * 0.00002, 'delay': 1}
+netParams.connParams['GPeH->PVN'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_H_pop'}, 'postConds': {'pop': 'PVN_pop'}, 'probability':  0.5, 'weight': 0.00002, 'delay': 1}
 
 # # STN->STN - free parameter
 netParams.probLengthConst = .1
