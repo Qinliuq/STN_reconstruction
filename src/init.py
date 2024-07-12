@@ -30,9 +30,9 @@ for i, cell in enumerate(sim.net.cells):
         gHCN_scale = hcn
         gSK_scale = sk
     else: # PV- params
-        gCaT_scale = 1
-        gCaL_scale = 1
-        gHCN_scale = 1
+        gCaT_scale = .8
+        gCaL_scale = 1.2
+        gHCN_scale = .6
         gSK_scale = 1
 
     # Na   
