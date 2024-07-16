@@ -114,6 +114,9 @@ def generate_locs(num, pv_percent, seed=0, plot=True):
             pvn_y[start_idx:end_idx] = randGen.normal(loc=grid_centers[i], scale=0.05, size=(end_idx - start_idx))
         start_idx = end_idx
 
+    pvp_z = randGen.uniform(0, 1, len(pvp_x))
+    pvn_z = randGen.uniform(0, 1, len(pvn_x))
+
     if plot:
         plt.figure(dpi=200)
         plt.scatter(pvn_x, pvn_y, marker='.', label=f'PV- ({len(pvn_x)} cells)', color='tab:blue')
@@ -124,4 +127,5 @@ def generate_locs(num, pv_percent, seed=0, plot=True):
         plt.title(f'STN ({num} cells, PV+ fraction = {pv_percent}, seed = {seed})')
         plt.savefig(f'net2D-n{num}-frac{pv_percent}-seed{seed}.png')
 
-    return [{'x': x, 'y': y} for x,y in zip(pvp_x, pvp_y)],[{'x': x, 'y': y} for x,y in zip(pvn_x, pvn_y)] # alternatively, `x_norm` and/or `y_norm` can be used, presuming that values are within the range [0,1]
+    return [{'xnorm': x, 'ynorm': y, 'znorm': z} for x, y, z in zip(pvp_x, pvp_y, pvp_z)], \
+           [{'xnorm': x, 'ynorm': y, 'znorm': z} for x, y, z in zip(pvn_x, pvn_y, pvn_z)]

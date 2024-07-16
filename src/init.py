@@ -13,6 +13,8 @@ cfg, netParams = sim.readCmdLineArgs(simConfigDefault='src/cfg.py', netParamsDef
 
 sim.create(netParams, cfg)
 
+# sim.analysis.plot2Dnet(include=['PVP_pop', 'PVN_pop'], saveFig=True, showConns=False)
+
 import numpy as np
 
 # using PV+ "best candidate" params:

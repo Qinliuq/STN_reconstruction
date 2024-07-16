@@ -5,6 +5,10 @@ from __main__ import cfg
 
 netParams = specs.NetParams()
 
+netParams.sizeX = 8.5 * 1e3 # so that diagonal axis is 12
+netParams.sizeY = 8.5 * 1e3
+netParams.sizeZ = 3 * 1e3
+
 # ------------------------------------------------ CELL TYPES ------------------------------------------------
 from neuron import h
 resultCode = h.load_file('cells/SThprotocell.hoc')
@@ -55,7 +59,7 @@ deg45 = np.cos(np.pi/4)
 proj_matrix = np.array([[deg45,  deg45], # inverse of 45-deg rotation matrix
                         [-deg45,  deg45]])
 # project on axis, keep first coord only, and normalize
-norm_ax = f'({deg45} * post_x + {deg45} * post_y) / sqrt(2)'
+norm_ax = f'({deg45} * post_xnorm + {deg45} * post_ynorm) / sqrt(2)'
 
 base_prob_E = 0.2 # before applying topographic rules, presume that each STN cell receives input with <base_prob_E/I> probability
 base_prob_I = 0.2
