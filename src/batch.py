@@ -2,12 +2,12 @@ from netpyne import batch
 import numpy as np
 
 params = {
-    'gCaT_scale': np.linspace(1.0, 2.5, 3), # CaT coonductance increase
-    'gSK_scale': np.linspace(1.0, 0.5, 3), # sKCa conductance decrease
+    'gHCN_scale': np.linspace(0.5, 1.5, 20),
+    'gCaT_scale': np.linspace(0.65, 2, 20),
 }
 
 b = batch.Batch('src/cfg.py', 'src/netParams.py', params=params, initCfg={})
-b.batchLabel = 'gCaT-up_gSK-down'
+b.batchLabel = 'gCaT-gHCN'
 b.saveFolder = b.batchLabel
 b.method = 'grid'
 

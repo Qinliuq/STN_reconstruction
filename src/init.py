@@ -18,22 +18,19 @@ import numpy as np
 saveFolder = 'bursts_37_bevan'
 
 # using PV+ "best candidate" params:
-cat, cal, hcn, sk = 1.4, 0.86, 0.65, 0.9 # 28/20, */5, 1.3/2, 0.9
-cats, cals, hcns, sks = [cat] * cfg.num_vals, [cal] * cfg.num_vals, [hcn] * cfg.num_vals, [sk] * cfg.num_vals # for consistency with more general way below
-cfg.filename = f'{saveFolder}/cat{cat}_cal{cal}_hcn{hcn}_sk{sk}_iclamp_{cfg.IClamp_amp}'
+# cat, cal, hcn, sk = 1.4, 0.86, 0.65, 0.9 # 28/20, */5, 1.3/2, 0.9
+# cats, cals, hcns, sks = [cat] * cfg.num_vals, [cal] * cfg.num_vals, [hcn] * cfg.num_vals, [sk] * cfg.num_vals # for consistency with more general way below
+# cfg.filename = f'{saveFolder}/cat{cat}_cal{cal}_hcn{hcn}_sk{sk}_iclamp_{cfg.IClamp_amp}'
 
-# # or, using search through either of parameters' values (others will be fixed):
-# # E.g., search through CaL, as in Fig. 1 in park et al.
-# cals = np.linspace(0, 40, cfg.num_vals)
+# or, using search through either of parameters' values (others will be fixed):
+# E.g., search through CaL, as in Fig. 1 in park et al.
+cals = np.linspace(0.6, 1.6, cfg.num_vals) # [0.6, 0.8, 1. , 1.2, 1.4, 1.6]
 # cals /= 5 # normalize with respect to default CaL value (i.e. 5) from Park et al.
 # cfg.filename = f'{saveFolder}/cat{cat}_cals{cals[0]}-{cals[-1]}_hcn{hcn}_sk{sk}_iclamp_{cfg.IClamp_amp}'
 
 for i, cell in enumerate(sim.net.cells):
-    # cell = sim.net.cells[0]
-    gCaT_scale = cats[i] if cats is not None else 1
     gCaL_scale = cals[i] if cals is not None else 1
-    gHCN_scale = hcns[i] if hcns is not None else 1
-    gSK_scale = sks[i]
+    gSK_scale = 0.9
 
     # Na   
     default_gNa_soma = 1.483419823e-02 
@@ -47,7 +44,10 @@ for i, cell in enumerate(sim.net.cells):
     if isBatchRun:
         # using values from cfg that are variable across batch iterations
         gCaT_scale = cfg.gCaT_scale
-        gSK_scale = cfg.gSK_scale
+        gHCN_scale = cfg.gHCN_scale
+    else:
+        gCaT_scale = 1
+        gHCN_scale = 1
 
     # linear conductances (loaded from files)...
     set_values_from_file(cell, "gk_KDR")  

@@ -3,8 +3,7 @@ import matplotlib.pyplot as plt
 from netpyne import sim
 
 def load_from_file(name):
-    sim.initialize()
-    sim.loadAll(name)
+    sim.loadSimData(name)
 
 def rate_per_cell(sim, duration, transient=0):
     num_cells = len(sim.net.cells)
@@ -54,7 +53,89 @@ def plot_all():
 
     fig.savefig('tonic_repr.png')
 
-import os
-os.chdir('bursts_37_cal0')
-load_from_file('cat28_cal0.9_hcn1.3_sk0.9_iclamp_-0.25_data.pkl')
-plot_all()
+def extractBursts(icell):
+    # duration = 2000
+    transient = 500
+
+    spks = np.array([sim.allSimData['spkid'], sim.allSimData['spkt']])
+
+    this_cell_spiketimes = spks[1,spks[0]==icell]
+    this_cell_spiketimes = this_cell_spiketimes[this_cell_spiketimes > transient]
+
+    if len(this_cell_spiketimes) < 4: # to have at very least two bursts 
+        print(f'Not enough spikes (N = {len(this_cell_spiketimes)})')
+        return None
+
+    # all_inds = np.arange(transient, duration, 1)
+    # spk_inds = np.digitize(this_cell_spiketimes, all)
+
+    # ts = np.zeros_like(all_inds)
+    # ts[spk_inds] = 1
+
+    ISI = np.diff(this_cell_spiketimes)
+
+    from sklearn.cluster import KMeans
+    from sklearn.metrics import silhouette_score, silhouette_samples
+
+    kmeans = KMeans(n_clusters=2, n_init=10, random_state=123)
+
+    ISI_ = ISI.reshape(-1, 1)
+    kmeans.fit(ISI_)
+
+    cluster_labels = kmeans.labels_
+    cluster_centers = kmeans.cluster_centers_.flatten()
+
+    # Silhouette coefficients - mean and by clusters
+    score = silhouette_score(ISI_, cluster_labels)
+    dist = cluster_centers[1] - cluster_centers[0]
+    # # TODO: check how good are thu clusts
+    # if bad score or bad dist:
+    #     return None
+
+    bursts_clust_i = 0 if dist > 0 else 1
+    burst_isi = ISI[cluster_labels == bursts_clust_i]
+
+    thresh = burst_isi.max()
+    
+    # thresh_isi = cl
+
+    bursts = []
+    current_burst = []
+
+    for i, sp in enumerate(this_cell_spiketimes[:-1]): # exclude last spike
+        if ISI[i] <= thresh: # if next spike is close enough to this one, we have an ongoing burst
+            current_burst.append(sp)                        
+        else:
+            if len(current_burst) > 0 and ISI[i-1] <= thresh:
+                # this was the last spike in burst
+                current_burst.append(sp)
+                bursts.append(current_burst)
+                current_burst = []
+            else: # this was a single spike
+                pass
+
+    # handle last spike
+    sp = this_cell_spiketimes[-1]
+    if len(current_burst) > 0 and ISI[i-1] <= thresh:
+        # this was the last spike in burst
+        current_burst.append(sp)
+        bursts.append(current_burst)
+
+    bnum = len(bursts)
+    if bnum == 0:
+        return None
+
+    bdur = 0
+    bscount = 0
+    period = 0
+    for iburst, spikes in enumerate(bursts):
+        bdur += spikes[-1] - spikes[0]
+        bscount += len(spikes)
+        if iburst+1 < len(bursts): # time from first spike uuntil next burst's first spike
+            period += bursts[iburst+1][0] - spikes[0]
+
+    avg_busrt_dur = bdur / bnum
+    avg_sp_count = bscount / bnum
+    avg_period = period / (bnum-1) if bnum > 1 else -1
+    print(f'{bnum} bursts, avg. dur {round(avg_busrt_dur, 2)} sp. count {round(avg_sp_count, 2)}')
+    return [avg_period, avg_busrt_dur, avg_sp_count]

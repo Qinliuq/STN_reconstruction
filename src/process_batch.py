@@ -7,7 +7,7 @@ def build():
 
     os.chdir('gCaT-gHCN')
 
-    data = np.zeros((6, 20, 20, 3))
+    data = np.zeros((6, 20, 20, 3)) # shape (num-vals-CaL, num-vals-CaT, num-vals-HCN, num_features). There are 3 features: 0 - burst period (ms), 1 - duration of burst (ms), 2 - number of spikes in burst
     for ihcn in range(20):
         for icat in range(20):
             fname = f'gCaT-gHCN_{ihcn}_{icat}_data.pkl'
@@ -57,15 +57,5 @@ def plot_bursts_stats():
 
 # build()
 plot_bursts_stats()
-
-# # copy flipped to orig
-# for ihcn in range(4):
-#     for icat in range(20):
-#         flipped = f'gCaT-gHCN_{ihcn}_{icat}'
-#         normal = f'gCaT-gHCN_{19-ihcn}_{19-icat}'
-#         print(f'Copy flipped {flipped} to {normal}')
-#         shutil.copy2(f'gCaT-gHCN-flip/gCaT-gHCN-flip_{ihcn}_{icat}_data.pkl', \
-#                      f'gCaT-gHCN/gCaT-gHCN_{19-ihcn}_{19-icat}_data.pkl')
-        
 
 
