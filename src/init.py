@@ -9,17 +9,15 @@ if not isBatchRun:
 else:
     from src.tools import set_values_from_file, apply_CSF_Beurrier, apply_CSF_Bevan # for batch run
 
-cfg, netParams = sim.readCmdLineArgs(simConfigDefault='src/cfg.py', netParamsDefault='src/netParams.py')
+cfg, netParams = sim.readCmdLineArgs(simConfigDefault='src/cfg.py', netParamsDefault='src/netParams_Qin.py')
 
 sim.create(netParams, cfg)
-
-# sim.analysis.plot2Dnet(include=['PVP_pop', 'PVN_pop'], saveFig=True, showConns=False)
 
 import numpy as np
 
 # using PV+ "best candidate" params:
-cat, cal, hcn, sk = 1.4, 0.86, 0.65, 0.9 # 28/20, */5, 1.3/2, 0.9
-
+# this combo burst-pause like behavior during 20Hz inpu: cat, cal, hcn, sk = 1.4, 0.86, 0.65, 0.9 # 28/20, */5, 1.3/2, 0.9
+cat, cal, hcn, sk = 1.4, 0.85, .65, 0.9
 for i, cell in enumerate(sim.net.cells):
 
     cellType = cell.tags.get('cellType')
@@ -31,11 +29,14 @@ for i, cell in enumerate(sim.net.cells):
         gCaL_scale = cal
         gHCN_scale = hcn
         gSK_scale = sk
+        gKir_scale = 0.5
     else: # PV- params
         gCaT_scale = .8
         gCaL_scale = 1.2
-        gHCN_scale = .6
+        gHCN_scale = .6 
         gSK_scale = 1
+        gKir_scale = 0.1
+
 
     # Na   
     default_gNa_soma = 1.483419823e-02 
@@ -54,6 +55,8 @@ for i, cell in enumerate(sim.net.cells):
     set_values_from_file(cell, "gcaT_CaT", soma_scale=gCaT_scale, dend_scale=gCaT_scale)
     # set_values_from_file(cell, "gcaT_CaT", dend_scale=1.2) # modulate CaT as e.g. in Fig. 6C
     set_values_from_file(cell, "gk_sKCa", soma_scale=gSK_scale, dend_scale=gSK_scale)
+    set_values_from_file(cell, "gk_Kir", soma_scale=gKir_scale, dend_scale=gKir_scale)
+
     # set_values_from_file(cell, "gk_sKCa", "apamin0.9") # apply apamin
     set_values_from_file(cell, "gcaL_HVA", soma_scale=gCaL_scale, dend_scale=gCaL_scale)
     # set_values_from_file(cell, "gcaL_HVA", "dl0.9") # 10% decrease in dendritic linear CaL (see Figure 6A, 8A)

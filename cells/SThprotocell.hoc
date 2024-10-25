@@ -295,6 +295,7 @@ begintemplate SThcell
      insert sKCa
      insert CaT
      insert HVA
+     insert Kir
    }
 
    for i = 0,SThndend0-1 {
@@ -331,6 +332,7 @@ begintemplate SThcell
        insert sKCa       
        insert CaT
        insert HVA
+       insert Kir
      }
    }
 
@@ -368,6 +370,7 @@ begintemplate SThcell
        insert sKCa       
        insert CaT
        insert HVA
+       insert Kir
      }
    }
 
