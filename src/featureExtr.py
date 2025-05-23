@@ -53,14 +53,16 @@ def plot_all():
 
     fig.savefig('tonic_repr.png')
 
-def extractBursts(icell):
-    # duration = 2000
-    transient = 500
+def extractSpikes(icell, transient=0):
+    spk_ids_and_times = np.array([sim.allSimData['spkid'],
+                        sim.allSimData['spkt']])
+    cell_mask = spk_ids_and_times[0] == icell
+    time_mask = spk_ids_and_times[1] > transient
+    # return times of spikes that fit both conditions
+    return spk_ids_and_times[1, cell_mask & time_mask]
 
-    spks = np.array([sim.allSimData['spkid'], sim.allSimData['spkt']])
-
-    this_cell_spiketimes = spks[1,spks[0]==icell]
-    this_cell_spiketimes = this_cell_spiketimes[this_cell_spiketimes > transient]
+def extractBursts(icell, transient=0):
+    this_cell_spiketimes = extractSpikes(icell, transient)
 
     if len(this_cell_spiketimes) < 4: # to have at very least two bursts 
         print(f'Not enough spikes (N = {len(this_cell_spiketimes)})')

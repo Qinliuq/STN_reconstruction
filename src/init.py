@@ -25,11 +25,20 @@ saveFolder = 'bursts_37_bevan'
 # or, using search through either of parameters' values (others will be fixed):
 # E.g., search through CaL, as in Fig. 1 in park et al.
 cals = np.linspace(0.6, 1.6, cfg.num_vals) # [0.6, 0.8, 1. , 1.2, 1.4, 1.6]
+
+# # for Kir search it was:
+# kirs = np.linspace(0.1, 1.0, cfg.num_vals) # [0.1 , 0.28, 0.46, 0.64, 0.82, 1.]
+
 # cals /= 5 # normalize with respect to default CaL value (i.e. 5) from Park et al.
 # cfg.filename = f'{saveFolder}/cat{cat}_cals{cals[0]}-{cals[-1]}_hcn{hcn}_sk{sk}_iclamp_{cfg.IClamp_amp}'
 
 for i, cell in enumerate(sim.net.cells):
     gCaL_scale = cals[i] if cals is not None else 1
+
+    # # for Kir search it was:
+    # gKir_scale = kirs[i] if kirs is not None else 1
+    # gCaL_scale = 1.2
+
     gSK_scale = 0.9
 
     # Na   
@@ -58,6 +67,10 @@ for i, cell in enumerate(sim.net.cells):
     # set_values_from_file(cell, "gcaT_CaT", dend_scale=1.2) # modulate CaT as e.g. in Fig. 6C
     set_values_from_file(cell, "gk_sKCa", soma_scale=gSK_scale, dend_scale=gSK_scale)
     # set_values_from_file(cell, "gk_sKCa", "apamin0.9") # apply apamin
+
+    # # for Kir search it was:
+    # set_values_from_file(cell, "gk_Kir", soma_scale=gKir_scale, dend_scale=gKir_scale)
+
     set_values_from_file(cell, "gcaL_HVA", soma_scale=gCaL_scale, dend_scale=gCaL_scale)
     # set_values_from_file(cell, "gcaL_HVA", "dl0.9") # 10% decrease in dendritic linear CaL (see Figure 6A, 8A)
 

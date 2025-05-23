@@ -7,7 +7,7 @@ params = {
 }
 
 b = batch.Batch('src/cfg.py', 'src/netParams.py', params=params, initCfg={})
-b.batchLabel = 'gCaT-gHCN'
+b.batchLabel = 'gCaT-gHCN' # for Kir search it was 'kir-gCaT-gHCN'
 b.saveFolder = b.batchLabel
 b.method = 'grid'
 
