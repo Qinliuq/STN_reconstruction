@@ -9,7 +9,7 @@ if not isBatchRun:
 else:
     from src.tools import set_values_from_file, apply_CSF_Beurrier, apply_CSF_Bevan # for batch run
 
-cfg, netParams = sim.readCmdLineArgs(simConfigDefault='src/cfg.py', netParamsDefault='src/netParams_Qin.py')
+cfg, netParams = sim.readCmdLineArgs(simConfigDefault='src/cfg.py', netParamsDefault='src/netParams.py')
 
 sim.create(netParams, cfg)
 
