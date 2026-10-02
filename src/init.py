@@ -5,60 +5,18 @@ import sys
 isBatchRun = sys.argv[0][-5:] == 'nrniv'
 
 if not isBatchRun:
-    from tools import set_values_from_file, apply_CSF_Beurrier, apply_CSF_Bevan # for regular run
+    from tools import set_conductances, set_ion_styles, apply_CSF_Beurrier, apply_CSF_Bevan # for regular run
 else:
-    from src.tools import set_values_from_file, apply_CSF_Beurrier, apply_CSF_Bevan # for batch run
+    from src.tools import set_conductances, set_ion_styles, apply_CSF_Beurrier, apply_CSF_Bevan # for batch run
 
 cfg, netParams = sim.readCmdLineArgs(simConfigDefault='src/cfg.py', netParamsDefault='src/netParams.py')
 
 sim.create(netParams, cfg)
 
-import numpy as np
-
-for i, cell in enumerate(sim.net.cells):
-
-    cellType = cell.tags.get('cellType')
-    if cellType not in ['PVP_cell', 'PVN_cell']:
-        continue
-
-    # conductance scales are defined in cfg.py (so they can be varied in batch runs)
-    prefix = 'PVP' if cellType == 'PVP_cell' else 'PVN'
-    gCaT_scale = getattr(cfg, f'{prefix}_gCaT_scale')
-    gCaL_scale = getattr(cfg, f'{prefix}_gCaL_scale')
-    gHCN_scale = getattr(cfg, f'{prefix}_gHCN_scale')
-    gSK_scale = getattr(cfg, f'{prefix}_gSK_scale')
-    gKir_scale = getattr(cfg, f'{prefix}_gKir_scale')
-
-    # Na   
-    default_gNa_soma = 1.483419823e-02 
-    default_gNa_dend = 1.0e-7
-    cell.secs.soma.hObj.gna_Na = default_gNa_soma
-    # NaL (can int#rchange with the Do & Bean model)
-    default_gNaL_soma = 1.108670852e-05
-    default_gNaL_dend = 0.81e-5
-    cell.secs.soma.hObj.gna_NaL = default_gNaL_soma
-
-    # linear conductances (loaded from files)...
-    set_values_from_file(cell, "gk_KDR")  
-    set_values_from_file(cell, "gk_Kv31")
-    set_values_from_file(cell, "gcaN_HVA")
-    set_values_from_file(cell, "gk_Ih", soma_scale=gHCN_scale, dend_scale=gHCN_scale)
-    set_values_from_file(cell, "gcaT_CaT", soma_scale=gCaT_scale, dend_scale=gCaT_scale)
-    # set_values_from_file(cell, "gcaT_CaT", dend_scale=1.2) # modulate CaT as e.g. in Fig. 6C
-    set_values_from_file(cell, "gk_sKCa", soma_scale=gSK_scale, dend_scale=gSK_scale)
-    set_values_from_file(cell, "gk_Kir", soma_scale=gKir_scale, dend_scale=gKir_scale)
-
-    # set_values_from_file(cell, "gk_sKCa", "apamin0.9") # apply apamin
-    set_values_from_file(cell, "gcaL_HVA", soma_scale=gCaL_scale, dend_scale=gCaL_scale)
-    # set_values_from_file(cell, "gcaL_HVA", "dl0.9") # 10% decrease in dendritic linear CaL (see Figure 6A, 8A)
-
-from neuron import h
-for sec in h.allsec():
-    sec.push()
-    h.ion_style("na_ion",1,2,1,0,1)
-    h.ion_style("k_ion",1,2,1,0,1)
-    h.ion_style("ca_ion",3,2,1,1,1)   
-    h.pop_section()
+for cell in sim.net.cells:
+    if cell.tags.get('cellType') in ['PVP_cell', 'PVN_cell']:
+        set_conductances(cell, cfg)
+set_ion_styles()
 
 # apply_CSF_Beurrier()
 apply_CSF_Bevan()
