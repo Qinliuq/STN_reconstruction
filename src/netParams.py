@@ -5,9 +5,9 @@ from scipy.stats import skewnorm
 from __main__ import cfg
 
 netParams = specs.NetParams()
-netParams.sizeX = 850 #8.5 * 1e3 # so that diagonal axis is 12
-netParams.sizeY = 850 #8.5 * 1e3
-netParams.sizeZ = 100 #3 * 1e3
+netParams.sizeX = cfg.sizeX
+netParams.sizeY = cfg.sizeY
+netParams.sizeZ = cfg.sizeZ
 # ------------------------------------------------ CELL TYPES ------------------------------------------------
 from neuron import h
 resultCode = h.load_file('cells/SThprotocell.hoc')
@@ -65,7 +65,7 @@ netParams.synMechParams['GABA'] = {'mod': 'Exp2Syn', 'e': -85, 'tau1': 2, 'tau2'
 #I_ratio = 0.9 #PVP/PVN
 #E_ratio = 0.6 #PVP/PVN 
 
-target_secs = [sec for sec in netParams.cellParams['PVP_cell'].secs.keys() if sec is not 'soma']
+target_secs = [sec for sec in netParams.cellParams['PVP_cell'].secs.keys() if sec != 'soma']
 
 #netParams.connParams['Ctx->STN'] = {'synMech': 'glut', 'preConds': {'pop': 'Ctx_pop'}, 'postConds': {'pop': ['PVP_pop', 'PVN_pop']}, 'probability': 0.75, 'weight': 0.0002, 'delay': 1}
 #netParams.connParams['Ctx->PVP'] = {'synMech': 'glut', 'preConds': {'pop': 'Ctx_pop'}, 'postConds': {'pop': 'PVP_pop'}, 'probability':  0.7, 'weight': E_ratio * 0.0003, 'delay': 1}
@@ -73,9 +73,9 @@ target_secs = [sec for sec in netParams.cellParams['PVP_cell'].secs.keys() if se
 
 #
 # 
-#netParams.connParams['GPe->PVP'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_pop'}, 'postConds': {'pop': 'PVP_pop'}, 'secs': target_secs,'probability':  0.5, 'weight': I_ratio * 0.00015, 'delay': 1}
+#netParams.connParams['GPe->PVP'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_pop'}, 'postConds': {'pop': 'PVP_pop'}, 'sec': target_secs,'probability':  0.5, 'weight': I_ratio * 0.00015, 'delay': 1}
 #netParams.connParams['GPe->PVN'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_pop'}, 'postConds': {'pop': 'PVN_pop'}, 'probability':  0.5, 'weight': 0.0001, 'delay': 1}
-#netParams.connParams['GPeH->PVP'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_H_pop'}, 'postConds': {'pop': 'PVP_pop'},'secs': target_secs, 'probability':  0.3, 'weight': I_ratio * 0.00015, 'delay': 1}
+#netParams.connParams['GPeH->PVP'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_H_pop'}, 'postConds': {'pop': 'PVP_pop'},'sec': target_secs, 'probability':  0.3, 'weight': I_ratio * 0.00015, 'delay': 1}
 #netParams.connParams['GPeH->PVN'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_H_pop'}, 'postConds': {'pop': 'PVN_pop'}, 'probability':  0.5, 'weight': 0.000, 'delay': 1}
 #netParams.connParams['GPeH->PVP'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_H_pop'}, 'postConds': {'pop': 'PVP_pop'},'probability':  0.5, 'weight': I_ratio * 0.02, 'delay': 1}
 #weight -0.001 or lower,probability 0.5: burst-pause caused by disinhibition
@@ -94,7 +94,7 @@ deg45 = np.cos(np.pi/4)
 proj_matrix = np.array([[deg45,  deg45], # inverse of 45-deg rotation matrix
                         [-deg45,  deg45]])
 # project on axis, keep first coord only, and normalize
-norm_ax = f'({deg45} * post_x + {deg45} * post_y) / sqrt(2)'
+norm_ax = f'({deg45} * post_xnorm + {deg45} * post_ynorm) / sqrt(2)' # normalized coords (0..1), not um
 
 scale = 1
 base_prob_E = 0.2/scale # before applying topographic rules, presume that each STN cell receives input with <base_prob_E/I> probability
@@ -110,13 +110,13 @@ rule_gaba = base_prob_I * 0.55
 
 
 
-# target_secs = [sec for sec in netParams.cellParams['PVP_cell'].secs.keys() if sec is not 'soma']
+# target_secs = [sec for sec in netParams.cellParams['PVP_cell'].secs.keys() if sec != 'soma']
 # target_secs = [f'dend0_{i}' for i in range(10, 22)] + [f'dend1_{i}' for i in range(5, 10)]
 netParams.connParams['Ctx->STN'] = {'synMech': 'glut', 'preConds': {'pop': 'Ctx_pop'}, 'postConds': {'pop': ['PVP_pop', 'PVN_pop']}, 'probability': rule_glut, 'weight': 0.0003, 'delay': 1, 'sec': 'soma'}
 
-#netParams.connParams['GPe->PVP'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_pop'}, 'postConds': {'pop': 'PVP_pop'}, 'secs': target_secs,'probability': rule_gaba, 'weight': E_I_balance_PVP * 0.0002, 'delay': 1}
+#netParams.connParams['GPe->PVP'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_pop'}, 'postConds': {'pop': 'PVP_pop'}, 'sec': target_secs,'probability': rule_gaba, 'weight': E_I_balance_PVP * 0.0002, 'delay': 1}
 #netParams.connParams['GPe->PVN'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_pop'}, 'postConds': {'pop': 'PVN_pop'}, 'probability': rule_gaba, 'weight': E_I_balance_PVN * 0.0002, 'delay': 1}
-netParams.connParams['GPeH->PVP'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_H_pop'}, 'postConds': {'pop': 'PVP_pop'},'secs': target_secs, 'probability': rule_gaba, 'weight': E_I_balance_PVP * 0.00015, 'delay': 1}
+netParams.connParams['GPeH->PVP'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_H_pop'}, 'postConds': {'pop': 'PVP_pop'},'sec': target_secs, 'probability': rule_gaba, 'weight': E_I_balance_PVP * 0.00015, 'delay': 1}
 netParams.connParams['GPeH->PVN'] = {'synMech': 'GABA', 'preConds': {'pop': 'GPe_H_pop'}, 'postConds': {'pop': 'PVN_pop'}, 'probability': rule_gaba, 'weight': E_I_balance_PVN * 0.00015,  'delay': 1}
 
 

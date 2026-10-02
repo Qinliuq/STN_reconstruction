@@ -15,28 +15,19 @@ sim.create(netParams, cfg)
 
 import numpy as np
 
-# using PV+ "best candidate" params:
-# this combo burst-pause like behavior during 20Hz inpu: cat, cal, hcn, sk = 1.4, 0.86, 0.65, 0.9 # 28/20, */5, 1.3/2, 0.9
-cat, cal, hcn, sk = 1.4, 0.85, .65, 0.9
 for i, cell in enumerate(sim.net.cells):
 
     cellType = cell.tags.get('cellType')
     if cellType not in ['PVP_cell', 'PVN_cell']:
         continue
 
-    if cellType == 'PVP_cell': # PV+ params
-        gCaT_scale = cat
-        gCaL_scale = cal
-        gHCN_scale = hcn
-        gSK_scale = sk
-        gKir_scale = 0.5
-    else: # PV- params
-        gCaT_scale = .8
-        gCaL_scale = 1.2
-        gHCN_scale = .6 
-        gSK_scale = 1
-        gKir_scale = 0.1
-
+    # conductance scales are defined in cfg.py (so they can be varied in batch runs)
+    prefix = 'PVP' if cellType == 'PVP_cell' else 'PVN'
+    gCaT_scale = getattr(cfg, f'{prefix}_gCaT_scale')
+    gCaL_scale = getattr(cfg, f'{prefix}_gCaL_scale')
+    gHCN_scale = getattr(cfg, f'{prefix}_gHCN_scale')
+    gSK_scale = getattr(cfg, f'{prefix}_gSK_scale')
+    gKir_scale = getattr(cfg, f'{prefix}_gKir_scale')
 
     # Na   
     default_gNa_soma = 1.483419823e-02 

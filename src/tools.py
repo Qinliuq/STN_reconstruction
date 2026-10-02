@@ -91,7 +91,7 @@ def generate_locs(num, pv_percent, seed=0, plot=True):
 
     temp = num/(n_grids-2)
     points_per_grid = [temp*.3,temp*.7,temp,temp,temp,temp,temp,temp,temp,temp,temp*.7,temp*.3] #a temporary hack!!
-    pvn_points_per_grid = np.array([np.int(points_per_grid[i]-pvp_points_per_grid[i]) for i in range(n_grids)])
+    pvn_points_per_grid = np.array([int(points_per_grid[i]-pvp_points_per_grid[i]) for i in range(n_grids)])
 
     pvp_x = np.zeros(pvp_points_per_grid.sum(),)
     pvp_y = np.zeros(pvp_points_per_grid.sum(),)
