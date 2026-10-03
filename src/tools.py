@@ -26,14 +26,16 @@ def set_values_from_file(cell, conductance, modifier=None, soma_scale=1.0, dend_
         setattr(hObj(loc), conductance, val)
     # print(f"Cond {conductance} avg {totval/numval} (n. {numval})")
 
-def set_conductances(cell, cfg):
+def set_conductances(cell, cfg, overrides=None):
     # set channel conductances of a PV+ or PV- cell; per-type scales are defined in cfg.py (cfg.PVP_* / cfg.PVN_*)
+    # `overrides` (e.g. {'gCaT': 1.2}) replaces individual scales for this cell only
     prefix = 'PVP' if cell.tags['cellType'] == 'PVP_cell' else 'PVN'
-    gCaT_scale = getattr(cfg, f'{prefix}_gCaT_scale')
-    gCaL_scale = getattr(cfg, f'{prefix}_gCaL_scale')
-    gHCN_scale = getattr(cfg, f'{prefix}_gHCN_scale')
-    gSK_scale = getattr(cfg, f'{prefix}_gSK_scale')
-    gKir_scale = getattr(cfg, f'{prefix}_gKir_scale')
+    scale = lambda name: (overrides or {}).get(name, getattr(cfg, f'{prefix}_{name}_scale'))
+    gCaT_scale = scale('gCaT')
+    gCaL_scale = scale('gCaL')
+    gHCN_scale = scale('gHCN')
+    gSK_scale = scale('gSK')
+    gKir_scale = scale('gKir')
 
     # Na
     default_gNa_soma = 1.483419823e-02
