@@ -13,12 +13,26 @@ cfg.recordTraces = {'V_soma': {'sec':'soma', 'loc':0.5, 'var':'v'},
                     # 'gHCN': {'sec':'soma', 'loc':0.5, 'mech': 'Ih', 'var': 'gk'},
                     # 'gMaxHCN': {'sec':'soma', 'loc':0.5, 'mech': 'Ih', 'var': 'gmax_k'}
                     }
-sizeX = 8.5 * 1e3 # TODO: use var here and in netParams
-sizeZ = 3 * 1e3
-cfg.recordLFP = [[0.2*sizeX, 0.2*sizeX, sizeZ/2], 
-                 [0.4*sizeX, 0.4*sizeX, sizeZ/2], 
-                 [0.6*sizeX, 0.6*sizeX, sizeZ/2], 
-                 [0.8*sizeX, 0.8*sizeX, sizeZ/2]]
+# network dimensions (um), also used by netParams.py
+cfg.sizeX = 850 # 8.5 * 1e3
+cfg.sizeY = 850 # 8.5 * 1e3
+cfg.sizeZ = 100 # 3 * 1e3
+# LFP electrodes placed along the STN (diagonal) axis
+cfg.recordLFP = [[f*cfg.sizeX, f*cfg.sizeY, cfg.sizeZ/2] for f in (0.2, 0.4, 0.6, 0.8)]
+
+# ion channel conductance scaling per cell type (relative to default values in cells/sth-data)
+# PV+ "best candidate" (bursting); this combo gives burst-pause like behavior during 20Hz input: cat, cal, hcn, sk = 1.4, 0.86, 0.65, 0.9
+cfg.PVP_gCaT_scale = 1.4
+cfg.PVP_gCaL_scale = 0.85
+cfg.PVP_gHCN_scale = 0.65
+cfg.PVP_gSK_scale = 0.9
+cfg.PVP_gKir_scale = 0.5
+# PV- (single-spiking)
+cfg.PVN_gCaT_scale = 0.8
+cfg.PVN_gCaL_scale = 1.2
+cfg.PVN_gHCN_scale = 0.6
+cfg.PVN_gSK_scale = 1.0
+cfg.PVN_gKir_scale = 0.1
 
 cfg.savePickle = True
 # cfg.verbose = True
