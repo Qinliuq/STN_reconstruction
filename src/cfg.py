@@ -28,8 +28,8 @@ cfg.PVP_gHCN_scale = 0.65
 cfg.PVP_gSK_scale = 0.9
 cfg.PVP_gKir_scale = 0.5
 # PV- (single-spiking)
-cfg.PVN_gCaT_scale = 0.8
-cfg.PVN_gCaL_scale = 1.2
+cfg.PVN_gCaT_scale = 1.2 # tonic firing at rest (silent at <= 1.0, bursts at -0.16 nA at 1.4)
+cfg.PVN_gCaL_scale = 0.8 # short rebound (1.2 gives a ~250 ms rebound plateau)
 cfg.PVN_gHCN_scale = 0.6
 cfg.PVN_gSK_scale = 1.0
 cfg.PVN_gKir_scale = 0.1

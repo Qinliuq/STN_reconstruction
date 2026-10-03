@@ -20,6 +20,10 @@ Check single-cell behaviour of PV+ and PV- cells (no synaptic input; firing/burs
 ```
 python src/single_cell.py
 ```
+To sweep one conductance scale for one cell type (other scales as in `src/cfg.py`), e.g. CaT in PV- cells:
+```
+python src/single_cell.py --cell PVN --param gCaT --values 0.8 1.0 1.2 1.4
+```
 
 Ion channel conductance scales for PV+ and PV- cells are set in `src/cfg.py` (`cfg.PVP_*` / `cfg.PVN_*`), so they can be varied in `src/batch.py`.
 

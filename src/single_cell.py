@@ -8,7 +8,13 @@ to single_cell.png.
 
 Run from the repo root (after `nrnivmodl mod`):
     python src/single_cell.py
+
+To sweep one conductance scale for one cell type instead (other scales stay as in cfg.py),
+e.g. CaT in PV- cells; traces are saved to single_cell_PVN_gCaT.png:
+    python src/single_cell.py --cell PVN --param gCaT --values 0.8 1.0 1.2 1.4
+Run time grows with the number of values (each value adds one cell per protocol).
 """
+import argparse
 from netpyne import specs, sim
 from neuron import h
 import numpy as np
@@ -35,6 +41,23 @@ rebound = {'protocol': 'rebound (-0.25 nA, 1000-1500 ms)', 'onset': 1000, 'relea
 
 cellTypes = {'PVP_cell': 'PV+', 'PVN_cell': 'PV-'}
 
+parser = argparse.ArgumentParser(description='Single-cell check of PV+ and PV- STN cells')
+parser.add_argument('--cell', choices=['PVP', 'PVN'], help='cell type to sweep')
+parser.add_argument('--param', choices=['gCaT', 'gCaL', 'gHCN', 'gSK', 'gKir'], help='conductance scale to sweep')
+parser.add_argument('--values', type=float, nargs='+', help='values of the scale to sweep')
+args = parser.parse_args()
+if any([args.cell, args.param, args.values]) and not all([args.cell, args.param, args.values]):
+    parser.error('--cell, --param and --values must be used together')
+
+# conditions: (label, cellType, conductance scale overrides); one column in the output each
+if args.values:
+    cellType = f'{args.cell}_cell'
+    conditions = [(f'{cellTypes[cellType]} {args.param}={v:g}', cellType, {args.param: v}) for v in args.values]
+    figName = f'single_cell_{args.cell}_{args.param}.png'
+else:
+    conditions = [(lab, cellType, {}) for cellType, lab in cellTypes.items()]
+    figName = 'single_cell.png'
+
 # ------------------------------------------------ SIMULATION ------------------------------------------------
 cfg = specs.SimConfig()
 cfg.hParams['celsius'] = netCfg.hParams['celsius']
@@ -52,10 +75,11 @@ if not resultCode:
 protoCell = h.SThproto()
 
 names = list(protocols)
-for cellType in cellTypes:
+for cellType in {cellType for _, cellType, _ in conditions}:
     cellParams = netParams.importCellParams(label=cellType, fileName='cells/SThprotocell.hoc', cellName='SThcell', cellArgs=[0, protoCell])
     cellParams.secs.soma['threshold'] = -30
-    pop = f'{cellType}_pop'
+for c, (_, cellType, _) in enumerate(conditions):
+    pop = f'cond{c}_pop'
     netParams.popParams[pop] = {'cellType': cellType, 'numCells': len(names)} # one unconnected cell per protocol
     for i, name in enumerate(names):
         for j, (delay, dur, amp) in enumerate(protocols[name]):
@@ -65,7 +89,8 @@ for cellType in cellTypes:
 
 sim.create(netParams, cfg)
 for cell in sim.net.cells:
-    set_conductances(cell, netCfg)
+    c = int(cell.tags['pop'][len('cond'):-len('_pop')])
+    set_conductances(cell, netCfg, overrides=conditions[c][2])
 set_ion_styles()
 apply_CSF_Bevan()
 sim.simulate()
@@ -119,33 +144,34 @@ spikeTimes = {}
 for gid, t in zip(sim.allSimData['spkid'], sim.allSimData['spkt']):
     spikeTimes.setdefault(int(gid), []).append(t)
 
-def cell_spikes(cellType, i):
-    gid = sim.net.pops[f'{cellType}_pop'].cellGids[i]
+def cell_spikes(c, i):
+    gid = sim.net.pops[f'cond{c}_pop'].cellGids[i]
     return gid, np.array(sorted(spikeTimes.get(gid, [])))
 
 print(f"\nCells without synaptic input; stats over {transient}-{duration} ms")
 print("burst = >=3 spikes with ISI < 20 ms, flanked by pauses > 3x the intra-burst ISI\n")
 for name in names:
     print(f"=== {name}")
-    for cellType, lab in cellTypes.items():
-        _, spikes = cell_spikes(cellType, names.index(name))
+    for c, (lab, _, _) in enumerate(conditions):
+        _, spikes = cell_spikes(c, names.index(name))
         if name == rebound['protocol']:
             pre = firing_stats(spikes, rebound['onset'] - 500, rebound['onset'])
             n, dur = rebound_stats(spikes, rebound['release'])
             late = firing_stats(spikes, rebound['release'] + 500, duration)
-            print(f"  {lab}: before step {pre['rate']:5.1f} Hz | rebound {n:3d} spikes over {dur:4.0f} ms | late {late['rate']:5.1f} Hz")
+            print(f"  {lab:>16}: before step {pre['rate']:5.1f} Hz | rebound {n:3d} spikes over {dur:4.0f} ms | late {late['rate']:5.1f} Hz")
         else:
             s = firing_stats(spikes, transient, duration)
-            print(f"  {lab}: rate {s['rate']:5.1f} Hz | ISI CV {s['cv']:4.2f} | bursts {s['bursts']:3d} | "
+            print(f"  {lab:>16}: rate {s['rate']:5.1f} Hz | ISI CV {s['cv']:4.2f} | bursts {s['bursts']:3d} | "
                   f"spikes in bursts {s['fracInBursts']:4.2f} | spikes/burst {s['spikesPerBurst']:4.1f}")
 
 # ------------------------------------------------ FIGURE ------------------------------------------------
 t = np.array(sim.allSimData['t'])
-fig, axs = plt.subplots(len(names), len(cellTypes), figsize=(14, 2.1 * len(names)), sharex=True, sharey=True, squeeze=False)
-for c, (cellType, lab) in enumerate(cellTypes.items()):
+colors = {'PVP_cell': 'tab:green', 'PVN_cell': 'tab:blue'}
+fig, axs = plt.subplots(len(names), len(conditions), figsize=(max(14, 5 * len(conditions)), 2.1 * len(names)), sharex=True, sharey=True, squeeze=False)
+for c, (lab, cellType, _) in enumerate(conditions):
     for i, name in enumerate(names):
-        gid, _ = cell_spikes(cellType, i)
-        axs[i, c].plot(t, sim.allSimData['V_soma'][f'cell_{gid}'], color=['tab:green', 'tab:blue'][c], lw=0.6)
+        gid, _ = cell_spikes(c, i)
+        axs[i, c].plot(t, sim.allSimData['V_soma'][f'cell_{gid}'], color=colors[cellType], lw=0.6)
         axs[i, c].set_title(f'{lab}: {name}', fontsize=9, loc='left')
         axs[i, c].set_ylim(-90, 40)
 for ax in axs[:, 0]:
@@ -153,5 +179,5 @@ for ax in axs[:, 0]:
 for ax in axs[-1]:
     ax.set_xlabel('Time (ms)')
 fig.tight_layout()
-fig.savefig('single_cell.png', dpi=110)
-print("\nSaved single_cell.png")
+fig.savefig(figName, dpi=110)
+print(f"\nSaved {figName}")
