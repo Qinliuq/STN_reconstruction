@@ -6,8 +6,10 @@ isBatchRun = sys.argv[0][-5:] == 'nrniv'
 
 if not isBatchRun:
     from tools import set_conductances, set_ion_styles, apply_CSF_Beurrier, apply_CSF_Bevan # for regular run
+    from stn_inputs import GPeFeedback
 else:
     from src.tools import set_conductances, set_ion_styles, apply_CSF_Beurrier, apply_CSF_Bevan # for batch run
+    from src.stn_inputs import GPeFeedback
 
 cfg, netParams = sim.readCmdLineArgs(simConfigDefault='src/cfg.py', netParamsDefault='src/netParams.py')
 
@@ -21,6 +23,11 @@ set_ion_styles()
 # apply_CSF_Beurrier()
 apply_CSF_Bevan()
 
-sim.simulate()
+# GPe input: closed loop with the STN spikes, so the simulation is run in steps of cfg.gpe_dt (replaces sim.simulate())
+gpe = GPeFeedback(sim, cfg, netParams.synMechParams['GABA'])
+gpe.run()
+sim.gatherData()
+gpe.save()
+gpe.plot(f'{sim.cfg.filename}_GPe_rates.png')
 sim.analyze()
 

@@ -34,6 +34,21 @@ cfg.PVN_gHCN_scale = 0.6
 cfg.PVN_gSK_scale = 1.0
 cfg.PVN_gKir_scale = 0.1
 
+# STN inputs
+# cortex (src/cortical_arrivals.py): open-loop arrival events, generated before the simulation
+cfg.ctx_state = 'healthy' # 'healthy' or 'parkinsonian' (STATES in cortical_arrivals.py)
+cfg.ctx_overrides = {} # override fields of the state's InputParams, e.g. {'rate_hz': 60, 'conductance_nS': 0.3}
+cfg.ctx_cells_per_assembly = 31 # STN cells sharing one cortical assembly (2000 cells / 64 assemblies in cortical_arrivals.py)
+cfg.ctx_dt = 0.001 # s, time bin of the arrival generator
+cfg.ctx_delay = 1 # ms, synaptic delay
+cfg.ctx_seed = 1
+# GPe (src/gpe_feedback.py): closed loop, stepped during the simulation with the STN spikes of the previous step
+cfg.gpe_dt = 0.001 # s, GPe update step
+cfg.gpe_feedback_delay = 0.005 # s, total STN->GPe feedback delay (includes the one-step lag of the coupling)
+cfg.gpe_conductance_nS = 0.5 # per inhibitory arrival
+cfg.gpe_params = {} # other GPeInputGenerator arguments, e.g. {'n_gpe_groups': 12, 'target_probability': 0.35, 'stn_to_gpe_gain': 0.5}
+cfg.gpe_seed = 2
+
 cfg.savePickle = True
 # cfg.verbose = True
 tRange = [0, cfg.duration]
