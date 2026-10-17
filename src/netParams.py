@@ -53,9 +53,9 @@ netParams.synMechParams['GABA'] = {'mod': 'Exp2Syn', 'e': -85, 'tau1': 2, 'tau2'
 # # STN->STN - free parameter
 netParams.probLengthConst = 300
 
-netParams.connParams['PVP->all'] = {'synMech': 'glut', 'preConds': {'pop': 'PVP_pop'}, 'postConds': {'pop': ['PVP_pop', 'PVN_pop']}, 'probability': 'exp(-dist_3D/probLengthConst) * 0.25', 'weight': 0.001, 'delay': 0.5} # 'connList': [[0,1], [0,2]]
+netParams.connParams['PVP->all'] = {'synMech': 'glut', 'preConds': {'pop': 'PVP_pop'}, 'postConds': {'pop': ['PVP_pop', 'PVN_pop']}, 'probability': 'exp(-dist_3D/probLengthConst) * 0.25', 'weight': cfg.stn_stn_weight, 'delay': 0.5} # 'connList': [[0,1], [0,2]]
 
-netParams.connParams['PVN->all'] = {'synMech': 'glut', 'preConds': {'pop': 'PVN_pop'}, 'postConds': {'pop': ['PVP_pop', 'PVN_pop']}, 'probability': 'exp(-dist_3D/probLengthConst) * 0.25', 'weight': 0.001, 'delay': 0.5} # exp(-dist_3D/probLengthConst) * 0.25'
+netParams.connParams['PVN->all'] = {'synMech': 'glut', 'preConds': {'pop': 'PVN_pop'}, 'postConds': {'pop': ['PVP_pop', 'PVN_pop']}, 'probability': 'exp(-dist_3D/probLengthConst) * 0.25', 'weight': cfg.stn_stn_weight, 'delay': 0.5} # exp(-dist_3D/probLengthConst) * 0.25'
 
 # ------------------------------------------------ CONNECTIONS ------------------------------------------------
 # to be defined..

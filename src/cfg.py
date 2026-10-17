@@ -34,6 +34,9 @@ cfg.PVN_gHCN_scale = 0.6
 cfg.PVN_gSK_scale = 1.0
 cfg.PVN_gKir_scale = 0.1
 
+# STN->STN collateral excitation (uS per connection)
+cfg.stn_stn_weight = 0.001
+
 # STN inputs
 # cortex (src/cortical_arrivals.py): open-loop arrival events, generated before the simulation
 cfg.ctx_state = 'healthy' # 'healthy' or 'parkinsonian' (STATES in cortical_arrivals.py)
