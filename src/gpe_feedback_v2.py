@@ -37,11 +37,12 @@ from pathlib import Path
 import numpy as np
 
 STATES = {
-    # healthy: weak, brief beta episodes; parkinsonian: long, deep beta bursts (timing as in the cortical model).
+    # healthy: weak, brief beta episodes; parkinsonian: frequent, long, deep beta bursts.
     # Every GPe group projects to every STN cell (target_probability 1.0): with the default 0.35, each STN cell
     # received too little GPe input for the pallidal beta to entrain it (calibrated in sweeps/gpe_beta_tuning*.py).
     "healthy": dict(beta_modulation=0.10, burst_rate_hz=0.5, burst_duration_s=0.15, target_probability=1.0),
-    "parkinsonian": dict(beta_modulation=1.00, burst_rate_hz=1.0, burst_duration_s=0.50, target_probability=1.0),
+    # parkinsonian bursts: 2/s of 0.4 s (~55% of the time), so a few-second run reliably contains GPe beta
+    "parkinsonian": dict(beta_modulation=1.00, burst_rate_hz=2.0, burst_duration_s=0.40, target_probability=1.0),
 }
 
 
