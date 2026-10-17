@@ -30,7 +30,8 @@ def set_conductances(cell, cfg, overrides=None):
     # set channel conductances of a PV+ or PV- cell; per-type scales are defined in cfg.py (cfg.PVP_* / cfg.PVN_*)
     # `overrides` (e.g. {'gCaT': 1.2}) replaces individual scales for this cell only
     prefix = 'PVP' if cell.tags['cellType'] == 'PVP_cell' else 'PVN'
-    scale = lambda name: (overrides or {}).get(name, getattr(cfg, f'{prefix}_{name}_scale'))
+    # cfg.channel_block (e.g. {'gKir': 0.5}) multiplies a scale in all cells, like a drug applied to the whole STN
+    scale = lambda name: (overrides or {}).get(name, getattr(cfg, f'{prefix}_{name}_scale')) * getattr(cfg, 'channel_block', {}).get(name, 1.0)
     gCaT_scale = scale('gCaT')
     gCaL_scale = scale('gCaL')
     gHCN_scale = scale('gHCN')

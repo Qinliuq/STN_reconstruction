@@ -12,3 +12,8 @@ env/
 .vscode
 .idea/
 *.pid
+
+# sweep runs (curated results go to results/)
+sweeps/out/
+net2D-*.png
+model_output*

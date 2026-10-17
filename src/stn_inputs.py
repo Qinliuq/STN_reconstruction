@@ -9,6 +9,11 @@ Connect the STN input models to the NetPyNE network:
   (every cfg.gpe_dt) with the STN spikes of the previous step; its inhibitory arrivals
   are delivered to 'GABA' synapses on the STN cells. Called from init.py.
 
+cfg.input_version selects the input models: 1 = cortical_arrivals.py + gpe_feedback.py (cortical beta),
+2 = cortical_arrivals_v2.py + gpe_feedback_v2.py (GPe is the primary beta source, cortical beta a
+supplement). cfg.ctx_state / cfg.gpe_state choose each model's 'healthy' or 'parkinsonian' state
+(gpe_state applies to v2 only).
+
 Both generators index STN cells 0..nSTN-1 in gid order: PV+ cells first, then PV-.
 Conductances (nS per arrival) are used as NetCon weights in uS.
 Single-process runs only (the GPe coupling reads spikes on the local node).
@@ -19,10 +24,20 @@ import dataclasses
 import numpy as np
 from neuron import h
 
-from cortical_arrivals import STATES, generate_arrivals
-from gpe_feedback import GPeInputGenerator
+import cortical_arrivals
+import cortical_arrivals_v2
+import gpe_feedback
+import gpe_feedback_v2
 
 STN_POPS = ['PVP_pop', 'PVN_pop']
+
+
+def input_models(cfg):
+    if cfg.input_version == 1:
+        return cortical_arrivals, gpe_feedback
+    if cfg.input_version == 2:
+        return cortical_arrivals_v2, gpe_feedback_v2
+    raise ValueError(f'unknown cfg.input_version {cfg.input_version}')
 
 
 # ------------------------------------------------ CORTEX ------------------------------------------------
@@ -38,9 +53,20 @@ def topography_scale(cellLocs, cfg):
         raise ValueError(f'cfg.ctx_topography {cfg.ctx_topography} gives a non-positive rate scale along the STN axis')
     return axis, scale / scale.mean()
 
+def separate_coincident(times_ms, step=1e-6):
+    # VecStim replays coincident events back to back; with float rounding the 2nd can fall a hair before t and
+    # NEURON aborts (net_send td-t < 0). Spread coincident events by `step` ms (1 ns) so times strictly increase.
+    t = np.asarray(times_ms, dtype=float)
+    if len(t) < 2:
+        return t
+    runId = np.cumsum(np.r_[True, np.diff(t) > step / 2])
+    rank = np.arange(len(t)) - np.searchsorted(runId, runId)
+    return t + rank * step
+
 def add_cortical_input(netParams, cfg, cellLocsPerPop):
     # cellLocsPerPop: {pop: cellsList with 'xnorm'/'ynorm'}, in STN index order (PVP_pop, PVN_pop)
-    params = dataclasses.replace(STATES[cfg.ctx_state], **cfg.ctx_overrides)
+    ctxModel, _ = input_models(cfg)
+    params = dataclasses.replace(ctxModel.STATES[cfg.ctx_state], **cfg.ctx_overrides)
     cellLocs = [loc for locs in cellLocsPerPop.values() for loc in locs]
     nSTN = len(cellLocs)
     nAssemblies = max(1, math.ceil(nSTN / cfg.ctx_cells_per_assembly))
@@ -48,7 +74,7 @@ def add_cortical_input(netParams, cfg, cellLocsPerPop):
 
     # generate at the highest per-cell rate, then thin each cell's events to its own rate
     # (thinning keeps the arrivals Poisson and keeps the shared fraction of each cell's input)
-    time_s, neuron_id, _ = generate_arrivals(n_neurons=nSTN, duration_s=cfg.duration / 1000, dt_s=cfg.ctx_dt,
+    time_s, neuron_id, _ = ctxModel.generate_arrivals(n_neurons=nSTN, duration_s=cfg.duration / 1000, dt_s=cfg.ctx_dt,
                                              params=dataclasses.replace(params, rate_hz=params.rate_hz * scale.max()),
                                              n_assemblies=nAssemblies, seed=cfg.ctx_seed)
     keep = np.random.default_rng([cfg.ctx_seed, 1]).random(len(time_s)) < (scale / scale.max())[neuron_id]
@@ -57,7 +83,7 @@ def add_cortical_input(netParams, cfg, cellLocsPerPop):
     first = 0
     for pop, locs in cellLocsPerPop.items():
         n = len(locs)
-        spkTimes = [time_ms[neuron_id == first + i].tolist() for i in range(n)] # sorted by generate_arrivals
+        spkTimes = [separate_coincident(time_ms[neuron_id == first + i]).tolist() for i in range(n)] # sorted by generate_arrivals
         netParams.popParams[f'Ctx_{pop}'] = {'cellModel': 'VecStim', 'numCells': n, 'spkTimes': spkTimes}
         netParams.connParams[f'Ctx->{pop}'] = {'preConds': {'pop': f'Ctx_{pop}'}, 'postConds': {'pop': pop},
                                                'connList': [[i, i] for i in range(n)], 'synMech': 'glut',
@@ -65,7 +91,7 @@ def add_cortical_input(netParams, cfg, cellLocsPerPop):
                                                'sec': 'soma', 'loc': 0.5}
         first += n
     rates = np.bincount(neuron_id, minlength=nSTN) / (cfg.duration / 1000)
-    print(f"Cortical input ({cfg.ctx_state}): {len(time_ms)} arrivals to {nSTN} STN cells "
+    print(f"Cortical input (v{cfg.input_version}, {cfg.ctx_state}): {len(time_ms)} arrivals to {nSTN} STN cells "
           f"({rates.mean():.1f} /s per cell, {nAssemblies} assemblies)")
     if cfg.ctx_topography is not None:
         print(f"  topography {cfg.ctx_topography}: rate scale {scale.min():.2f}-{scale.max():.2f} along the STN axis "
@@ -80,9 +106,11 @@ class GPeFeedback:
         gids = [gid for pop in STN_POPS for gid in sim.net.pops[pop].cellGids]
         self.stnIndex = {gid: i for i, gid in enumerate(gids)}
         # arrivals for a step are computed from the previous step's spikes, which adds one step to the feedback delay
-        self.generator = GPeInputGenerator(n_stn=len(gids), dt_s=cfg.gpe_dt,
-                                           feedback_delay_s=max(0.0, cfg.gpe_feedback_delay - cfg.gpe_dt),
-                                           seed=cfg.gpe_seed, **cfg.gpe_params)
+        _, gpeModel = input_models(cfg)
+        stateParams = gpeModel.STATES[cfg.gpe_state] if hasattr(gpeModel, 'STATES') else {}
+        self.generator = gpeModel.GPeInputGenerator(n_stn=len(gids), dt_s=cfg.gpe_dt,
+                                                    feedback_delay_s=max(0.0, cfg.gpe_feedback_delay - cfg.gpe_dt),
+                                                    seed=cfg.gpe_seed, **{**stateParams, **cfg.gpe_params})
         self.rng = np.random.default_rng(cfg.gpe_seed)
 
         # GABA synapses: on all dendritic sections for PV+ cells, on the soma for PV- cells (as in the previous GPe->STN rules);
@@ -117,7 +145,8 @@ class GPeFeedback:
         for i in arrivals:
             ncs = self.netcons[i]
             ncs[self.rng.integers(len(ncs))].event(t)
-        self.rates.append(self.generator.rate_hz.tolist())
+        # emitted rate (includes the v2 beta modulation; equals rate_hz in v1)
+        self.rates.append(getattr(self.generator, 'emitted_rate_hz', self.generator.rate_hz).tolist())
         self.arrivalTimes.extend([t] * len(arrivals))
         self.arrivalCells.extend(arrivals.tolist())
 
