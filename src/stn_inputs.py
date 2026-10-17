@@ -3,7 +3,8 @@ Connect the STN input models to the NetPyNE network:
 
 - cortical_arrivals.py (open loop): arrival events for every STN cell are generated
   before the simulation; each STN cell gets one VecStim with its own event times,
-  connected 1:1 to a 'glut' synapse on the soma. Called from netParams.py.
+  connected 1:1 to a 'glut' synapse on the soma. Optionally (cfg.ctx_topography) the
+  arrival rate is scaled per cell by its position along the STN axis. Called from netParams.py.
 - gpe_feedback.py (closed loop): GPeInputGenerator is stepped during the simulation
   (every cfg.gpe_dt) with the STN spikes of the previous step; its inhibitory arrivals
   are delivered to 'GABA' synapses on the STN cells. Called from init.py.
@@ -25,17 +26,37 @@ STN_POPS = ['PVP_pop', 'PVN_pop']
 
 
 # ------------------------------------------------ CORTEX ------------------------------------------------
-def add_cortical_input(netParams, cfg, nCellsPerPop):
-    # nCellsPerPop: {pop: number of cells}, in STN index order (PVP_pop, PVN_pop)
+def topography_scale(cellLocs, cfg):
+    # per-cell cortical rate scale from the position along the STN axis (the 45-deg diagonal):
+    # axis = (xnorm + ynorm) / 2, clipped to 0..1; scale = intercept + slope * axis, normalized to mean 1
+    axis = np.clip([(loc['xnorm'] + loc['ynorm']) / 2 for loc in cellLocs], 0, 1)
+    if cfg.ctx_topography is None:
+        return axis, np.ones(len(axis))
+    intercept, slope = cfg.ctx_topography
+    scale = intercept + slope * axis
+    if np.any(scale <= 0):
+        raise ValueError(f'cfg.ctx_topography {cfg.ctx_topography} gives a non-positive rate scale along the STN axis')
+    return axis, scale / scale.mean()
+
+def add_cortical_input(netParams, cfg, cellLocsPerPop):
+    # cellLocsPerPop: {pop: cellsList with 'xnorm'/'ynorm'}, in STN index order (PVP_pop, PVN_pop)
     params = dataclasses.replace(STATES[cfg.ctx_state], **cfg.ctx_overrides)
-    nSTN = sum(nCellsPerPop.values())
+    cellLocs = [loc for locs in cellLocsPerPop.values() for loc in locs]
+    nSTN = len(cellLocs)
     nAssemblies = max(1, math.ceil(nSTN / cfg.ctx_cells_per_assembly))
+    axis, scale = topography_scale(cellLocs, cfg)
+
+    # generate at the highest per-cell rate, then thin each cell's events to its own rate
+    # (thinning keeps the arrivals Poisson and keeps the shared fraction of each cell's input)
     time_s, neuron_id, _ = generate_arrivals(n_neurons=nSTN, duration_s=cfg.duration / 1000, dt_s=cfg.ctx_dt,
-                                             params=params, n_assemblies=nAssemblies, seed=cfg.ctx_seed)
-    time_ms = time_s * 1000
+                                             params=dataclasses.replace(params, rate_hz=params.rate_hz * scale.max()),
+                                             n_assemblies=nAssemblies, seed=cfg.ctx_seed)
+    keep = np.random.default_rng([cfg.ctx_seed, 1]).random(len(time_s)) < (scale / scale.max())[neuron_id]
+    time_ms, neuron_id = time_s[keep] * 1000, neuron_id[keep]
 
     first = 0
-    for pop, n in nCellsPerPop.items():
+    for pop, locs in cellLocsPerPop.items():
+        n = len(locs)
         spkTimes = [time_ms[neuron_id == first + i].tolist() for i in range(n)] # sorted by generate_arrivals
         netParams.popParams[f'Ctx_{pop}'] = {'cellModel': 'VecStim', 'numCells': n, 'spkTimes': spkTimes}
         netParams.connParams[f'Ctx->{pop}'] = {'preConds': {'pop': f'Ctx_{pop}'}, 'postConds': {'pop': pop},
@@ -43,8 +64,12 @@ def add_cortical_input(netParams, cfg, nCellsPerPop):
                                                'weight': params.conductance_nS * 1e-3, 'delay': cfg.ctx_delay,
                                                'sec': 'soma', 'loc': 0.5}
         first += n
+    rates = np.bincount(neuron_id, minlength=nSTN) / (cfg.duration / 1000)
     print(f"Cortical input ({cfg.ctx_state}): {len(time_ms)} arrivals to {nSTN} STN cells "
-          f"({len(time_ms) / nSTN / (cfg.duration / 1000):.1f} /s per cell, {nAssemblies} assemblies)")
+          f"({rates.mean():.1f} /s per cell, {nAssemblies} assemblies)")
+    if cfg.ctx_topography is not None:
+        print(f"  topography {cfg.ctx_topography}: rate scale {scale.min():.2f}-{scale.max():.2f} along the STN axis "
+              f"(arrivals {rates.min():.0f}-{rates.max():.0f} /s; corr(axis, arrivals) = {np.corrcoef(axis, rates)[0, 1]:.2f})")
 
 
 # ------------------------------------------------ GPe ------------------------------------------------

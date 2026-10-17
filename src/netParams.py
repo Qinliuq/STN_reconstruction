@@ -39,7 +39,7 @@ netParams.popParams['PVN_pop'] = {'cellType': 'PVN_cell', 'cellsList': pvnLocs}
 # Cortex: arrival events from src/cortical_arrivals.py (settings: cfg.ctx_*), one VecStim per STN cell, connected 1:1
 # GPe: closed-loop model from src/gpe_feedback.py (settings: cfg.gpe_*), driven during the simulation from init.py
 from stn_inputs import add_cortical_input
-add_cortical_input(netParams, cfg, {'PVP_pop': len(pvpLocs), 'PVN_pop': len(pvnLocs)})
+add_cortical_input(netParams, cfg, {'PVP_pop': pvpLocs, 'PVN_pop': pvnLocs})
 
 # ------------------------------------------------ SYNAPTIC MECHS ------------------------------------------------
 netParams.synMechParams['glut'] = {'mod': 'Exp2Syn', 'e': 0, 'tau1': 1.0, 'tau2': 5.0}
@@ -48,8 +48,7 @@ netParams.synMechParams['GABA'] = {'mod': 'Exp2Syn', 'e': -85, 'tau1': 2, 'tau2'
 
 # ------------------------------------------------ CONNECTIONS ------------------------------------------------
 # Cortex->STN connections are added by add_cortical_input() above; GPe->STN synapses are created in init.py.
-# Note: the previous topographic cortical rule (connection probability decreasing along the STN axis,
-# after Jeon et al. Fig 7H.2: Gria y = 0.55-0.3x) is not part of the new input model.
+# Cortical topography (cfg.ctx_topography) scales each STN cell's cortical arrival rate by its position along the STN axis.
 
 # # STN->STN - free parameter
 netParams.probLengthConst = 300

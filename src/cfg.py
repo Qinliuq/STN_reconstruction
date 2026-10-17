@@ -38,6 +38,9 @@ cfg.PVN_gKir_scale = 0.1
 # cortex (src/cortical_arrivals.py): open-loop arrival events, generated before the simulation
 cfg.ctx_state = 'healthy' # 'healthy' or 'parkinsonian' (STATES in cortical_arrivals.py)
 cfg.ctx_overrides = {} # override fields of the state's InputParams, e.g. {'rate_hz': 60, 'conductance_nS': 0.3}
+# topography: per-cell rate scale = intercept + slope * position along the STN axis (0..1), normalized to mean 1;
+# None for uniform input. Jeon et al. Fig 7H.2 (Gria): 0.55 - 0.3x; default is the previous, exaggerated rule 0.65 - 0.5x
+cfg.ctx_topography = (0.65, -0.5)
 cfg.ctx_cells_per_assembly = 31 # STN cells sharing one cortical assembly (2000 cells / 64 assemblies in cortical_arrivals.py)
 cfg.ctx_dt = 0.001 # s, time bin of the arrival generator
 cfg.ctx_delay = 1 # ms, synaptic delay

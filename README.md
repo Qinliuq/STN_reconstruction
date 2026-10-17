@@ -17,7 +17,7 @@ python src/init.py
 
 
 STN inputs (settings in `src/cfg.py`, glue code in `src/stn_inputs.py`):
-- cortex: `src/cortical_arrivals.py` generates arrival events for every STN cell before the simulation (`cfg.ctx_state` = `'healthy'` or `'parkinsonian'`)
+- cortex: `src/cortical_arrivals.py` generates arrival events for every STN cell before the simulation (`cfg.ctx_state` = `'healthy'` or `'parkinsonian'`); `cfg.ctx_topography` scales each cell's arrival rate along the STN axis
 - GPe: `src/gpe_feedback.py` is closed-loop; `init.py` runs the simulation in steps of `cfg.gpe_dt`, passing the STN spikes to the GPe model and delivering its inhibitory arrivals. GPe group rates are saved as `<filename>_GPe_rates.png` and in the saved data (`GPe_rate_hz`, `GPe_arrival_t`, `GPe_arrival_stn`)
 
 Check single-cell behaviour of PV+ and PV- cells (no synaptic input; firing/burst stats and `single_cell.png`):
