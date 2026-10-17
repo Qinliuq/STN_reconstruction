@@ -10,6 +10,7 @@ A sweep spec is a Python file (see sweeps/) defining:
     ]
     x_label = 'Kir factor'             # optional, x axis of the summary plot
     reference_group = 'healthy'        # optional: plotted as a band; used for "gap closed" (needs baseline_label)
+    band_groups = ['healthy', 'untreated']  # optional: groups plotted as horizontal bands (default: [reference_group])
     baseline_label = 'pd_kir1'         # optional: untreated condition for "gap closed"
 
 Usage (from the repo root, after `nrnivmodl mod`):
@@ -134,7 +135,7 @@ def summary(spec):
         for g in groups:
             gl = [l for l in labels if byLabel[l][0]['group'] == g]
             xs = [byLabel[l][0]['x'] for l in gl]
-            if g == ref:
+            if g in spec.get('band_groups', [ref]):
                 mu, s_ = mean(byLabel[gl[0]], k), sd(byLabel[gl[0]], k)
                 ax.axhline(mu, color=colors[g], label=g)
                 ax.axhspan(mu - s_, mu + s_, color=colors[g], alpha=0.15)
