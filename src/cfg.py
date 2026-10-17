@@ -58,7 +58,7 @@ cfg.gpe_state = 'healthy' # 'healthy' or 'parkinsonian' (STATES in gpe_feedback_
 cfg.gpe_dt = 0.001 # s, GPe update step
 cfg.gpe_feedback_delay = 0.005 # s, total STN->GPe feedback delay (includes the one-step lag of the coupling)
 cfg.gpe_conductance_nS = 0.5 # per inhibitory arrival
-cfg.gpe_syn = {} # overrides of the GABA synapse for GPe input, e.g. {'tau2': 8.0} (default: netParams 'GABA', tau2 = 15 ms)
+cfg.gpe_syn = {'tau2': 8.0} # overrides of the GABA synapse for GPe input (netParams 'GABA' has tau2 = 15 ms, which filters out GPe beta)
 cfg.gpe_params = {} # other GPeInputGenerator arguments, e.g. {'n_gpe_groups': 12, 'target_probability': 0.35, 'stn_to_gpe_gain': 0.5}
 cfg.gpe_seed = 2
 

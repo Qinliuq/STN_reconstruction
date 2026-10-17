@@ -5,7 +5,7 @@ seeds = [1, 2, 3]
 x_label = 'Kir factor (1 = default, 0 = full block)'
 reference_group = 'healthy'
 baseline_label = 'pd_kir1'
-base = {'input_version': 1, 'ctx_overrides': {'conductance_nS': 1.0}}
+base = {'input_version': 1, 'ctx_overrides': {'conductance_nS': 1.0}, 'gpe_syn': {}}
 conditions = [{'label': 'healthy', 'group': 'healthy', 'x': 1.0, 'cfg': {**base, 'ctx_state': 'healthy'}}]
 conditions += [{'label': f'pd_kir{f:g}', 'group': 'parkinsonian', 'x': f,
                 'cfg': {**base, 'ctx_state': 'parkinsonian', 'channel_block': {'gKir': f}}} for f in [1.0, 0.75, 0.5, 0.25, 0.0]]
