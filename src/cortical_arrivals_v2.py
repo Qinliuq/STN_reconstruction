@@ -1,8 +1,8 @@
 """Generate synthetic cortical synaptic arrival events for an STN network (v2).
 
 v2 changes from cortical_arrivals.py (STATES only): GPe (gpe_feedback_v2.py) is the primary beta
-source, so the parkinsonian cortical beta modulation is reduced from 0.70 to 0.20 (a supplement);
-the shared (assembly) fraction and burst timing are unchanged. The conductance per arrival is
+source, so the parkinsonian cortical beta modulation is reduced from 0.70 to 0.20 and the shared
+(assembly) fraction from 0.25 to 0.10 (a supplement); burst timing is unchanged. The conductance per arrival is
 1.0 nS in both states (calibrated in the network; the v1 default was 0.2 nS).
 
 The output is an event list: (time_s, neuron_id, conductance_nS). It is a
@@ -57,7 +57,7 @@ STATES = {
     ),
     "parkinsonian": InputParams(
         rate_hz=80.0,
-        shared_fraction=0.25,
+        shared_fraction=0.10,  # v1: 0.25; cortical synchrony is a supplement too
         beta_modulation=0.20,  # v1: 0.70; cortical beta is a supplement to the GPe beta
         beta_hz=20.0,
         burst_rate_hz=1.0,

@@ -115,6 +115,7 @@ class GPeFeedback:
 
         # GABA synapses: on all dendritic sections for PV+ cells, on the soma for PV- cells (as in the previous GPe->STN rules);
         # each arrival goes to one randomly chosen synapse of the target cell
+        synMech = {**synMech, **cfg.gpe_syn} # cfg.gpe_syn overrides the GABA synapse ('e', 'tau1', 'tau2')
         cellsByGid = {cell.gid: cell for cell in sim.net.cells}
         self.syns, self.netcons = [], []
         for gid in gids:
