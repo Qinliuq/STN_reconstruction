@@ -35,12 +35,14 @@ cfg.PVN_gSK_scale = 1.0
 cfg.PVN_gKir_scale = 0.1
 
 # STN->STN collateral excitation (uS per connection)
-cfg.stn_stn_weight = 0.001
+cfg.stn_stn_weight = 0.0002 # 0.001 gave a loop-driven 6-8 Hz bursting state that masked the input differences
 
 # STN inputs
 # cortex (src/cortical_arrivals.py): open-loop arrival events, generated before the simulation
 cfg.ctx_state = 'healthy' # 'healthy' or 'parkinsonian' (STATES in cortical_arrivals.py)
-cfg.ctx_overrides = {} # override fields of the state's InputParams, e.g. {'rate_hz': 60, 'conductance_nS': 0.3}
+# override fields of the state's InputParams (applied to both states); 1 nS per arrival (script default 0.2 nS) lets the
+# parkinsonian beta modulation reach STN: ~2-3x healthy beta power and ~4x synchrony
+cfg.ctx_overrides = {'conductance_nS': 1.0}
 # topography: per-cell rate scale = intercept + slope * position along the STN axis (0..1), normalized to mean 1;
 # None for uniform input. Jeon et al. Fig 7H.2 (Gria): 0.55 - 0.3x; default is the previous, exaggerated rule 0.65 - 0.5x
 cfg.ctx_topography = (0.65, -0.5)
