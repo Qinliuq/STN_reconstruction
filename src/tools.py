@@ -61,13 +61,13 @@ def set_conductances(cell, cfg, overrides=None):
     set_values_from_file(cell, "gcaL_HVA", soma_scale=gCaL_scale, dend_scale=gCaL_scale)
     # set_values_from_file(cell, "gcaL_HVA", "dl0.9") # 10% decrease in dendritic linear CaL (see Figure 6A, 8A)
 
-def add_katp(cellParams, gbar, pdscale=1.0, force=False):
+def add_katp(cellParams, gbar, pdscale=1.0, kca=5e-4, force=False):
     # insert the Ca2+-gated K_ATP current (mod/katp_stn.mod) uniformly in all sections (gbar in S/cm2);
     # skipped when gbar is 0 (unless force), so the model is unchanged by default
     if not gbar and not force:
         return
     for sec in cellParams.secs.values():
-        sec['mechs']['katp_stn'] = {'gbar': gbar, 'pdscale': pdscale}
+        sec['mechs']['katp_stn'] = {'gbar': gbar, 'pdscale': pdscale, 'kca': kca}
 
 def set_ion_styles():
     for sec in h.allsec():

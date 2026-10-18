@@ -46,7 +46,12 @@ parser.add_argument('--cell', choices=['PVP', 'PVN'], help='cell type to sweep')
 parser.add_argument('--param', choices=['gCaT', 'gCaL', 'gHCN', 'gSK', 'gKir', 'katp_gbar', 'katp_pdscale'],
                     help='conductance scale to sweep, or K_ATP gbar (S/cm2) / pdscale')
 parser.add_argument('--values', type=float, nargs='+', help='values of the scale to sweep')
+parser.add_argument('--cfg', nargs='*', default=[], metavar='KEY=VALUE', help='override cfg.py settings, e.g. katp_kca=0.02')
 args = parser.parse_args()
+import ast
+for item in args.cfg:
+    key, value = item.split('=', 1)
+    setattr(netCfg, key, ast.literal_eval(value))
 if any([args.cell, args.param, args.values]) and not all([args.cell, args.param, args.values]):
     parser.error('--cell, --param and --values must be used together')
 
@@ -54,7 +59,7 @@ if any([args.cell, args.param, args.values]) and not all([args.cell, args.param,
 if args.values:
     cellType = f'{args.cell}_cell'
     conditions = [(f'{cellTypes[cellType]} {args.param}={v:g}', cellType, {args.param: v}) for v in args.values]
-    figName = f'single_cell_{args.cell}_{args.param}.png'
+    figName = f'single_cell_{args.cell}_{args.param}' + ''.join(f'_{x}' for x in args.cfg) + '.png'
 else:
     conditions = [(lab, cellType, {}) for cellType, lab in cellTypes.items()]
     figName = 'single_cell.png'
@@ -85,7 +90,7 @@ for cellType in {cellType for _, cellType, _ in conditions}:
     cellParams = netParams.importCellParams(label=cellType, fileName='cells/SThprotocell.hoc', cellName='SThcell', cellArgs=[0, protoCell])
     cellParams.secs.soma['threshold'] = -30
     if katp:
-        add_katp(cellParams, netCfg.katp_gbar, netCfg.katp_pdscale, force=True)
+        add_katp(cellParams, netCfg.katp_gbar, netCfg.katp_pdscale, netCfg.katp_kca, force=True)
 for c, (_, cellType, _) in enumerate(conditions):
     pop = f'cond{c}_pop'
     netParams.popParams[pop] = {'cellType': cellType, 'numCells': len(names)} # one unconnected cell per protocol

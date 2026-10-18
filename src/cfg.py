@@ -66,6 +66,9 @@ cfg.gpe_seed = 2
 # pdscale > 1 models its augmented expression after dopamine depletion (Shen & Johnson 2012)
 cfg.katp_gbar = 0.0 # S/cm2
 cfg.katp_pdscale = 1.0
+# half-activating [Ca]i (mM). The mod default (5e-4 = 0.5 uM) is far below this model's Cacum range
+# (~0.1-1 uM when silent, ~30-80 uM when firing), which keeps K_ATP almost fully open in any active cell
+cfg.katp_kca = 5e-4
 
 # pharmacology: factor per conductance scale applied to all STN cells, e.g. {'gKir': 0.5} = 50% Kir block
 cfg.channel_block = {}
