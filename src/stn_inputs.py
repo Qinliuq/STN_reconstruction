@@ -11,7 +11,8 @@ Connect the STN input models to the NetPyNE network:
 
 cfg.input_version selects the input models: 1 = cortical_arrivals.py + gpe_feedback.py (cortical beta),
 2 = cortical_arrivals_v2.py + gpe_feedback_v2.py (GPe is the primary beta source, cortical beta a
-supplement). cfg.ctx_state / cfg.gpe_state choose each model's 'healthy' or 'parkinsonian' state
+supplement), 3 = cortical_arrivals_v2.py + gpe_feedback_v3.py (as 2, with topographic GPe-STN connections
+and parkinsonian beta graded along the STN axis). cfg.ctx_state / cfg.gpe_state choose each model's 'healthy' or 'parkinsonian' state
 (gpe_state applies to v2 only).
 
 Both generators index STN cells 0..nSTN-1 in gid order: PV+ cells first, then PV-.
@@ -28,6 +29,7 @@ import cortical_arrivals
 import cortical_arrivals_v2
 import gpe_feedback
 import gpe_feedback_v2
+import gpe_feedback_v3
 
 STN_POPS = ['PVP_pop', 'PVN_pop']
 
@@ -37,14 +39,20 @@ def input_models(cfg):
         return cortical_arrivals, gpe_feedback
     if cfg.input_version == 2:
         return cortical_arrivals_v2, gpe_feedback_v2
+    if cfg.input_version == 3:
+        return cortical_arrivals_v2, gpe_feedback_v3
     raise ValueError(f'unknown cfg.input_version {cfg.input_version}')
 
 
 # ------------------------------------------------ CORTEX ------------------------------------------------
+def axis_position(loc):
+    # position along the STN axis (the 45-deg diagonal), 0..1, from normalized cell coordinates
+    return float(np.clip((loc['xnorm'] + loc['ynorm']) / 2, 0, 1))
+
 def topography_scale(cellLocs, cfg):
-    # per-cell cortical rate scale from the position along the STN axis (the 45-deg diagonal):
-    # axis = (xnorm + ynorm) / 2, clipped to 0..1; scale = intercept + slope * axis, normalized to mean 1
-    axis = np.clip([(loc['xnorm'] + loc['ynorm']) / 2 for loc in cellLocs], 0, 1)
+    # per-cell cortical rate scale from the position along the STN axis: scale = intercept + slope * axis,
+    # normalized to mean 1
+    axis = np.array([axis_position(loc) for loc in cellLocs])
     if cfg.ctx_topography is None:
         return axis, np.ones(len(axis))
     intercept, slope = cfg.ctx_topography
@@ -107,16 +115,19 @@ class GPeFeedback:
         self.stnIndex = {gid: i for i, gid in enumerate(gids)}
         # arrivals for a step are computed from the previous step's spikes, which adds one step to the feedback delay
         _, gpeModel = input_models(cfg)
-        stateParams = gpeModel.STATES[cfg.gpe_state] if hasattr(gpeModel, 'STATES') else {}
+        stateParams = {**(gpeModel.STATES[cfg.gpe_state] if hasattr(gpeModel, 'STATES') else {}), **cfg.gpe_params}
+        synapseScale = stateParams.get('synapse_scale', 1.0) # GPe->STN conductance multiplier of the state (v3)
+        cellsByGid = {cell.gid: cell for cell in sim.net.cells}
+        if cfg.input_version >= 3:
+            stateParams['stn_axis'] = [axis_position(cellsByGid[gid].tags) for gid in gids]
         self.generator = gpeModel.GPeInputGenerator(n_stn=len(gids), dt_s=cfg.gpe_dt,
                                                     feedback_delay_s=max(0.0, cfg.gpe_feedback_delay - cfg.gpe_dt),
-                                                    seed=cfg.gpe_seed, **{**stateParams, **cfg.gpe_params})
+                                                    seed=cfg.gpe_seed, **stateParams)
         self.rng = np.random.default_rng(cfg.gpe_seed)
 
         # GABA synapses: on all dendritic sections for PV+ cells, on the soma for PV- cells (as in the previous GPe->STN rules);
         # each arrival goes to one randomly chosen synapse of the target cell
         synMech = {**synMech, **cfg.gpe_syn} # cfg.gpe_syn overrides the GABA synapse ('e', 'tau1', 'tau2')
-        cellsByGid = {cell.gid: cell for cell in sim.net.cells}
         self.syns, self.netcons = [], []
         for gid in gids:
             cell = cellsByGid[gid]
@@ -126,7 +137,7 @@ class GPeFeedback:
                 syn = h.Exp2Syn(cell.secs[secName]['hObj'](0.5))
                 syn.e, syn.tau1, syn.tau2 = synMech['e'], synMech['tau1'], synMech['tau2']
                 nc = h.NetCon(None, syn)
-                nc.weight[0] = cfg.gpe_conductance_nS * 1e-3
+                nc.weight[0] = cfg.gpe_conductance_nS * synapseScale * 1e-3
                 self.syns.append(syn)
                 ncs.append(nc)
             self.netcons.append(ncs)

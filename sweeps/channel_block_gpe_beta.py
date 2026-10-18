@@ -15,3 +15,7 @@ for name, channels in blocks.items():
     for f in [0.75, 0.5, 0.25, 0.0]:
         conditions.append({'label': f"{name.lower().replace('+', '_')}{f:g}", 'group': name, 'x': f,
                            'cfg': {**pd, 'channel_block': {ch: f for ch in channels}}})
+
+# pinned to the model version these runs used (defaults later moved to input_version 3, pop_order 60)
+for c in conditions:
+    c['cfg'] = {'input_version': 2, 'pop_order': 30, **c['cfg']}

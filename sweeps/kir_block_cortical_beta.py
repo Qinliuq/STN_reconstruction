@@ -9,3 +9,7 @@ base = {'input_version': 1, 'ctx_overrides': {'conductance_nS': 1.0}, 'gpe_syn':
 conditions = [{'label': 'healthy', 'group': 'healthy', 'x': 1.0, 'cfg': {**base, 'ctx_state': 'healthy'}}]
 conditions += [{'label': f'pd_kir{f:g}', 'group': 'parkinsonian', 'x': f,
                 'cfg': {**base, 'ctx_state': 'parkinsonian', 'channel_block': {'gKir': f}}} for f in [1.0, 0.75, 0.5, 0.25, 0.0]]
+
+# pinned to the model version these runs used (defaults later moved to input_version 3, pop_order 60)
+for c in conditions:
+    c['cfg'] = {'input_version': 2, 'pop_order': 30, **c['cfg']}

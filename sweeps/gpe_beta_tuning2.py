@@ -13,3 +13,7 @@ for g in [0.5, 1.0]:
         {'label': f'{tag}_ctx', 'group': tag, 'x': 1, 'cfg': {**net, 'ctx_state': 'parkinsonian', 'gpe_state': 'healthy'}},
         {'label': f'{tag}_gpe', 'group': tag, 'x': 2, 'cfg': {**net, **pdGpe, 'ctx_state': 'healthy', 'gpe_state': 'parkinsonian'}},
     ]
+
+# pinned to the model version these runs used (defaults later moved to input_version 3, pop_order 60)
+for c in conditions:
+    c['cfg'] = {'input_version': 2, 'pop_order': 30, **c['cfg']}

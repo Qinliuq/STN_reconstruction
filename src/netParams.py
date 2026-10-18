@@ -28,7 +28,7 @@ add_katp(pvn, cfg.katp_gbar, cfg.katp_pdscale, cfg.katp_kca)
 
 
 # ------------------------------------------------ NETWORK & POPULATIONS ------------------------------------------------
-popOrder = 30 # we can start with lower value for speed, and then increase gradually
+popOrder = cfg.pop_order # (was 30) we can start with lower value for speed, and then increase gradually
 PVPproportion = 0.2 # the percentage of PVP neurons; 1-popScale is the percetage of PVN neurons; cholinergic interneurons neglected for now
 
 from tools import generate_locs

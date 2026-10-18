@@ -9,3 +9,7 @@ conditions = [
     {'label': 'pd_gpe_only', 'group': 'parkinsonian', 'x': 2, 'cfg': {'ctx_state': 'healthy', 'gpe_state': 'parkinsonian'}},
     {'label': 'pd', 'group': 'parkinsonian', 'x': 3, 'cfg': {'ctx_state': 'parkinsonian', 'gpe_state': 'parkinsonian'}},
 ]
+
+# pinned to the model version these runs used (defaults later moved to input_version 3, pop_order 60)
+for c in conditions:
+    c['cfg'] = {'input_version': 2, 'pop_order': 30, **c['cfg']}

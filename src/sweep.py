@@ -162,7 +162,25 @@ def summary(spec):
     ax.legend(fontsize=7)
     fig.tight_layout()
     fig.savefig(os.path.join(spec['outdir'], 'psd.png'), dpi=110)
-    print(f"\nsaved {spec['outdir']}/summary.png, psd.png, summary.csv")
+    if 'profile' in rows[0]:
+        pkeys = [('beta_pow', 'beta power (13-30 Hz)'), ('beta_frac', 'beta fraction'), ('sync', 'synchrony (corr, 10 ms)'),
+                 ('bursts', 'spikes in bursts'), ('rate', 'rate (Hz)'), ('n_eff', 'cells per position (n_eff)')]
+        fig, axs = plt.subplots(2, 3, figsize=(14, 7))
+        print(f"\n{'condition':18s} beta peak (axis)   synchrony peak (axis)")
+        for lab in labels:
+            rs = byLabel[lab]
+            pos = rs[0]['profile']['positions']
+            for ax, (k, title) in zip(axs.flat, pkeys):
+                ax.plot(pos, np.mean([r['profile'][k] for r in rs], 0), label=lab, lw=2 if rs[0]['group'] == ref else 1)
+                ax.set_title(title, fontsize=10)
+                ax.set_xlabel('position along STN axis')
+            peaks = lambda k: ', '.join(f'{r[k]:.2f}' for r in rs)
+            print(f"{lab:18s} {mean(rs, 'beta_peak_axis'):5.2f} ({peaks('beta_peak_axis')})"
+                  f"   {mean(rs, 'sync_peak_axis'):5.2f} ({peaks('sync_peak_axis')})")
+        axs[0, 0].legend(fontsize=7)
+        fig.tight_layout()
+        fig.savefig(os.path.join(spec['outdir'], 'profile.png'), dpi=110)
+    print(f"\nsaved {spec['outdir']}/summary.png, psd.png, summary.csv (and profile.png if available)")
 
 
 if __name__ == '__main__':
