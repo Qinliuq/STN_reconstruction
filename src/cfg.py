@@ -62,6 +62,11 @@ cfg.gpe_syn = {'tau2': 8.0} # overrides of the GABA synapse for GPe input (netPa
 cfg.gpe_params = {} # other GPeInputGenerator arguments, e.g. {'n_gpe_groups': 12, 'target_probability': 0.35, 'stn_to_gpe_gain': 0.5}
 cfg.gpe_seed = 2
 
+# Ca2+-gated K_ATP current (mod/katp_stn.mod, Kir6.2/SUR1), uniform in all sections; 0 = not inserted.
+# pdscale > 1 models its augmented expression after dopamine depletion (Shen & Johnson 2012)
+cfg.katp_gbar = 0.0 # S/cm2
+cfg.katp_pdscale = 1.0
+
 # pharmacology: factor per conductance scale applied to all STN cells, e.g. {'gKir': 0.5} = 50% Kir block
 cfg.channel_block = {}
 

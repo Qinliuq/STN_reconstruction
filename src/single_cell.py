@@ -23,7 +23,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from cfg import cfg as netCfg # network config: conductance scales, temperature, v_init
-from tools import set_conductances, set_ion_styles, apply_CSF_Bevan
+from tools import set_conductances, set_ion_styles, apply_CSF_Bevan, add_katp
 
 duration = 4000
 transient = 1000 # all cells fire a high-frequency transient right after init; exclude from stats
@@ -43,7 +43,8 @@ cellTypes = {'PVP_cell': 'PV+', 'PVN_cell': 'PV-'}
 
 parser = argparse.ArgumentParser(description='Single-cell check of PV+ and PV- STN cells')
 parser.add_argument('--cell', choices=['PVP', 'PVN'], help='cell type to sweep')
-parser.add_argument('--param', choices=['gCaT', 'gCaL', 'gHCN', 'gSK', 'gKir'], help='conductance scale to sweep')
+parser.add_argument('--param', choices=['gCaT', 'gCaL', 'gHCN', 'gSK', 'gKir', 'katp_gbar', 'katp_pdscale'],
+                    help='conductance scale to sweep, or K_ATP gbar (S/cm2) / pdscale')
 parser.add_argument('--values', type=float, nargs='+', help='values of the scale to sweep')
 args = parser.parse_args()
 if any([args.cell, args.param, args.values]) and not all([args.cell, args.param, args.values]):
@@ -66,6 +67,11 @@ cfg.duration = duration
 cfg.dt = netCfg.dt
 cfg.recordCells = ['all']
 cfg.recordTraces = {'V_soma': {'sec': 'soma', 'loc': 0.5, 'var': 'v'}}
+# K_ATP: inserted if swept or enabled in cfg.py; then also record somatic [Ca]i and the K_ATP gate
+katp = bool(args.param and args.param.startswith('katp')) or netCfg.katp_gbar > 0
+if katp:
+    cfg.recordTraces['cai'] = {'sec': 'soma', 'loc': 0.5, 'var': 'cai'}
+    cfg.recordTraces['katp_o'] = {'sec': 'soma', 'loc': 0.5, 'mech': 'katp_stn', 'var': 'o'}
 cfg.recordStep = 0.1
 
 netParams = specs.NetParams()
@@ -78,6 +84,8 @@ names = list(protocols)
 for cellType in {cellType for _, cellType, _ in conditions}:
     cellParams = netParams.importCellParams(label=cellType, fileName='cells/SThprotocell.hoc', cellName='SThcell', cellArgs=[0, protoCell])
     cellParams.secs.soma['threshold'] = -30
+    if katp:
+        add_katp(cellParams, netCfg.katp_gbar, netCfg.katp_pdscale, force=True)
 for c, (_, cellType, _) in enumerate(conditions):
     pop = f'cond{c}_pop'
     netParams.popParams[pop] = {'cellType': cellType, 'numCells': len(names)} # one unconnected cell per protocol
@@ -91,6 +99,12 @@ sim.create(netParams, cfg)
 for cell in sim.net.cells:
     c = int(cell.tags['pop'][len('cond'):-len('_pop')])
     set_conductances(cell, netCfg, overrides=conditions[c][2])
+    if katp:
+        gbar = conditions[c][2].get('katp_gbar', netCfg.katp_gbar)
+        pdscale = conditions[c][2].get('katp_pdscale', netCfg.katp_pdscale)
+        for sec in cell.secs.values():
+            for seg in sec['hObj']:
+                seg.gbar_katp_stn, seg.pdscale_katp_stn = gbar, pdscale
 set_ion_styles()
 apply_CSF_Bevan()
 sim.simulate()
@@ -148,6 +162,17 @@ def cell_spikes(c, i):
     gid = sim.net.pops[f'cond{c}_pop'].cellGids[i]
     return gid, np.array(sorted(spikeTimes.get(gid, [])))
 
+def katp_stats(c, i):
+    # mean somatic [Ca]i (uM) and K_ATP open probability over transient-duration
+    if not katp:
+        return ''
+    gid, _ = cell_spikes(c, i)
+    t = np.array(sim.allSimData['t'])
+    sel = t >= transient
+    cai = np.array(sim.allSimData['cai'][f'cell_{gid}'])[sel].mean() * 1000
+    o = np.array(sim.allSimData['katp_o'][f'cell_{gid}'])[sel].mean()
+    return f" | cai {cai:5.3f} uM | K_ATP o {o:5.3f}"
+
 print(f"\nCells without synaptic input; stats over {transient}-{duration} ms")
 print("burst = >=3 spikes with ISI < 20 ms, flanked by pauses > 3x the intra-burst ISI\n")
 for name in names:
@@ -158,11 +183,11 @@ for name in names:
             pre = firing_stats(spikes, rebound['onset'] - 500, rebound['onset'])
             n, dur = rebound_stats(spikes, rebound['release'])
             late = firing_stats(spikes, rebound['release'] + 500, duration)
-            print(f"  {lab:>16}: before step {pre['rate']:5.1f} Hz | rebound {n:3d} spikes over {dur:4.0f} ms | late {late['rate']:5.1f} Hz")
+            print(f"  {lab:>16}: before step {pre['rate']:5.1f} Hz | rebound {n:3d} spikes over {dur:4.0f} ms | late {late['rate']:5.1f} Hz" + katp_stats(c, names.index(name)))
         else:
             s = firing_stats(spikes, transient, duration)
             print(f"  {lab:>16}: rate {s['rate']:5.1f} Hz | ISI CV {s['cv']:4.2f} | bursts {s['bursts']:3d} | "
-                  f"spikes in bursts {s['fracInBursts']:4.2f} | spikes/burst {s['spikesPerBurst']:4.1f}")
+                  f"spikes in bursts {s['fracInBursts']:4.2f} | spikes/burst {s['spikesPerBurst']:4.1f}" + katp_stats(c, names.index(name)))
 
 # ------------------------------------------------ FIGURE ------------------------------------------------
 t = np.array(sim.allSimData['t'])
