@@ -12,4 +12,4 @@ conditions = [
 
 # pinned to the model version these runs used (defaults later moved to input_version 3, pop_order 60)
 for c in conditions:
-    c['cfg'] = {'input_version': 2, 'pop_order': 30, **c['cfg']}
+    c['cfg'] = {'input_version': 2, 'pop_order': 30, 'gpe_conductance_nS': 0.5, 'ctx_overrides': {}, **c['cfg']}

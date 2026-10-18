@@ -16,3 +16,7 @@ for sigma in [0.10, 0.15]:
             conditions.append({'label': f'{tag}_pd{scale:g}', 'group': tag, 'x': scale,
                                'cfg': {**net, 'ctx_state': 'parkinsonian', 'gpe_state': 'parkinsonian',
                                        'gpe_params': {'topo_sigma': sigma, 'synapse_scale': scale}}})
+
+# pinned to the cortical conductance these runs used (default later moved to 0.7 nS)
+for c in conditions:
+    c['cfg'] = {'ctx_overrides': {}, **c['cfg']}

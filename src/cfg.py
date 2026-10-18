@@ -49,9 +49,10 @@ cfg.stn_stn_weight = 0.0002 # 0.001 gave a loop-driven 6-8 Hz bursting state tha
 cfg.input_version = 3
 # cortex (src/cortical_arrivals.py): open-loop arrival events, generated before the simulation
 cfg.ctx_state = 'healthy' # 'healthy' or 'parkinsonian' (STATES in cortical_arrivals[_v2].py)
-# override fields of the state's InputParams (applied to both states), e.g. {'rate_hz': 60}; the v2 states use 1 nS per
-# arrival (the network calibration); for v1 set {'conductance_nS': 1.0} (v1 script default 0.2 nS)
-cfg.ctx_overrides = {}
+# override fields of the state's InputParams (applied to both states), e.g. {'rate_hz': 60}. The v2 states use 1 nS per
+# arrival (calibrated with input_version 2); with input_version 3 (sparse GPe input, larger network) 0.7 nS keeps
+# STN rates lower and the parkinsonian beta peak robust (sweeps/topo_pd_confirm.py). For v1 use {'conductance_nS': 1.0}.
+cfg.ctx_overrides = {'conductance_nS': 0.7}
 # topography: per-cell rate scale = intercept + slope * position along the STN axis (0..1), normalized to mean 1;
 # None for uniform input. Jeon et al. Fig 7H.2 (Gria): 0.55 - 0.3x; default is the previous, exaggerated rule 0.65 - 0.5x
 cfg.ctx_topography = (0.65, -0.5)
@@ -63,7 +64,7 @@ cfg.ctx_seed = 1
 cfg.gpe_state = 'healthy' # 'healthy' or 'parkinsonian' (STATES in gpe_feedback_v2/v3.py; input_version >= 2)
 cfg.gpe_dt = 0.001 # s, GPe update step
 cfg.gpe_feedback_delay = 0.005 # s, total STN->GPe feedback delay (includes the one-step lag of the coupling)
-cfg.gpe_conductance_nS = 0.5 # per inhibitory arrival
+cfg.gpe_conductance_nS = 1.0 # per inhibitory arrival (input_version 3; v2 used 0.5 with all-to-all GPe input); x synapse_scale of the GPe state
 cfg.gpe_syn = {'tau2': 8.0} # overrides of the GABA synapse for GPe input (netParams 'GABA' has tau2 = 15 ms, which filters out GPe beta)
 cfg.gpe_params = {} # other GPeInputGenerator arguments, e.g. {'n_gpe_groups': 12, 'target_probability': 0.35, 'stn_to_gpe_gain': 0.5}
 cfg.gpe_seed = 2
