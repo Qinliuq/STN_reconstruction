@@ -37,6 +37,7 @@ def set_conductances(cell, cfg, overrides=None):
     gHCN_scale = scale('gHCN')
     gSK_scale = scale('gSK')
     gKir_scale = scale('gKir')
+    gKv31_scale = scale('gKv31')
 
     # Na
     default_gNa_soma = 1.483419823e-02
@@ -49,7 +50,7 @@ def set_conductances(cell, cfg, overrides=None):
 
     # linear conductances (loaded from files)...
     set_values_from_file(cell, "gk_KDR")
-    set_values_from_file(cell, "gk_Kv31")
+    set_values_from_file(cell, "gk_Kv31", soma_scale=gKv31_scale, dend_scale=gKv31_scale)
     set_values_from_file(cell, "gcaN_HVA")
     set_values_from_file(cell, "gk_Ih", soma_scale=gHCN_scale, dend_scale=gHCN_scale)
     set_values_from_file(cell, "gcaT_CaT", soma_scale=gCaT_scale, dend_scale=gCaT_scale)

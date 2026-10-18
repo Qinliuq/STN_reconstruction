@@ -43,7 +43,7 @@ cellTypes = {'PVP_cell': 'PV+', 'PVN_cell': 'PV-'}
 
 parser = argparse.ArgumentParser(description='Single-cell check of PV+ and PV- STN cells')
 parser.add_argument('--cell', choices=['PVP', 'PVN'], help='cell type to sweep')
-parser.add_argument('--param', choices=['gCaT', 'gCaL', 'gHCN', 'gSK', 'gKir', 'katp_gbar', 'katp_pdscale'],
+parser.add_argument('--param', choices=['gCaT', 'gCaL', 'gHCN', 'gSK', 'gKir', 'gKv31', 'katp_gbar', 'katp_pdscale'],
                     help='conductance scale to sweep, or K_ATP gbar (S/cm2) / pdscale')
 parser.add_argument('--values', type=float, nargs='+', help='values of the scale to sweep')
 parser.add_argument('--cfg', nargs='*', default=[], metavar='KEY=VALUE', help='override cfg.py settings, e.g. katp_kca=0.02')
@@ -167,6 +167,19 @@ def cell_spikes(c, i):
     gid = sim.net.pops[f'cond{c}_pop'].cellGids[i]
     return gid, np.array(sorted(spikeTimes.get(gid, [])))
 
+def spike_shape(c, i):
+    # mean spike width (time above -20 mV) and mean trough between spikes, over transient-duration
+    gid, _ = cell_spikes(c, i)
+    t = np.array(sim.allSimData['t'])
+    v = np.array(sim.allSimData['V_soma'][f'cell_{gid}'])
+    sel = t >= transient
+    above = v[sel] > -20
+    nSpikes = np.count_nonzero(np.diff(above.astype(int)) == 1)
+    if nSpikes == 0:
+        return ''
+    width = above.sum() * cfg.recordStep / nSpikes
+    return f" | AP width {width:4.2f} ms | trough {v[sel].min():5.1f} mV"
+
 def katp_stats(c, i):
     # mean somatic [Ca]i (uM) and K_ATP open probability over transient-duration
     if not katp:
@@ -188,11 +201,12 @@ for name in names:
             pre = firing_stats(spikes, rebound['onset'] - 500, rebound['onset'])
             n, dur = rebound_stats(spikes, rebound['release'])
             late = firing_stats(spikes, rebound['release'] + 500, duration)
-            print(f"  {lab:>16}: before step {pre['rate']:5.1f} Hz | rebound {n:3d} spikes over {dur:4.0f} ms | late {late['rate']:5.1f} Hz" + katp_stats(c, names.index(name)))
+            freq = 1000 * (n - 1) / dur if n > 1 and dur > 0 else 0.0
+            print(f"  {lab:>16}: before step {pre['rate']:5.1f} Hz | rebound {n:3d} spikes over {dur:4.0f} ms ({freq:4.0f} Hz) | late {late['rate']:5.1f} Hz" + katp_stats(c, names.index(name)))
         else:
             s = firing_stats(spikes, transient, duration)
             print(f"  {lab:>16}: rate {s['rate']:5.1f} Hz | ISI CV {s['cv']:4.2f} | bursts {s['bursts']:3d} | "
-                  f"spikes in bursts {s['fracInBursts']:4.2f} | spikes/burst {s['spikesPerBurst']:4.1f}" + katp_stats(c, names.index(name)))
+                  f"spikes in bursts {s['fracInBursts']:4.2f} | spikes/burst {s['spikesPerBurst']:4.1f}" + spike_shape(c, names.index(name)) + katp_stats(c, names.index(name)))
 
 # ------------------------------------------------ FIGURE ------------------------------------------------
 t = np.array(sim.allSimData['t'])
