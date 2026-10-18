@@ -1,0 +1,23 @@
+Cells without synaptic input; stats over 1000-4000 ms
+burst = >=3 spikes with ISI < 20 ms, flanked by pauses > 3x the intra-burst ISI
+
+=== spontaneous (0 nA)
+               PV+: rate  15.3 Hz | ISI CV 0.01 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.60 ms | trough -69.8 mV
+               PV-: rate  12.3 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.62 ms | trough -69.0 mV
+=== depolarizing +0.05 nA
+               PV+: rate  54.0 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.60 ms | trough -69.4 mV
+               PV-: rate  51.0 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.63 ms | trough -68.5 mV
+=== hold -0.16 nA
+               PV+: rate  16.3 Hz | ISI CV 1.70 | bursts  10 | spikes in bursts 0.92 | spikes/burst  4.5 | AP width 0.59 ms | trough -78.7 mV
+               PV-: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+=== hold -0.25 nA
+               PV+: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+               PV-: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+=== hold -0.35 nA
+               PV+: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+               PV-: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+=== rebound (-0.25 nA, 1000-1500 ms)
+               PV+: before step  16.0 Hz | rebound  14 spikes over   84 ms ( 155 Hz) | late  15.5 Hz
+               PV-: before step  12.0 Hz | rebound  12 spikes over   70 ms ( 156 Hz) | late  12.0 Hz
+
+Saved single_cell.png

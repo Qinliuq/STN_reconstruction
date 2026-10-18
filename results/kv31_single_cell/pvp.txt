@@ -1,0 +1,53 @@
+Cells without synaptic input; stats over 1000-4000 ms
+burst = >=3 spikes with ISI < 20 ms, flanked by pauses > 3x the intra-burst ISI
+
+=== spontaneous (0 nA)
+       PV+ gKv31=0: rate  33.7 Hz | ISI CV 4.51 | bursts   7 | spikes in bursts 0.97 | spikes/burst 14.0 | AP width 0.43 ms | trough -64.7 mV
+    PV+ gKv31=0.25: rate  32.3 Hz | ISI CV 0.01 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.81 ms | trough -64.5 mV
+     PV+ gKv31=0.5: rate  27.3 Hz | ISI CV 0.01 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.71 ms | trough -66.5 mV
+    PV+ gKv31=0.75: rate  21.7 Hz | ISI CV 0.01 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.67 ms | trough -68.0 mV
+       PV+ gKv31=1: rate  17.0 Hz | ISI CV 0.01 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.60 ms | trough -69.3 mV
+     PV+ gKv31=1.5: rate  10.3 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.56 ms | trough -71.4 mV
+       PV+ gKv31=2: rate   6.7 Hz | ISI CV 0.40 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.50 ms | trough -73.0 mV
+=== depolarizing +0.05 nA
+       PV+ gKv31=0: rate 144.3 Hz | ISI CV 12.18 | bursts   1 | spikes in bursts 0.76 | spikes/burst 330.0 | AP width 0.27 ms | trough -36.2 mV
+    PV+ gKv31=0.25: rate  63.0 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.81 ms | trough -63.8 mV
+     PV+ gKv31=0.5: rate  61.3 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.71 ms | trough -65.9 mV
+    PV+ gKv31=0.75: rate  58.7 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.65 ms | trough -67.5 mV
+       PV+ gKv31=1: rate  55.3 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.60 ms | trough -68.9 mV
+     PV+ gKv31=1.5: rate  48.0 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.54 ms | trough -71.0 mV
+       PV+ gKv31=2: rate  39.0 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.50 ms | trough -72.7 mV
+=== hold -0.16 nA
+       PV+ gKv31=0: rate   3.3 Hz | ISI CV 0.84 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.84 ms | trough -79.7 mV
+    PV+ gKv31=0.25: rate  87.3 Hz | ISI CV 3.79 | bursts   7 | spikes in bursts 0.83 | spikes/burst 31.0 | AP width 0.41 ms | trough -79.7 mV
+     PV+ gKv31=0.5: rate  36.7 Hz | ISI CV 2.56 | bursts   9 | spikes in bursts 0.90 | spikes/burst 11.0 | AP width 0.68 ms | trough -79.5 mV
+    PV+ gKv31=0.75: rate  27.0 Hz | ISI CV 2.13 | bursts   9 | spikes in bursts 0.89 | spikes/burst  8.0 | AP width 0.66 ms | trough -79.4 mV
+       PV+ gKv31=1: rate  18.0 Hz | ISI CV 1.89 | bursts   9 | spikes in bursts 0.89 | spikes/burst  5.3 | AP width 0.62 ms | trough -79.0 mV
+     PV+ gKv31=1.5: rate  12.0 Hz | ISI CV 1.37 | bursts  11 | spikes in bursts 0.92 | spikes/burst  3.0 | AP width 0.56 ms | trough -77.9 mV
+       PV+ gKv31=2: rate   7.7 Hz | ISI CV 0.96 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.50 ms | trough -77.4 mV
+=== hold -0.25 nA
+       PV+ gKv31=0: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+    PV+ gKv31=0.25: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+     PV+ gKv31=0.5: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+    PV+ gKv31=0.75: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+       PV+ gKv31=1: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+     PV+ gKv31=1.5: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+       PV+ gKv31=2: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+=== hold -0.35 nA
+       PV+ gKv31=0: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+    PV+ gKv31=0.25: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+     PV+ gKv31=0.5: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+    PV+ gKv31=0.75: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+       PV+ gKv31=1: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+     PV+ gKv31=1.5: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+       PV+ gKv31=2: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+=== rebound (-0.25 nA, 1000-1500 ms)
+       PV+ gKv31=0: before step   0.0 Hz | rebound   1 spikes over    0 ms (   0 Hz) | late  17.0 Hz
+    PV+ gKv31=0.25: before step  30.0 Hz | rebound   2 spikes over    3 ms ( 385 Hz) | late  32.0 Hz
+     PV+ gKv31=0.5: before step  26.0 Hz | rebound   2 spikes over    4 ms ( 235 Hz) | late  27.0 Hz
+    PV+ gKv31=0.75: before step  22.0 Hz | rebound  22 spikes over  105 ms ( 200 Hz) | late  22.0 Hz
+       PV+ gKv31=1: before step  16.0 Hz | rebound  14 spikes over   79 ms ( 164 Hz) | late  17.0 Hz
+     PV+ gKv31=1.5: before step  10.0 Hz | rebound   8 spikes over   62 ms ( 113 Hz) | late  10.5 Hz
+       PV+ gKv31=2: before step   6.0 Hz | rebound   8 spikes over   59 ms ( 118 Hz) | late   4.0 Hz
+
+Saved single_cell_PVP_gKv31.png
