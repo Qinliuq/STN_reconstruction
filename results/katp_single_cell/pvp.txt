@@ -1,0 +1,41 @@
+Cells without synaptic input; stats over 1000-4000 ms
+burst = >=3 spikes with ISI < 20 ms, flanked by pauses > 3x the intra-burst ISI
+
+=== spontaneous (0 nA)
+   PV+ katp_gbar=0: rate  17.0 Hz | ISI CV 0.01 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 29.893 uM | K_ATP o 0.996
+  PV+ katp_gbar=3e-05: rate  16.0 Hz | ISI CV 1.18 | bursts  15 | spikes in bursts 0.94 | spikes/burst  3.0 | cai 25.822 uM | K_ATP o 0.996
+  PV+ katp_gbar=0.0001: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 1.183 uM | K_ATP o 0.854
+  PV+ katp_gbar=0.0003: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.446 uM | K_ATP o 0.459
+  PV+ katp_gbar=0.001: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.201 uM | K_ATP o 0.156
+=== depolarizing +0.05 nA
+   PV+ katp_gbar=0: rate  55.3 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 82.318 uM | K_ATP o 0.997
+  PV+ katp_gbar=3e-05: rate  12.3 Hz | ISI CV 0.41 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 22.588 uM | K_ATP o 0.996
+  PV+ katp_gbar=0.0001: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 1.717 uM | K_ATP o 0.923
+  PV+ katp_gbar=0.0003: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.540 uM | K_ATP o 0.561
+  PV+ katp_gbar=0.001: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.216 uM | K_ATP o 0.174
+=== hold -0.16 nA
+   PV+ katp_gbar=0: rate  18.0 Hz | ISI CV 1.89 | bursts   9 | spikes in bursts 0.89 | spikes/burst  5.3 | cai 29.335 uM | K_ATP o 0.996
+  PV+ katp_gbar=3e-05: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.749 uM | K_ATP o 0.695
+  PV+ katp_gbar=0.0001: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.473 uM | K_ATP o 0.480
+  PV+ katp_gbar=0.0003: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.265 uM | K_ATP o 0.219
+  PV+ katp_gbar=0.001: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.165 uM | K_ATP o 0.101
+=== hold -0.25 nA
+   PV+ katp_gbar=0: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.539 uM | K_ATP o 0.531
+  PV+ katp_gbar=3e-05: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.437 uM | K_ATP o 0.427
+  PV+ katp_gbar=0.0001: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.321 uM | K_ATP o 0.287
+  PV+ katp_gbar=0.0003: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.210 uM | K_ATP o 0.150
+  PV+ katp_gbar=0.001: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.150 uM | K_ATP o 0.086
+=== hold -0.35 nA
+   PV+ katp_gbar=0: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.316 uM | K_ATP o 0.280
+  PV+ katp_gbar=3e-05: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.279 uM | K_ATP o 0.233
+  PV+ katp_gbar=0.0001: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.228 uM | K_ATP o 0.170
+  PV+ katp_gbar=0.0003: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.172 uM | K_ATP o 0.107
+  PV+ katp_gbar=0.001: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.137 uM | K_ATP o 0.073
+=== rebound (-0.25 nA, 1000-1500 ms)
+   PV+ katp_gbar=0: before step  16.0 Hz | rebound  14 spikes over   79 ms | late  17.0 Hz | cai 30.336 uM | K_ATP o 0.991
+  PV+ katp_gbar=3e-05: before step  12.0 Hz | rebound  13 spikes over   74 ms | late  25.0 Hz | cai 36.265 uM | K_ATP o 0.984
+  PV+ katp_gbar=0.0001: before step   0.0 Hz | rebound   9 spikes over   45 ms | late   0.0 Hz | cai 5.012 uM | K_ATP o 0.820
+  PV+ katp_gbar=0.0003: before step   0.0 Hz | rebound   0 spikes over    0 ms | late   0.0 Hz | cai 0.424 uM | K_ATP o 0.428
+  PV+ katp_gbar=0.001: before step   0.0 Hz | rebound   0 spikes over    0 ms | late   0.0 Hz | cai 0.196 uM | K_ATP o 0.151
+
+Saved single_cell_PVP_katp_gbar.png
