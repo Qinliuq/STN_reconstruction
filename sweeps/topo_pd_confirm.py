@@ -12,3 +12,7 @@ for ctx in [1.0, 0.7]:
         {'label': f'ctx{ctx:g}_healthy', 'group': f'ctx{ctx:g}', 'x': 0, 'cfg': {**net, 'ctx_state': 'healthy', 'gpe_state': 'healthy'}},
         {'label': f'ctx{ctx:g}_pd', 'group': f'ctx{ctx:g}', 'x': 1, 'cfg': {**net, 'ctx_state': 'parkinsonian', 'gpe_state': 'parkinsonian'}},
     ]
+
+# pinned to the Kv3.1 scales these runs used (defaults later moved to 1.2 / 1.15)
+for c in conditions:
+    c['cfg'] = {'PVP_gKv31_scale': 1.0, 'PVN_gKv31_scale': 1.0, **c['cfg']}

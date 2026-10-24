@@ -37,3 +37,39 @@ More Kv3.1 in PV+ than PV- makes PV+ less bursty and PV- slightly more excitable
 converge (rates, rebound size) instead of becoming more distinct. Kv3.1 differentiation therefore does
 not make the burst behaviour more realistic; the scales stay at 1.0 and parkinsonian burstiness is
 pursued through stronger GPe->STN synapses.
+
+## Protection against depolarization block (2026-10-24): new defaults PV+ 1.2, PV- 1.15
+
+Strong depolarizing steps (`--protocols depol`: +0.1 ... +0.8 nA for 4 s). The table shows rate,
+spike trough and the end-of-step Vm at +0.8 nA. `*_depol.txt` holds all steps; `*_ref.txt` holds the
+1.15 / 1.05 refinements; `*_fine.txt` holds the standard protocols at 1-1.3.
+
+| Kv3.1 scale | PV+ at +0.8 nA | PV- at +0.8 nA |
+|---|---|---|
+| 0.5, 0.75 | **depolarization block** (silent at -27 mV after the first spikes) | **block** |
+| 1.0 | 448 Hz small oscillation, trough -35 mV, AP width 0.17 ms (spikes do not repolarize: near-block) | 440 Hz, trough -35 mV (near-block) |
+| 1.05 | | 429 Hz, trough -36 mV (near-block) |
+| 1.1 | 425 Hz, trough -37 mV (near-block) | **219 Hz, full spikes, trough -56 mV** |
+| 1.15 | **220 Hz, full spikes, trough -56 mV** | 218 Hz, trough -57 mV |
+| 1.2 | 220 Hz, trough -57 mV | 217 Hz, trough -57 mV |
+| 1.3 / 1.5 | 219 / 217 Hz, trough -57 / -59 mV | 216 / 215 Hz |
+
+- Up to +0.5 nA every scale >= 0.75 fires full spikes (0.5 is already near-block at +0.5 nA).
+- At +0.8 nA the transition is sharp. Below a threshold, spikes collapse into a small, non-repolarizing
+  oscillation around -30 mV or a full block. Above it, the cell fires fully repolarized spikes at
+  ~220 Hz.
+- The threshold lies between 1.1 and 1.15 for PV+ and between 1.05 and 1.1 for PV-. The default of 1.0
+  sits just below it in both types.
+- The new defaults (`cfg.PVP_gKv31_scale = 1.2`, `cfg.PVN_gKv31_scale = 1.15`) are the bottom of the
+  protective window plus a ~0.05 margin, keeping PV+ slightly above PV-.
+
+Cost at the new defaults, from `*_fine.txt` (default 1.0 -> new):
+
+| | PV+ (1.2) | PV- (1.15) |
+|---|---|---|
+| spontaneous rate | 17 -> 14 Hz | 11.3 -> ~9.7 Hz |
+| +0.05 nA rate | 55 -> 53 Hz | 50 -> ~47.5 Hz |
+| PV+ bursts at -0.16 nA | 9 x 5.3 -> 11 x 4.0 spikes | (none) |
+| rebound | 14 -> 12 spikes, 161 Hz | 12 -> 7-9 spikes, 106-159 Hz |
+
+PV+ keeps its rhythmic bursting and rebound; PV- keeps tonic firing. Both are slightly less excitable.

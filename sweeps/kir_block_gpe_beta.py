@@ -10,6 +10,7 @@ conditions = [{'label': 'healthy', 'group': 'healthy', 'x': 1.0, 'cfg': {'ctx_st
 conditions += [{'label': f'pd_kir{f:g}', 'group': 'parkinsonian', 'x': f, 'cfg': {**pd, 'channel_block': {'gKir': f}}}
                for f in [1.0, 0.75, 0.5, 0.25, 0.0]]
 
-# pinned to the model version these runs used (defaults later moved to input_version 3, pop_order 60)
+# pinned to the model version these runs used (defaults later moved to input_version 3, pop_order 60, Kv3.1 1.2 / 1.15)
 for c in conditions:
-    c['cfg'] = {'input_version': 2, 'pop_order': 30, 'gpe_conductance_nS': 0.5, 'ctx_overrides': {}, **c['cfg']}
+    c['cfg'] = {'input_version': 2, 'pop_order': 30, 'gpe_conductance_nS': 0.5, 'ctx_overrides': {},
+                'PVP_gKv31_scale': 1.0, 'PVN_gKv31_scale': 1.0, **c['cfg']}

@@ -10,6 +10,7 @@ conditions = [
     {'label': 'pd', 'group': 'parkinsonian', 'x': 3, 'cfg': {'ctx_state': 'parkinsonian', 'gpe_state': 'parkinsonian'}},
 ]
 
-# pinned to the model version these runs used (defaults later moved to input_version 3, pop_order 60)
+# pinned to the model version these runs used (defaults later moved to input_version 3, pop_order 60, Kv3.1 1.2 / 1.15)
 for c in conditions:
-    c['cfg'] = {'input_version': 2, 'pop_order': 30, 'gpe_conductance_nS': 0.5, 'ctx_overrides': {}, **c['cfg']}
+    c['cfg'] = {'input_version': 2, 'pop_order': 30, 'gpe_conductance_nS': 0.5, 'ctx_overrides': {},
+                'PVP_gKv31_scale': 1.0, 'PVN_gKv31_scale': 1.0, **c['cfg']}

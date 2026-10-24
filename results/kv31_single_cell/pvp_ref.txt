@@ -1,0 +1,15 @@
+Cells without synaptic input; stats over 1000-4000 ms
+burst = >=3 spikes with ISI < 20 ms, flanked by pauses > 3x the intra-burst ISI
+
+=== depolarizing +0.1 nA
+    PV+ gKv31=1.15: rate  78.0 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.60 ms | trough -69.0 mV | last spike   3992 ms | Vm(end) -55.8 mV
+=== depolarizing +0.2 nA
+    PV+ gKv31=1.15: rate 111.3 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.59 ms | trough -67.5 mV | last spike   3996 ms | Vm(end) -53.8 mV
+=== depolarizing +0.3 nA
+    PV+ gKv31=1.15: rate 135.7 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.59 ms | trough -66.0 mV | last spike   3997 ms | Vm(end) -51.8 mV
+=== depolarizing +0.5 nA
+    PV+ gKv31=1.15: rate 173.3 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.59 ms | trough -62.5 mV | last spike   3997 ms | Vm(end) -48.1 mV
+=== depolarizing +0.8 nA
+    PV+ gKv31=1.15: rate 220.3 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.59 ms | trough -56.0 mV | last spike   3999 ms | Vm(end) -42.0 mV
+
+Saved single_cell_PVP_gKv31_depol.png
