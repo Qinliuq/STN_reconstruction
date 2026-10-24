@@ -51,8 +51,9 @@ cfg.input_version = 3
 cfg.ctx_state = 'healthy' # 'healthy' or 'parkinsonian' (STATES in cortical_arrivals[_v2].py)
 # override fields of the state's InputParams (applied to both states), e.g. {'rate_hz': 60}. The v2 states use 1 nS per
 # arrival (calibrated with input_version 2); with input_version 3 (sparse GPe input, larger network) 0.7 nS keeps
-# STN rates lower and the parkinsonian beta peak robust (sweeps/topo_pd_confirm.py). For v1 use {'conductance_nS': 1.0}.
-cfg.ctx_overrides = {'conductance_nS': 0.7}
+# STN rates lower and the parkinsonian beta peak robust (sweeps/topo_pd_confirm.py); 0.8 nS with the raised Kv3.1
+# scales (sweeps/kv31_topo_calib.py). For v1 use {'conductance_nS': 1.0}.
+cfg.ctx_overrides = {'conductance_nS': 0.8}
 # topography: per-cell rate scale = intercept + slope * position along the STN axis (0..1), normalized to mean 1;
 # None for uniform input. Jeon et al. Fig 7H.2 (Gria): 0.55 - 0.3x; default is the previous, exaggerated rule 0.65 - 0.5x
 cfg.ctx_topography = (0.65, -0.5)
