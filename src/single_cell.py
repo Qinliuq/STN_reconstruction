@@ -38,6 +38,8 @@ protocols = {
     'rebound (-0.25 nA, 1000-1500 ms)': [(1000, 500, -0.25)],
 }
 rebound = {'protocol': 'rebound (-0.25 nA, 1000-1500 ms)', 'onset': 1000, 'release': 1500}
+# --protocols depol: strong depolarizing steps, to find where firing collapses into depolarization block
+depolProtocols = {f'depolarizing +{a:g} nA': [(0, duration, a)] for a in (0.1, 0.2, 0.3, 0.5, 0.8)}
 
 cellTypes = {'PVP_cell': 'PV+', 'PVN_cell': 'PV-'}
 
@@ -46,12 +48,16 @@ parser.add_argument('--cell', choices=['PVP', 'PVN'], help='cell type to sweep')
 parser.add_argument('--param', choices=['gCaT', 'gCaL', 'gHCN', 'gSK', 'gKir', 'gKv31', 'katp_gbar', 'katp_pdscale'],
                     help='conductance scale to sweep, or K_ATP gbar (S/cm2) / pdscale')
 parser.add_argument('--values', type=float, nargs='+', help='values of the scale to sweep')
+parser.add_argument('--protocols', choices=['default', 'depol'], default='default',
+                    help='protocol set: default, or depol (strong depolarizing steps, reports depolarization block)')
 parser.add_argument('--cfg', nargs='*', default=[], metavar='KEY=VALUE', help='override cfg.py settings, e.g. katp_kca=0.02')
 args = parser.parse_args()
 import ast
 for item in args.cfg:
     key, value = item.split('=', 1)
     setattr(netCfg, key, ast.literal_eval(value))
+if args.protocols == 'depol':
+    protocols = depolProtocols
 if any([args.cell, args.param, args.values]) and not all([args.cell, args.param, args.values]):
     parser.error('--cell, --param and --values must be used together')
 
@@ -59,10 +65,11 @@ if any([args.cell, args.param, args.values]) and not all([args.cell, args.param,
 if args.values:
     cellType = f'{args.cell}_cell'
     conditions = [(f'{cellTypes[cellType]} {args.param}={v:g}', cellType, {args.param: v}) for v in args.values]
-    figName = f'single_cell_{args.cell}_{args.param}' + ''.join(f'_{x}' for x in args.cfg) + '.png'
+    figName = f'single_cell_{args.cell}_{args.param}' + ''.join(f'_{x}' for x in args.cfg)
 else:
     conditions = [(lab, cellType, {}) for cellType, lab in cellTypes.items()]
-    figName = 'single_cell.png'
+    figName = 'single_cell'
+figName += ('_depol' if args.protocols == 'depol' else '') + '.png'
 
 # ------------------------------------------------ SIMULATION ------------------------------------------------
 cfg = specs.SimConfig()
@@ -191,6 +198,19 @@ def katp_stats(c, i):
     o = np.array(sim.allSimData['katp_o'][f'cell_{gid}'])[sel].mean()
     return f" | cai {cai:5.3f} uM | K_ATP o {o:5.3f}"
 
+def block_stats(c, i, spikes):
+    # depolarization block: spikes stop (or never resume after the transient) while Vm stays depolarized;
+    # reports the last spike time and the mean Vm over the final 500 ms
+    if args.protocols != 'depol':
+        return ''
+    gid, _ = cell_spikes(c, i)
+    t = np.array(sim.allSimData['t'])
+    v = np.array(sim.allSimData['V_soma'][f'cell_{gid}'])
+    vEnd = v[t >= duration - 500].mean()
+    last = spikes[-1] if len(spikes) else 0.0
+    blocked = vEnd > -50 and last < duration - 500
+    return f" | last spike {last:6.0f} ms | Vm(end) {vEnd:5.1f} mV" + (' | BLOCKED' if blocked else '')
+
 print(f"\nCells without synaptic input; stats over {transient}-{duration} ms")
 print("burst = >=3 spikes with ISI < 20 ms, flanked by pauses > 3x the intra-burst ISI\n")
 for name in names:
@@ -206,7 +226,8 @@ for name in names:
         else:
             s = firing_stats(spikes, transient, duration)
             print(f"  {lab:>16}: rate {s['rate']:5.1f} Hz | ISI CV {s['cv']:4.2f} | bursts {s['bursts']:3d} | "
-                  f"spikes in bursts {s['fracInBursts']:4.2f} | spikes/burst {s['spikesPerBurst']:4.1f}" + spike_shape(c, names.index(name)) + katp_stats(c, names.index(name)))
+                  f"spikes in bursts {s['fracInBursts']:4.2f} | spikes/burst {s['spikesPerBurst']:4.1f}" + spike_shape(c, names.index(name)) + katp_stats(c, names.index(name))
+                  + block_stats(c, names.index(name), spikes))
 
 # ------------------------------------------------ FIGURE ------------------------------------------------
 t = np.array(sim.allSimData['t'])
