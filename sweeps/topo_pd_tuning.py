@@ -20,3 +20,7 @@ for sigma in [0.10, 0.15]:
 # pinned to the cortical conductance and Kv3.1 these runs used (defaults later moved to 0.7 nS, Kv3.1 1.2 / 1.15)
 for c in conditions:
     c['cfg'] = {'ctx_overrides': {}, 'PVP_gKv31_scale': 1.0, 'PVN_gKv31_scale': 1.0, **c['cfg']}
+
+# pinned to the Kir scales these runs used (defaults later moved to 0.3 in both types)
+for c in conditions:
+    c['cfg'] = {'PVP_gKir_scale': 0.5, 'PVN_gKir_scale': 0.1, **c['cfg']}

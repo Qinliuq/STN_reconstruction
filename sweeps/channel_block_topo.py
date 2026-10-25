@@ -17,3 +17,7 @@ for name, (channels, factors) in blocks.items():
     for f in factors:
         conditions.append({'label': f"{name.lower().replace('+', '_')}{f:g}", 'group': name, 'x': f,
                            'cfg': {**pd, 'channel_block': {ch: f for ch in channels}}})
+
+# pinned to the Kir scales and cortical conductance these runs used (Kir defaults later moved to 0.3 in both types)
+for c in conditions:
+    c['cfg'] = {'PVP_gKir_scale': 0.5, 'PVN_gKir_scale': 0.1, 'ctx_overrides': {'conductance_nS': 0.8}, **c['cfg']}

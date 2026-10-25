@@ -14,3 +14,7 @@ conditions = [
 for c in conditions:
     c['cfg'] = {'input_version': 2, 'pop_order': 30, 'gpe_conductance_nS': 0.5, 'ctx_overrides': {},
                 'PVP_gKv31_scale': 1.0, 'PVN_gKv31_scale': 1.0, **c['cfg']}
+
+# pinned to the Kir scales these runs used (defaults later moved to 0.3 in both types)
+for c in conditions:
+    c['cfg'] = {'PVP_gKir_scale': 0.5, 'PVN_gKir_scale': 0.1, **c['cfg']}

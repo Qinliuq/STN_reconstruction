@@ -26,14 +26,14 @@ cfg.PVP_gCaT_scale = 1.4
 cfg.PVP_gCaL_scale = 0.85
 cfg.PVP_gHCN_scale = 0.65
 cfg.PVP_gSK_scale = 0.9
-cfg.PVP_gKir_scale = 0.5
+cfg.PVP_gKir_scale = 0.3 # equal in both types (mean of the earlier 0.5 / 0.1); bursting phenotype is independent of Kir (results/kir_equal_single_cell/)
 cfg.PVP_gKv31_scale = 1.2 # lowest scale keeping PV+ out of depolarization block at +0.8 nA (threshold 1.1-1.15), + margin
 # PV- (single-spiking)
 cfg.PVN_gCaT_scale = 1.2 # tonic firing at rest (silent at <= 1.0, bursts at -0.16 nA at 1.4)
 cfg.PVN_gCaL_scale = 0.8 # short rebound (1.2 gives a ~250 ms rebound plateau)
 cfg.PVN_gHCN_scale = 0.6
 cfg.PVN_gSK_scale = 1.0
-cfg.PVN_gKir_scale = 0.1
+cfg.PVN_gKir_scale = 0.3
 cfg.PVN_gKv31_scale = 1.15 # same for PV- (threshold 1.05-1.1); see results/kv31_single_cell/
 
 # STN network size: popOrder in netParams.py (number of STN cells ~ pop_order - 2 after placement rounding)
@@ -78,7 +78,8 @@ cfg.katp_pdscale = 1.0
 # (~0.1-1 uM when silent, ~30-80 uM when firing), which keeps K_ATP almost fully open in any active cell
 cfg.katp_kca = 5e-4
 
-# pharmacology: factor per conductance scale applied to all STN cells, e.g. {'gKir': 0.5} = 50% Kir block
+# pharmacology: factor per conductance scale applied to all STN cells, e.g. {'gKir': 0.5} = 50% Kir block;
+# prefix with PVP_ / PVN_ to block in one cell type only, e.g. {'PVP_gKir': 0.5}
 cfg.channel_block = {}
 
 # network metrics (src/network_metrics.py) saved after each run to <filename>_metrics.json; computed from t >= metrics_t0 (ms)
