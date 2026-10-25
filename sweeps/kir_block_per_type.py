@@ -14,3 +14,8 @@ for name, key in [('PV+ only', 'PVP_gKir'), ('PV- only', 'PVN_gKir'), ('both', '
     for f in [0.5, 0.0]:
         conditions.append({'label': f"{key.replace('_gKir', '').lower() if key != 'gKir' else 'all'}_kir{f:g}", 'group': name, 'x': f,
                            'cfg': {**pd, 'channel_block': {key: f}}})
+
+# pinned to the parkinsonian GPe->STN synapse scale these runs used (default later moved to 2.0)
+for c in conditions:
+    if c['cfg'].get('gpe_state') == 'parkinsonian':
+        c['cfg']['gpe_params'] = {'synapse_scale': 1.5, **c['cfg'].get('gpe_params', {})}

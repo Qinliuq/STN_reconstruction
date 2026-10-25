@@ -24,8 +24,9 @@ STATES = {
     "healthy": dict(beta_modulation=0.10, beta_floor=0.10, burst_rate_hz=0.5, burst_duration_s=0.15,
                     synapse_scale=1.0),
     # parkinsonian: frequent, long beta bursts, deepest at the upper-middle axis (~0.65); stronger GPe->STN synapses
+    # (2.0 with equal Kir in PV+ / PV-, sweeps/pd_synapse_calib.py; 1.5 before)
     "parkinsonian": dict(beta_modulation=1.00, beta_floor=0.20, beta_center=0.65, beta_width=0.15,
-                         burst_rate_hz=2.0, burst_duration_s=0.40, synapse_scale=1.5),
+                         burst_rate_hz=2.0, burst_duration_s=0.40, synapse_scale=2.0),
 }
 
 

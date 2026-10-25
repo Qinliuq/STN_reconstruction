@@ -13,3 +13,8 @@ for c in conditions:
 # pinned to the Kir scales these runs used (defaults later moved to 0.3 in both types)
 for c in conditions:
     c['cfg'] = {'PVP_gKir_scale': 0.5, 'PVN_gKir_scale': 0.1, **c['cfg']}
+
+# pinned to the parkinsonian GPe->STN synapse scale these runs used (default later moved to 2.0)
+for c in conditions:
+    if c['cfg'].get('gpe_state') == 'parkinsonian':
+        c['cfg']['gpe_params'] = {'synapse_scale': 1.5, **c['cfg'].get('gpe_params', {})}

@@ -21,3 +21,8 @@ for name, (channels, factors) in blocks.items():
 # pinned to the Kir scales and cortical conductance these runs used (Kir defaults later moved to 0.3 in both types)
 for c in conditions:
     c['cfg'] = {'PVP_gKir_scale': 0.5, 'PVN_gKir_scale': 0.1, 'ctx_overrides': {'conductance_nS': 0.8}, **c['cfg']}
+
+# pinned to the parkinsonian GPe->STN synapse scale these runs used (default later moved to 2.0)
+for c in conditions:
+    if c['cfg'].get('gpe_state') == 'parkinsonian':
+        c['cfg']['gpe_params'] = {'synapse_scale': 1.5, **c['cfg'].get('gpe_params', {})}
