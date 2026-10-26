@@ -18,6 +18,15 @@ All metrics use t >= cfg.metrics_t0 (ms) to skip the initial transient:
   burst fraction and rate, and the effective number of cells per position (n_eff)
 - beta_peak_axis / sync_peak_axis: positions of the maxima of the beta-power and synchrony profiles
   (among positions with n_eff >= PROFILE_MIN_CELLS)
+- per cell type (<pop> = PVP_pop / PVN_pop), independent of the number of cells of each type:
+  beta_pow_pair_<pop>: mean pairwise beta cross-power (13-30 Hz) between cells of that type (shared beta);
+  beta_pow_cell_<pop>: mean beta power of the single cells' spike trains (own beta, incl. their spiking noise);
+  beta_frac_<pop>: beta fraction (13-30 Hz / 1-100 Hz) of the type's mean spike train;
+  sync_<pop>: mean pairwise correlation of 10 ms counts within the type.
+  beta_pow_pair_STN / beta_pow_pair_cross: the same pairwise beta cross-power over all STN pairs / PV+-PV- pairs.
+
+Spike times are saved with the metrics (<filename>_spikes.npz), so metrics can be recomputed after changes here:
+    python src/network_metrics.py sweeps/out/<spec>/<run dir> [...]
 """
 import json
 
@@ -50,12 +59,28 @@ def find_bursts(spikes, max_isi=20.0, min_spikes=3, pause_ratio=3.0):
     return bursts
 
 
-def compute_metrics(sim, cfg, gpe=None):
-    t0, t1 = cfg.metrics_t0, cfg.duration
-    T = (t1 - t0) / 1000
+def spike_data(sim, cfg, gpe=None):
+    # everything the metrics need, as arrays (also what is saved to <filename>_spikes.npz)
+    gidsByPop = {pop: list(sim.net.pops[pop].cellGids) for pop in STN_POPS}
+    stnGids = [g for pop in STN_POPS for g in gidsByPop[pop]]
+    cellsByGid = {cell.gid: cell for cell in sim.net.cells}
     spk = np.array(sim.allSimData['spkid'])
     spkt = np.array(sim.allSimData['spkt'])
-    gidsByPop = {pop: list(sim.net.pops[pop].cellGids) for pop in STN_POPS}
+    sel = np.isin(spk, stnGids)
+    d = dict(spkid=spk[sel].astype(np.int32), spkt=spkt[sel], t0=cfg.metrics_t0, t1=cfg.duration,
+             axis=np.array([np.clip((cellsByGid[g].tags['xnorm'] + cellsByGid[g].tags['ynorm']) / 2, 0, 1) for g in stnGids]),
+             **{f'gids_{pop}': np.array(gidsByPop[pop], dtype=np.int32) for pop in STN_POPS})
+    if gpe is not None:
+        d['gpe_rate'] = np.array(gpe.rates).mean(1) # mean over GPe groups, one value per step of gpe_dt_ms
+        d['gpe_dt_ms'] = gpe.dt
+    return d
+
+
+def compute_metrics(d):
+    t0, t1 = float(d['t0']), float(d['t1'])
+    T = (t1 - t0) / 1000
+    spk, spkt = d['spkid'], d['spkt']
+    gidsByPop = {pop: list(d[f'gids_{pop}']) for pop in STN_POPS}
     stnGids = [g for pop in STN_POPS for g in gidsByPop[pop]]
     m = {}
     for pop, gids in gidsByPop.items():
@@ -93,12 +118,41 @@ def compute_metrics(sim, cfg, gpe=None):
         m['sync_corr10ms'] = float('nan')
 
     # profiles along the STN axis
-    cellsByGid = {cell.gid: cell for cell in sim.net.cells}
-    axis = np.array([np.clip((cellsByGid[g].tags['xnorm'] + cellsByGid[g].tags['ynorm']) / 2, 0, 1) for g in stnGids])
+    axis = np.asarray(d['axis'])
     trains = np.array([np.histogram(spkt[spk == g], bins=np.arange(t0, t1 + 1, 1.0))[0] for g in stnGids], float)
     nperseg = min(512, trains.shape[1])
     fc, Pc = welch(trains - trains.mean(1, keepdims=True), fs=1000, nperseg=nperseg, axis=1)
     cellBeta = Pc[:, (fc >= 13) & (fc <= 30)].sum(1)  # each cell's own beta power
+
+    # per cell type: shared (pairwise) beta, single-cell beta, beta fraction of the type's mean train, synchrony.
+    # Welch's estimate is bilinear, so the power of a summed train = sum of all auto- and cross-spectra, and the mean
+    # pairwise cross-power follows from the power of the sum minus the auto terms
+    betaBand = lambda x: welch(x - x.mean(), fs=1000, nperseg=nperseg)
+    def band_power(x, lo, hi):
+        f, P = betaBand(x)
+        return P[(f >= lo) & (f <= hi)].sum()
+    idxByPop = {pop: np.arange(len(gidsByPop[pop])) + sum(len(gidsByPop[p]) for p in STN_POPS[:k]) for k, pop in enumerate(STN_POPS)}
+    sumBeta = {}
+    for pop, idx in idxByPop.items():
+        n = len(idx)
+        sumTrain = trains[idx].sum(0)
+        sumBeta[pop] = band_power(sumTrain, 13, 30)
+        m[f'beta_pow_pair_{pop}'] = float((sumBeta[pop] - cellBeta[idx].sum()) / (n * (n - 1))) if n > 1 else float('nan')
+        m[f'beta_pow_cell_{pop}'] = float(cellBeta[idx].mean())
+        total = band_power(sumTrain, 1, 100)
+        m[f'beta_frac_{pop}'] = float(sumBeta[pop] / total) if total > 0 else 0.0
+        if R is not None:
+            act = np.flatnonzero(active)
+            sub = np.flatnonzero(np.isin(act, idx))
+            Rs = R[np.ix_(sub, sub)]
+            m[f'sync_{pop}'] = float(Rs[np.triu_indices(len(sub), 1)].mean()) if len(sub) > 1 else float('nan')
+        else:
+            m[f'sync_{pop}'] = float('nan')
+    nAll = len(stnGids)
+    allBeta = band_power(trains.sum(0), 13, 30)
+    m['beta_pow_pair_STN'] = float((allBeta - cellBeta.sum()) / (nAll * (nAll - 1)))
+    nP, nN = (len(idxByPop[p]) for p in STN_POPS)
+    m['beta_pow_pair_cross'] = float((allBeta - sumBeta['PVP_pop'] - sumBeta['PVN_pop']) / (2 * nP * nN))
     prof = {k: [] for k in ('beta_pow', 'beta_pow_raw', 'beta_frac', 'sync', 'bursts', 'rate', 'n_eff')}
     for x in PROFILE_POSITIONS:
         w = np.exp(-(axis - x) ** 2 / (2 * PROFILE_KERNEL ** 2))
@@ -129,16 +183,31 @@ def compute_metrics(sim, cfg, gpe=None):
     m['beta_peak_axis'] = peak('beta_pow')
     m['sync_peak_axis'] = peak('sync') if R is not None else float('nan')
 
-    if gpe is not None:
-        rates = np.array(gpe.rates)
-        m['gpe_rate'] = float(rates[int(t0 / gpe.dt):].mean())
+    if 'gpe_rate' in d:
+        m['gpe_rate'] = float(np.asarray(d['gpe_rate'])[int(t0 / float(d['gpe_dt_ms'])):].mean())
     return m, f, P
 
 
-def save_metrics(sim, cfg, gpe=None):
-    m, f, P = compute_metrics(sim, cfg, gpe)
-    with open(f'{cfg.filename}_metrics.json', 'w') as fh:
+def write_metrics(d, filename):
+    m, f, P = compute_metrics(d)
+    with open(f'{filename}_metrics.json', 'w') as fh:
         json.dump(m, fh, indent=1)
-    np.savez(f'{cfg.filename}_psd.npz', f=f, P=P)
+    np.savez(f'{filename}_psd.npz', f=f, P=P)
     print('Metrics:', ', '.join(f'{k} {v:.4g}' for k, v in m.items() if not isinstance(v, dict)))
     return m
+
+
+def save_metrics(sim, cfg, gpe=None):
+    d = spike_data(sim, cfg, gpe)
+    np.savez_compressed(f'{cfg.filename}_spikes.npz', **d)
+    return write_metrics(d, cfg.filename)
+
+
+if __name__ == '__main__':
+    # recompute the metrics of saved runs: python src/network_metrics.py <run dir or <filename>_spikes.npz> [...]
+    import os
+    import sys
+    for arg in sys.argv[1:]:
+        path = os.path.join(arg, 'model_output_spikes.npz') if os.path.isdir(arg) else arg
+        print(path)
+        write_metrics(dict(np.load(path)), path[:-len('_spikes.npz')])
