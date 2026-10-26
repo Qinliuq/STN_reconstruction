@@ -3,7 +3,7 @@ Run a parameter sweep of the network (src/init.py) in parallel and summarize it.
 
 A sweep spec is a Python file (see sweeps/) defining:
     duration = 3000        # ms
-    seeds = [1, 2, 3]      # each run sets cfg.ctx_seed = seed and cfg.gpe_seed = 100 + seed
+    seeds = [1, 2, 3]      # each run sets cfg.ctx_seed = seed and cfg.gpe_seed = 100 + seed (a condition may set its own 'seeds')
     conditions = [         # 'cfg' entries override src/cfg.py; 'group' and 'x' are used for plotting
         {'label': 'healthy', 'group': 'healthy', 'x': 1.0, 'cfg': {'ctx_state': 'healthy'}},
         {'label': 'pd_kir0.5', 'group': 'parkinsonian', 'x': 0.5, 'cfg': {'ctx_state': 'parkinsonian', 'channel_block': {'gKir': 0.5}}},
@@ -61,7 +61,7 @@ def write_cfg(spec, cond, seed, d):
 def run(spec, jobs, force):
     todo = []
     for cond in spec['conditions']:
-        for seed in spec['seeds']:
+        for seed in cond.get('seeds', spec['seeds']):
             d = run_dir(spec, cond['label'], seed)
             if not force and os.path.exists(os.path.join(d, 'model_output_metrics.json')):
                 continue
@@ -90,7 +90,7 @@ def summary(spec):
 
     rows = []
     for cond in spec['conditions']:
-        for seed in spec['seeds']:
+        for seed in cond.get('seeds', spec['seeds']):
             d = run_dir(spec, cond['label'], seed)
             mf = os.path.join(d, 'model_output_metrics.json')
             if os.path.exists(mf):
