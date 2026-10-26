@@ -76,7 +76,7 @@ scatters +-0.5 in beta power, so only differences of ~0.5 or more are meaningful
     middle in all seeds.
   - Upper-middle synchrony is not better than with Kv3.1 alone.
   - Net: slight Kir block makes Kv3.1 enhancement a little more rate-neutral, at the cost of its beta
-    benefit, consistent with Kir block amplifying beta (\`results/kir_block_per_type/\`).
+    benefit, consistent with Kir block amplifying beta (`results/kir_block_per_type/`).
 
 **Bottom line.** No single drug or tested pair restores all PD features in this model.
 - The burst and synchrony features follow STN excitability; the beta-spectrum feature follows HCN.
