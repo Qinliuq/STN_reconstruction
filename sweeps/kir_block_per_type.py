@@ -19,3 +19,7 @@ for name, key in [('PV+ only', 'PVP_gKir'), ('PV- only', 'PVN_gKir'), ('both', '
 for c in conditions:
     if c['cfg'].get('gpe_state') == 'parkinsonian':
         c['cfg']['gpe_params'] = {'synapse_scale': 1.5, **c['cfg'].get('gpe_params', {})}
+
+# pinned to equal GPe->STN conductance in PV+ and PV- (default later moved to cfg.gpe_gaba_scale 1.13 / 0.87)
+for c in conditions:
+    c['cfg'] = {'gpe_gaba_scale': {'PVP': 1.0, 'PVN': 1.0}, **c['cfg']}

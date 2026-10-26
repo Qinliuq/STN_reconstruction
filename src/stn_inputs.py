@@ -128,6 +128,8 @@ class GPeFeedback:
         # GABA synapses: on all dendritic sections for PV+ cells, on the soma for PV- cells (as in the previous GPe->STN rules);
         # each arrival goes to one randomly chosen synapse of the target cell
         synMech = {**synMech, **cfg.gpe_syn} # cfg.gpe_syn overrides the GABA synapse ('e', 'tau1', 'tau2')
+        # per-type GPe->STN conductance factor (GABA:glutamate balance per cell type), cfg.gpe_gaba_scale
+        gabaScale = {'PVP_cell': cfg.gpe_gaba_scale.get('PVP', 1.0), 'PVN_cell': cfg.gpe_gaba_scale.get('PVN', 1.0)}
         self.syns, self.netcons = [], []
         for gid in gids:
             cell = cellsByGid[gid]
@@ -137,7 +139,7 @@ class GPeFeedback:
                 syn = h.Exp2Syn(cell.secs[secName]['hObj'](0.5))
                 syn.e, syn.tau1, syn.tau2 = synMech['e'], synMech['tau1'], synMech['tau2']
                 nc = h.NetCon(None, syn)
-                nc.weight[0] = cfg.gpe_conductance_nS * synapseScale * 1e-3
+                nc.weight[0] = cfg.gpe_conductance_nS * synapseScale * gabaScale[cell.tags['cellType']] * 1e-3
                 self.syns.append(syn)
                 ncs.append(nc)
             self.netcons.append(ncs)

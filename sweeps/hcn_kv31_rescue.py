@@ -14,3 +14,7 @@ conditions += [{'label': f'hcn{f:g}', 'group': 'HCN block', 'x': f, 'cfg': {**pd
                for f in [0.75, 0.5, 0.25, 0.0]]
 conditions += [{'label': f'kv31x{f:g}', 'group': 'Kv3.1 increase', 'x': f, 'cfg': {**pd, 'channel_block': {'gKv31': f}}}
                for f in [1.1, 1.25, 1.5, 2.0]]
+
+# pinned to equal GPe->STN conductance in PV+ and PV- (default later moved to cfg.gpe_gaba_scale 1.13 / 0.87)
+for c in conditions:
+    c['cfg'] = {'gpe_gaba_scale': {'PVP': 1.0, 'PVN': 1.0}, **c['cfg']}

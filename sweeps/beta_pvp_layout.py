@@ -16,3 +16,7 @@ conditions = [
     {'label': 'pd_pvpuni', 'group': 'PV+ uniform', 'x': 1, 'cfg': {**pd, 'pvp_placement': 'uniform'}},
     {'label': 'pd_unibeta_pvpuni', 'group': 'PV+ uniform', 'x': 2, 'cfg': {**pd, **uni, 'pvp_placement': 'uniform'}},
 ]
+
+# pinned to equal GPe->STN conductance in PV+ and PV- (default later moved to cfg.gpe_gaba_scale 1.13 / 0.87)
+for c in conditions:
+    c['cfg'] = {'gpe_gaba_scale': {'PVP': 1.0, 'PVN': 1.0}, **c['cfg']}

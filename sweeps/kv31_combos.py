@@ -30,3 +30,7 @@ conditions = [{'label': 'healthy', 'group': 'healthy', 'x': 0, 'cfg': {'ctx_stat
                'cfg': {**pd, 'channel_block': {'gKir': 0.9, 'gKv31': 1.25}}},
               {'label': 'kir0.8_kv31x1.25', 'group': 'combined', 'x': 5, 'seeds': few,
                'cfg': {**pd, 'channel_block': {'gKir': 0.8, 'gKv31': 1.25}}}]
+
+# pinned to equal GPe->STN conductance in PV+ and PV- (default later moved to cfg.gpe_gaba_scale 1.13 / 0.87)
+for c in conditions:
+    c['cfg'] = {'gpe_gaba_scale': {'PVP': 1.0, 'PVN': 1.0}, **c['cfg']}

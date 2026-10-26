@@ -67,6 +67,9 @@ cfg.gpe_state = 'healthy' # 'healthy' or 'parkinsonian' (STATES in gpe_feedback_
 cfg.gpe_dt = 0.001 # s, GPe update step
 cfg.gpe_feedback_delay = 0.005 # s, total STN->GPe feedback delay (includes the one-step lag of the coupling)
 cfg.gpe_conductance_nS = 1.0 # per inhibitory arrival (input_version 3; v2 used 0.5 with all-to-all GPe input); x synapse_scale of the GPe state
+# per-type factor on the GPe->STN (GABA) conductance; cortical (glutamate) input is the same for both types, so this
+# sets a GABA:glutamate ratio 1.13 / 0.87 = 1.3x higher in PV+ than PV-, split around 1 to keep the calibrated rates
+cfg.gpe_gaba_scale = {'PVP': 1.13, 'PVN': 0.87}
 cfg.gpe_syn = {'tau2': 8.0} # overrides of the GABA synapse for GPe input (netParams 'GABA' has tau2 = 15 ms, which filters out GPe beta)
 cfg.gpe_params = {} # other GPeInputGenerator arguments, e.g. {'n_gpe_groups': 12, 'target_probability': 0.35, 'stn_to_gpe_gain': 0.5}
 cfg.gpe_seed = 2

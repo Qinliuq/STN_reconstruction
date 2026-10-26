@@ -18,3 +18,7 @@ for c in conditions:
 # pinned to the Kir scales these runs used (defaults later moved to 0.3 in both types)
 for c in conditions:
     c['cfg'] = {'PVP_gKir_scale': 0.5, 'PVN_gKir_scale': 0.1, **c['cfg']}
+
+# pinned to equal GPe->STN conductance in PV+ and PV- (default later moved to cfg.gpe_gaba_scale 1.13 / 0.87)
+for c in conditions:
+    c['cfg'] = {'gpe_gaba_scale': {'PVP': 1.0, 'PVN': 1.0}, **c['cfg']}
