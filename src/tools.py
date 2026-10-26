@@ -113,7 +113,10 @@ def apply_CSF_Bevan():
     # cli0_cl_ion = 4
     # clo0_cl_ion = 132.5
 
-def generate_locs(num, pv_percent, seed=0, plot=True):
+def generate_locs(num, pv_percent, seed=0, plot=True, pvp_placement='gradient'):
+    # pvp_placement: 'gradient' = PV+ cells concentrated around axis ~0.67 (skew-normal over the 12 grids);
+    # 'uniform' = PV+ cells spread in proportion to the cells per grid (same total cells per grid, only the
+    # PV+ / PV- mix along the axis changes)
 
     from scipy.stats import skewnorm
 
@@ -139,13 +142,22 @@ def generate_locs(num, pv_percent, seed=0, plot=True):
     skewed_dist = skewnorm.pdf(grid_centers, a, loc=mean, scale=std_dev)
     skewed_dist /= skewed_dist.sum()  # Normalize to make it a probability distribution
 
-    # Allocate the number of data points to each grid based on the skewed distribution
-    pvp_points_per_grid = (skewed_dist * total_points).astype(int)
-    error = total_points - pvp_points_per_grid.sum()
-    pvp_points_per_grid[6]+= error
-
     temp = num/(n_grids-2)
     points_per_grid = [temp*.3,temp*.7,temp,temp,temp,temp,temp,temp,temp,temp,temp*.7,temp*.3] #a temporary hack!!
+
+    if pvp_placement == 'gradient':
+        # Allocate the number of data points to each grid based on the skewed distribution
+        pvp_points_per_grid = (skewed_dist * total_points).astype(int)
+        error = total_points - pvp_points_per_grid.sum()
+        pvp_points_per_grid[6]+= error
+    elif pvp_placement == 'uniform':
+        # PV+ share of each grid = pv_percent (largest-remainder rounding to the same PV+ total)
+        share = pv_percent * np.array(points_per_grid)
+        pvp_points_per_grid = np.floor(share).astype(int)
+        extra = int(round(total_points)) - pvp_points_per_grid.sum()
+        pvp_points_per_grid[np.argsort(-(share - pvp_points_per_grid), kind='stable')[:extra]] += 1
+    else:
+        raise ValueError(f"pvp_placement must be 'gradient' or 'uniform', not {pvp_placement!r}")
     pvn_points_per_grid = np.array([int(points_per_grid[i]-pvp_points_per_grid[i]) for i in range(n_grids)])
 
     pvp_x = np.zeros(pvp_points_per_grid.sum(),)

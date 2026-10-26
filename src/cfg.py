@@ -38,6 +38,7 @@ cfg.PVN_gKv31_scale = 1.15 # same for PV- (threshold 1.05-1.1); see results/kv31
 
 # STN network size: popOrder in netParams.py (number of STN cells ~ pop_order - 2 after placement rounding)
 cfg.pop_order = 60
+cfg.pvp_placement = 'gradient' # PV+ cells concentrated around axis ~0.67 ('gradient') or spread evenly ('uniform'); tools.generate_locs
 
 # STN->STN collateral excitation (uS per connection)
 cfg.stn_stn_weight = 0.0002 # 0.001 gave a loop-driven 6-8 Hz bursting state that masked the input differences
