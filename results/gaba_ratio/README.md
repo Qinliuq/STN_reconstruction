@@ -57,3 +57,34 @@ Files:
   per-seed peaks are at the ventral edge or ~0.5. Giving PV+ cells relatively more inhibition does
   not let the PV+ cluster localize beta by itself. The graded pallidal beta drive is still required
   for the upper-middle peak.
+
+## Per-type beta (added 2026-10-26)
+
+The sweep was rerun with the per-type metrics of `src/network_metrics.py`. All earlier metrics are
+identical; the runs are deterministic. Values are means +- SD over 5 seeds. Pairwise beta power is
+x 1e-6 per cell pair, from 1 ms spike counts. It does not depend on how many cells of each type
+there are.
+
+| condition | shared beta, PV+ pairs | PV- pairs | PV+-PV- pairs | sync PV+ | sync PV- |
+|---|---|---|---|---|---|
+| healthy | 6.7 +- 1.9 | 2.5 +- 1.7 | 3.5 +- 0.8 | 0.008 | 0.011 |
+| PD (graded beta) | **17.2 +- 8.1** | 5.1 +- 0.6 | 9.7 +- 2.0 | **0.025** | 0.014 |
+| PD, uniform beta | **34.4 +- 13.9** | 14.4 +- 5.0 | 20.9 +- 8.3 | 0.034 | 0.028 |
+
+- **PV+ cells carry the most shared beta.**
+  - A PV+ pair shares 2.4-3.4x the beta of a PV- pair in every condition.
+  - PD raises it 2.6x for PV+ pairs and 2.0x for PV- pairs.
+  - PV+ cells are 21% of the STN, but pairs involving at least one PV+ cell carry ~55% of the
+    population's shared beta in PD (~47% healthy).
+- **Parkinsonian synchrony is mostly a PV+ effect.** Within-type synchrony triples in PV+ (0.008 ->
+  0.025) and barely changes in PV- (0.011 -> 0.014) with the graded drive.
+- **PV+ amplification is not only a matter of location.** In the default layout, PV+ cells sit where
+  the graded GPe beta is deepest, which by itself would raise their shared beta. With a uniform beta
+  drive, PV+ pairs still share 2.4x the beta of PV- pairs. Together with the 2x2 result (uniformly
+  placed PV+ -> STN beta at the healthy level), this supports PV+ cells as intrinsic beta amplifiers.
+- Two metrics are dominated by spiking noise rather than oscillation, so use the pairwise measure
+  for beta:
+  - `beta_pow_cell_*`: single-cell beta (~190-270 x 1e-6) is dominated by each cell's own spike-train
+    noise. It mainly tracks firing rate (PV+ 264 vs PV- 186-228).
+  - `beta_frac_*` (beta fraction of each type's mean train) is diluted by that noise. It is lower for
+    the 12 PV+ cells than for the 46 PV- cells, even though PV+ pairs share more beta.
