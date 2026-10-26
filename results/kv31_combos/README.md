@@ -33,6 +33,10 @@ scatters +-0.5 in beta power, so only differences of ~0.5 or more are meaningful
 | HCN 0.5 + Kv3.1 x1.25 | 5 | 0.92 +- 0.39 | 0.60 +- 0.13 | 0.54 | -0.12 | 0.00 | -0.45 | 29 / 14 | 0.241 | 3 / 5 |
 | CaT 0.9 + Kv3.1 x1.25 | 5 | 1.18 | 0.13 | 0.06 | 0.60 | 0.83 | 0.75 | 24 / 11 | 0.084 | 5 / 5 |
 | CaT 0.8 + Kv3.1 x1.25 | 5 | 1.53 | -0.03 | 0.21 | 0.79 | 1.33 | 1.11 | 19 / 8 | 0.037 | 1 / 5 |
+| Kir 0.9 | 5 | 0.31 | 0.35 | 0.28 | -0.06 | 0.07 | 0.10 | 34 / 16 | 0.169 | 3 / 5 |
+| Kir 0.8 | 5 | -0.45 | -0.29 | -0.28 | -0.36 | -0.47 | 0.16 | 35 / 17 | 0.161 | 4 / 5 |
+| Kir 0.9 + Kv3.1 x1.25 | 5 | 0.76 | 0.06 +- 0.55 | -0.14 | 0.57 | 0.39 | 0.47 +- 0.15 | 30 / 14 | 0.121 | 3 / 5 |
+| Kir 0.8 + Kv3.1 x1.25 | 5 | 0.30 | -0.06 +- 0.11 | -0.09 | 0.20 | 0.04 | 0.43 +- 0.16 | 31 / 14 | 0.126 | 5 / 5 |
 
 ![gap vs rate](gap_vs_rate.png)
 ![profiles](profiles.png)
@@ -59,6 +63,20 @@ scatters +-0.5 in beta power, so only differences of ~0.5 or more are meaningful
     ~28% rate drop (PV+ 24, PV- 11 Hz). The upper-middle beta peak stays in all seeds.
   - CaT 0.8 + Kv3.1 x1.25 normalizes bursting and synchrony and removes the beta peak, but halves
     the rates (19 / 8 Hz, vs healthy 38 / 20). This is suppression.
+
+- **Slight Kir block + Kv3.1 x1.25** (added 2026-10-26; Kir is equal in both types, blocked in all
+  STN cells). Kir block alone at 10-20% does nothing useful: bursting is barely changed, and at 0.8 beta
+  and synchrony get worse.
+  - Combined with Kv3.1 x1.25 it buys back part of the Kv3.1 rate cost: PV+ 30-31 / PV- 14 Hz,
+    against 29 / 13.5 Hz for Kv3.1 alone and 33.5 / 16 Hz untreated.
+  - Bursting improves slightly: 0.43-0.47 of the gap against 0.33 for Kv3.1 alone over the same
+    seeds 1-5, within the seed SD of ~0.15. These points sit a little above the burst-vs-rate trend.
+  - The Kv3.1 effect on the beta spectrum is lost: the beta-fraction gap goes from ~0.55 to ~0, and the
+    upper-middle beta fraction gets slightly worse. With Kir 0.8 the beta peak stays at the upper
+    middle in all seeds.
+  - Upper-middle synchrony is not better than with Kv3.1 alone.
+  - Net: slight Kir block makes Kv3.1 enhancement a little more rate-neutral, at the cost of its beta
+    benefit, consistent with Kir block amplifying beta (\`results/kir_block_per_type/\`).
 
 **Bottom line.** No single drug or tested pair restores all PD features in this model.
 - The burst and synchrony features follow STN excitability; the beta-spectrum feature follows HCN.
