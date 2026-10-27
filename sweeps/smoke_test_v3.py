@@ -1,0 +1,24 @@
+# quick check of input_version 3 at the default network size (pop_order 60)
+duration = 600
+seeds = [1]
+conditions = [
+    {'label': 'healthy', 'group': 'healthy', 'x': 0, 'cfg': {'ctx_state': 'healthy', 'gpe_state': 'healthy'}},
+    {'label': 'pd', 'group': 'pd', 'x': 1, 'cfg': {'ctx_state': 'parkinsonian', 'gpe_state': 'parkinsonian'}},
+]
+
+# pinned to the Kv3.1 scales and cortical conductance these runs used (defaults later moved to 1.2 / 1.15, 0.7 nS)
+for c in conditions:
+    c['cfg'] = {'PVP_gKv31_scale': 1.0, 'PVN_gKv31_scale': 1.0, 'ctx_overrides': {}, 'gpe_conductance_nS': 0.5, **c['cfg']}
+
+# pinned to the Kir scales these runs used (defaults later moved to 0.3 in both types)
+for c in conditions:
+    c['cfg'] = {'PVP_gKir_scale': 0.5, 'PVN_gKir_scale': 0.1, **c['cfg']}
+
+# pinned to the parkinsonian GPe->STN synapse scale these runs used (default later moved to 2.0)
+for c in conditions:
+    if c['cfg'].get('gpe_state') == 'parkinsonian':
+        c['cfg']['gpe_params'] = {'synapse_scale': 1.5, **c['cfg'].get('gpe_params', {})}
+
+# pinned to equal GPe->STN conductance in PV+ and PV- (default later moved to cfg.gpe_gaba_scale 1.13 / 0.87)
+for c in conditions:
+    c['cfg'] = {'gpe_gaba_scale': {'PVP': 1.0, 'PVN': 1.0}, **c['cfg']}

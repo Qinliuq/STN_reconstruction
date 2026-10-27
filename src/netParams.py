@@ -22,14 +22,17 @@ pvn = netParams.importCellParams(label='PVN_cell', fileName='cells/SThprotocell.
 
 pvp.secs.soma['threshold'] = -30
 pvn.secs.soma['threshold'] = -30
+from tools import add_katp
+add_katp(pvp, cfg.katp_gbar, cfg.katp_pdscale, cfg.katp_kca)
+add_katp(pvn, cfg.katp_gbar, cfg.katp_pdscale, cfg.katp_kca)
 
 
 # ------------------------------------------------ NETWORK & POPULATIONS ------------------------------------------------
-popOrder = 30 # we can start with lower value for speed, and then increase gradually
+popOrder = cfg.pop_order # (was 30) we can start with lower value for speed, and then increase gradually
 PVPproportion = 0.2 # the percentage of PVP neurons; 1-popScale is the percetage of PVN neurons; cholinergic interneurons neglected for now
 
 from tools import generate_locs
-pvpLocs, pvnLocs = generate_locs(popOrder, PVPproportion, seed=cfg.seeds['loc'])
+pvpLocs, pvnLocs = generate_locs(popOrder, PVPproportion, seed=cfg.seeds['loc'], pvp_placement=cfg.pvp_placement)
 
 # STN pops
 netParams.popParams['PVP_pop'] = {'cellType': 'PVP_cell', 'cellsList': pvpLocs}
@@ -39,7 +42,7 @@ netParams.popParams['PVN_pop'] = {'cellType': 'PVN_cell', 'cellsList': pvnLocs}
 # Cortex: arrival events from src/cortical_arrivals.py (settings: cfg.ctx_*), one VecStim per STN cell, connected 1:1
 # GPe: closed-loop model from src/gpe_feedback.py (settings: cfg.gpe_*), driven during the simulation from init.py
 from stn_inputs import add_cortical_input
-add_cortical_input(netParams, cfg, {'PVP_pop': len(pvpLocs), 'PVN_pop': len(pvnLocs)})
+add_cortical_input(netParams, cfg, {'PVP_pop': pvpLocs, 'PVN_pop': pvnLocs})
 
 # ------------------------------------------------ SYNAPTIC MECHS ------------------------------------------------
 netParams.synMechParams['glut'] = {'mod': 'Exp2Syn', 'e': 0, 'tau1': 1.0, 'tau2': 5.0}
@@ -48,15 +51,14 @@ netParams.synMechParams['GABA'] = {'mod': 'Exp2Syn', 'e': -85, 'tau1': 2, 'tau2'
 
 # ------------------------------------------------ CONNECTIONS ------------------------------------------------
 # Cortex->STN connections are added by add_cortical_input() above; GPe->STN synapses are created in init.py.
-# Note: the previous topographic cortical rule (connection probability decreasing along the STN axis,
-# after Jeon et al. Fig 7H.2: Gria y = 0.55-0.3x) is not part of the new input model.
+# Cortical topography (cfg.ctx_topography) scales each STN cell's cortical arrival rate by its position along the STN axis.
 
 # # STN->STN - free parameter
 netParams.probLengthConst = 300
 
-netParams.connParams['PVP->all'] = {'synMech': 'glut', 'preConds': {'pop': 'PVP_pop'}, 'postConds': {'pop': ['PVP_pop', 'PVN_pop']}, 'probability': 'exp(-dist_3D/probLengthConst) * 0.25', 'weight': 0.001, 'delay': 0.5} # 'connList': [[0,1], [0,2]]
+netParams.connParams['PVP->all'] = {'synMech': 'glut', 'preConds': {'pop': 'PVP_pop'}, 'postConds': {'pop': ['PVP_pop', 'PVN_pop']}, 'probability': 'exp(-dist_3D/probLengthConst) * 0.25', 'weight': cfg.stn_stn_weight, 'delay': 0.5} # 'connList': [[0,1], [0,2]]
 
-netParams.connParams['PVN->all'] = {'synMech': 'glut', 'preConds': {'pop': 'PVN_pop'}, 'postConds': {'pop': ['PVP_pop', 'PVN_pop']}, 'probability': 'exp(-dist_3D/probLengthConst) * 0.25', 'weight': 0.001, 'delay': 0.5} # exp(-dist_3D/probLengthConst) * 0.25'
+netParams.connParams['PVN->all'] = {'synMech': 'glut', 'preConds': {'pop': 'PVN_pop'}, 'postConds': {'pop': ['PVP_pop', 'PVN_pop']}, 'probability': 'exp(-dist_3D/probLengthConst) * 0.25', 'weight': cfg.stn_stn_weight, 'delay': 0.5} # exp(-dist_3D/probLengthConst) * 0.25'
 
 # ------------------------------------------------ CONNECTIONS ------------------------------------------------
 # to be defined..

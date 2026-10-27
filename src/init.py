@@ -7,9 +7,11 @@ isBatchRun = sys.argv[0][-5:] == 'nrniv'
 if not isBatchRun:
     from tools import set_conductances, set_ion_styles, apply_CSF_Beurrier, apply_CSF_Bevan # for regular run
     from stn_inputs import GPeFeedback
+    from network_metrics import save_metrics
 else:
     from src.tools import set_conductances, set_ion_styles, apply_CSF_Beurrier, apply_CSF_Bevan # for batch run
     from src.stn_inputs import GPeFeedback
+    from src.network_metrics import save_metrics
 
 cfg, netParams = sim.readCmdLineArgs(simConfigDefault='src/cfg.py', netParamsDefault='src/netParams.py')
 
@@ -28,6 +30,7 @@ gpe = GPeFeedback(sim, cfg, netParams.synMechParams['GABA'])
 gpe.run()
 sim.gatherData()
 gpe.save()
+save_metrics(sim, cfg, gpe)
 gpe.plot(f'{sim.cfg.filename}_GPe_rates.png')
 sim.analyze()
 

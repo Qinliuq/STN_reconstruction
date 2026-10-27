@@ -1,0 +1,20 @@
+# quick check that both input versions run through the sweep tool
+duration = 600
+seeds = [1]
+conditions = [
+    {'label': 'v1_pd', 'group': 'v1', 'x': 1, 'cfg': {'input_version': 1, 'ctx_overrides': {'conductance_nS': 1.0}, 'ctx_state': 'parkinsonian'}},
+    {'label': 'v2_pd_kir0.5', 'group': 'v2', 'x': 2, 'cfg': {'ctx_state': 'parkinsonian', 'gpe_state': 'parkinsonian', 'channel_block': {'gKir': 0.5}}},
+]
+
+# pinned to the model version these runs used (defaults later moved to input_version 3, pop_order 60, Kv3.1 1.2 / 1.15)
+for c in conditions:
+    c['cfg'] = {'input_version': 2, 'pop_order': 30, 'gpe_conductance_nS': 0.5, 'ctx_overrides': {},
+                'PVP_gKv31_scale': 1.0, 'PVN_gKv31_scale': 1.0, **c['cfg']}
+
+# pinned to the Kir scales these runs used (defaults later moved to 0.3 in both types)
+for c in conditions:
+    c['cfg'] = {'PVP_gKir_scale': 0.5, 'PVN_gKir_scale': 0.1, **c['cfg']}
+
+# pinned to equal GPe->STN conductance in PV+ and PV- (default later moved to cfg.gpe_gaba_scale 1.13 / 0.87)
+for c in conditions:
+    c['cfg'] = {'gpe_gaba_scale': {'PVP': 1.0, 'PVN': 1.0}, **c['cfg']}

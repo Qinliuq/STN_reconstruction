@@ -1,0 +1,41 @@
+Cells without synaptic input; stats over 1000-4000 ms
+burst = >=3 spikes with ISI < 20 ms, flanked by pauses > 3x the intra-burst ISI
+
+=== spontaneous (0 nA)
+      PV- gKir=0.1: rate  10.0 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.58 ms | trough -70.2 mV
+      PV- gKir=0.2: rate   7.7 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.58 ms | trough -70.2 mV
+      PV- gKir=0.3: rate   6.7 Hz | ISI CV 0.01 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.58 ms | trough -70.2 mV
+      PV- gKir=0.4: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+      PV- gKir=0.5: rate   0.7 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.60 ms | trough -70.2 mV
+=== depolarizing +0.05 nA
+      PV- gKir=0.1: rate  47.7 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.58 ms | trough -69.8 mV
+      PV- gKir=0.2: rate  43.7 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.58 ms | trough -69.8 mV
+      PV- gKir=0.3: rate  39.7 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.57 ms | trough -69.8 mV
+      PV- gKir=0.4: rate  35.7 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.58 ms | trough -69.9 mV
+      PV- gKir=0.5: rate  30.7 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.57 ms | trough -69.9 mV
+=== hold -0.16 nA
+      PV- gKir=0.1: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+      PV- gKir=0.2: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+      PV- gKir=0.3: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+      PV- gKir=0.4: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+      PV- gKir=0.5: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+=== hold -0.25 nA
+      PV- gKir=0.1: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+      PV- gKir=0.2: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+      PV- gKir=0.3: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+      PV- gKir=0.4: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+      PV- gKir=0.5: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+=== hold -0.35 nA
+      PV- gKir=0.1: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+      PV- gKir=0.2: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+      PV- gKir=0.3: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+      PV- gKir=0.4: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+      PV- gKir=0.5: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan
+=== rebound (-0.25 nA, 1000-1500 ms)
+      PV- gKir=0.1: before step   8.0 Hz | rebound   8 spikes over   45 ms ( 156 Hz) | late   9.5 Hz
+      PV- gKir=0.2: before step   8.0 Hz | rebound   8 spikes over   44 ms ( 159 Hz) | late   8.0 Hz
+      PV- gKir=0.3: before step   4.0 Hz | rebound   8 spikes over   44 ms ( 160 Hz) | late   3.0 Hz
+      PV- gKir=0.4: before step   0.0 Hz | rebound   8 spikes over   44 ms ( 160 Hz) | late   0.0 Hz
+      PV- gKir=0.5: before step   2.0 Hz | rebound   8 spikes over   43 ms ( 165 Hz) | late   1.0 Hz
+
+Saved single_cell_PVN_gKir.png

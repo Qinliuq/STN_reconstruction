@@ -30,12 +30,17 @@ def set_conductances(cell, cfg, overrides=None):
     # set channel conductances of a PV+ or PV- cell; per-type scales are defined in cfg.py (cfg.PVP_* / cfg.PVN_*)
     # `overrides` (e.g. {'gCaT': 1.2}) replaces individual scales for this cell only
     prefix = 'PVP' if cell.tags['cellType'] == 'PVP_cell' else 'PVN'
-    scale = lambda name: (overrides or {}).get(name, getattr(cfg, f'{prefix}_{name}_scale'))
+    # cfg.channel_block (e.g. {'gKir': 0.5}) multiplies a scale in all cells, like a drug applied to the whole STN;
+    # a 'PVP_' / 'PVN_' prefixed key (e.g. {'PVP_gKir': 0.5}) blocks it in one cell type only
+    block = getattr(cfg, 'channel_block', {})
+    scale = lambda name: ((overrides or {}).get(name, getattr(cfg, f'{prefix}_{name}_scale'))
+                          * block.get(name, 1.0) * block.get(f'{prefix}_{name}', 1.0))
     gCaT_scale = scale('gCaT')
     gCaL_scale = scale('gCaL')
     gHCN_scale = scale('gHCN')
     gSK_scale = scale('gSK')
     gKir_scale = scale('gKir')
+    gKv31_scale = scale('gKv31')
 
     # Na
     default_gNa_soma = 1.483419823e-02
@@ -48,7 +53,7 @@ def set_conductances(cell, cfg, overrides=None):
 
     # linear conductances (loaded from files)...
     set_values_from_file(cell, "gk_KDR")
-    set_values_from_file(cell, "gk_Kv31")
+    set_values_from_file(cell, "gk_Kv31", soma_scale=gKv31_scale, dend_scale=gKv31_scale)
     set_values_from_file(cell, "gcaN_HVA")
     set_values_from_file(cell, "gk_Ih", soma_scale=gHCN_scale, dend_scale=gHCN_scale)
     set_values_from_file(cell, "gcaT_CaT", soma_scale=gCaT_scale, dend_scale=gCaT_scale)
@@ -59,6 +64,14 @@ def set_conductances(cell, cfg, overrides=None):
     # set_values_from_file(cell, "gk_sKCa", "apamin0.9") # apply apamin
     set_values_from_file(cell, "gcaL_HVA", soma_scale=gCaL_scale, dend_scale=gCaL_scale)
     # set_values_from_file(cell, "gcaL_HVA", "dl0.9") # 10% decrease in dendritic linear CaL (see Figure 6A, 8A)
+
+def add_katp(cellParams, gbar, pdscale=1.0, kca=5e-4, force=False):
+    # insert the Ca2+-gated K_ATP current (mod/katp_stn.mod) uniformly in all sections (gbar in S/cm2);
+    # skipped when gbar is 0 (unless force), so the model is unchanged by default
+    if not gbar and not force:
+        return
+    for sec in cellParams.secs.values():
+        sec['mechs']['katp_stn'] = {'gbar': gbar, 'pdscale': pdscale, 'kca': kca}
 
 def set_ion_styles():
     for sec in h.allsec():
@@ -100,7 +113,10 @@ def apply_CSF_Bevan():
     # cli0_cl_ion = 4
     # clo0_cl_ion = 132.5
 
-def generate_locs(num, pv_percent, seed=0, plot=True):
+def generate_locs(num, pv_percent, seed=0, plot=True, pvp_placement='gradient'):
+    # pvp_placement: 'gradient' = PV+ cells concentrated around axis ~0.67 (skew-normal over the 12 grids);
+    # 'uniform' = PV+ cells spread in proportion to the cells per grid (same total cells per grid, only the
+    # PV+ / PV- mix along the axis changes)
 
     from scipy.stats import skewnorm
 
@@ -126,13 +142,22 @@ def generate_locs(num, pv_percent, seed=0, plot=True):
     skewed_dist = skewnorm.pdf(grid_centers, a, loc=mean, scale=std_dev)
     skewed_dist /= skewed_dist.sum()  # Normalize to make it a probability distribution
 
-    # Allocate the number of data points to each grid based on the skewed distribution
-    pvp_points_per_grid = (skewed_dist * total_points).astype(int)
-    error = total_points - pvp_points_per_grid.sum()
-    pvp_points_per_grid[6]+= error
-
     temp = num/(n_grids-2)
     points_per_grid = [temp*.3,temp*.7,temp,temp,temp,temp,temp,temp,temp,temp,temp*.7,temp*.3] #a temporary hack!!
+
+    if pvp_placement == 'gradient':
+        # Allocate the number of data points to each grid based on the skewed distribution
+        pvp_points_per_grid = (skewed_dist * total_points).astype(int)
+        error = total_points - pvp_points_per_grid.sum()
+        pvp_points_per_grid[6]+= error
+    elif pvp_placement == 'uniform':
+        # PV+ share of each grid = pv_percent (largest-remainder rounding to the same PV+ total)
+        share = pv_percent * np.array(points_per_grid)
+        pvp_points_per_grid = np.floor(share).astype(int)
+        extra = int(round(total_points)) - pvp_points_per_grid.sum()
+        pvp_points_per_grid[np.argsort(-(share - pvp_points_per_grid), kind='stable')[:extra]] += 1
+    else:
+        raise ValueError(f"pvp_placement must be 'gradient' or 'uniform', not {pvp_placement!r}")
     pvn_points_per_grid = np.array([int(points_per_grid[i]-pvp_points_per_grid[i]) for i in range(n_grids)])
 
     pvp_x = np.zeros(pvp_points_per_grid.sum(),)
