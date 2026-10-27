@@ -20,3 +20,6 @@ for name, (key, factors) in singles.items():
 combos = [('gCaT', 0.9), ('gCaT', 0.8), ('gKir', 0.9), ('gKir', 0.8), ('gHCN', 0.5)]
 conditions += [{'label': f"{key[1:].lower()}{f:g}_kv31x1.25", 'group': 'with Kv3.1 x1.25', 'x': f,
                 'cfg': {**pd, 'channel_block': {key: f, 'gKv31': 1.25}}} for key, f in combos]
+# stage 2: the same combinations at Kv3.1 x1.3 (the most consistent Kv3.1 dose of stage 1)
+conditions += [{'label': f"{key[1:].lower()}{f:g}_kv31x1.3", 'group': 'with Kv3.1 x1.3', 'x': f,
+                'cfg': {**pd, 'channel_block': {key: f, 'gKv31': 1.3}}} for key, f in combos]
