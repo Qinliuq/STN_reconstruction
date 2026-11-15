@@ -74,6 +74,12 @@ cfg.gpe_syn = {'tau2': 8.0} # overrides of the GABA synapse for GPe input (netPa
 cfg.gpe_params = {} # other GPeInputGenerator arguments, e.g. {'n_gpe_groups': 12, 'target_probability': 0.35, 'stn_to_gpe_gain': 0.5}
 cfg.gpe_seed = 2
 
+# time-varying input rates (held-out validation hooks, src/input_modulation.py); None = off (the default model).
+# e.g. {'type': 'slow_osc', 'freq_hz': 1.0, 'depth': 0.9, 'duty': 0.5} for anesthesia-like cortical up/down states, or
+# {'type': 'blocks', 'pre_s': 1, 'on_s': 2, 'post_s': 2, 'factor': 0.5, 't_start_s': 0.5} for a repeating stimulation protocol
+cfg.ctx_rate_mod = None # multiplies the cortical arrival rate
+cfg.gpe_rate_mod = None # multiplies the GPe baseline (target) rate; 'blocks' only, factor scalar or one per GPe group
+
 # Ca2+-gated K_ATP current (mod/katp_stn.mod, Kir6.2/SUR1), uniform in all sections; 0 = not inserted.
 # pdscale > 1 models its augmented expression after dopamine depletion (Shen & Johnson 2012)
 cfg.katp_gbar = 0.0 # S/cm2

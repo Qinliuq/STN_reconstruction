@@ -1,0 +1,39 @@
+{
+ "_note": "Input-regime parameters for the held-out tests, fixed before any model run and never changed after looking at the data. They are a priori choices (round values from qualitative literature), not fits. Configuration-D parameters are untouched.",
+ "seeds": [1, 2, 3, 4, 5],
+ "seed_convention": "as src/sweep.py: ctx_seed = s, gpe_seed = 100 + s; network layout (seeds['loc'], seeds['conn']) fixed, i.e. the same 58 cells (12 PV+, 46 PV-) in every seed",
+ "transient_ms": 500,
+ "H1_H2": {
+  "state": "parkinsonian (ctx_state and gpe_state)",
+  "duration_ms": 20500,
+  "why_20s": "the reference features need >= 100 spikes / 99 ISIs; 20 s gives >= ~300 spikes at the PD rates (16-33 Hz). The rat trains are ~100 s; burst_share has length-dependent false positives (Poisson ~0.1 at 300 s), reported as a caveat"
+ },
+ "H3_slow_oscillation": {
+  "ctx_rate_mod": {"type": "slow_osc", "freq_hz": 1.0, "depth": 0.9, "duty": 0.5, "edge_s": 0.05, "period_cv": 0.1},
+  "state": "parkinsonian + slow oscillation",
+  "duration_ms": 20500,
+  "rationale": {
+   "freq_hz": "~1 Hz cortical slow oscillation under urethane / ketamine anesthesia (Steriade et al. 1993; Magill et al. 2000 in rat STN-cortex recordings). Fixed from the literature, not from the held-out EEG",
+   "depth": "0.9: cortical output in down states is near silent; down-state rate = 10% of up-state rate",
+   "duty": "0.5: up and down states of similar duration at ~1 Hz",
+   "mean_preserved": "the envelope is normalized to mean 1, so the calibrated mean cortical drive is unchanged",
+   "seed": "slow-wave timing seed = ctx_seed (differs between seeds)"
+  },
+  "beta_reference": "GPe beta drive phase (common oscillator phase, saved per 1 ms step) and, as an EEG analogue, the cortical population arrival rate band-passed 13-30 Hz; both from the H1 runs (no slow oscillation)"
+ },
+ "H4_optogenetics": {
+  "state": "healthy (ctx_state and gpe_state)",
+  "protocol": {"pre_s": 1.0, "on_s": 2.0, "post_s": 2.0, "t_start_s": 0.5, "n_cycles": 10},
+  "duration_ms": 50500,
+  "why_compressed": "accepted by the user: the model's slowest processes are ~1 s (Ca, HCN, 20 ms GPe rate constant), so the response to a step input settles within 1 s; the data's 20 s within-block recovery and 10-20 s after-effects are not testable with this protocol",
+  "scenarios": {
+   "D2_gpe": {"label": "D2-MSN, textbook route: GPe rate reduced", "gpe_rate_mod_factor": 0.5,
+              "rationale": "iSPN/D2-MSN input targets prototypic GPe neurons strongly (Ketzef & Silberberg 2021, Neuron); 50% reduction of the GPe baseline rate is an a priori round value (no quantitative in vivo value extracted); the STN->GPe feedback stays active"},
+   "D2_ctx": {"label": "D2-MSN, alternative route: cortical/thalamic drive reduced", "ctx_rate_mod_factor": 0.8,
+              "rationale": "iSPN activation suppresses many M1 neurons within ~100-200 ms (Oldenburg & Sabatini 2015, Neuron; ~46% of units modulated); 20% reduction of the cortical arrival rate is an a priori round value"},
+   "D1_ctx": {"label": "D1-MSN, textbook route: cortical/thalamic drive increased", "ctx_rate_mod_factor": 1.25,
+              "rationale": "dSPN activation disinhibits thalamus and excites most M1 neurons (Oldenburg & Sabatini 2015); +25% of the cortical arrival rate is an a priori round value"}
+  },
+  "test": "per cell, Wilcoxon signed-rank of the 2 s stim rate vs the 1 s pre rate over the 10 cycles, p < 0.01 (as the ChR2 analysis)"
+ }
+}

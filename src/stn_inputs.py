@@ -30,8 +30,12 @@ import cortical_arrivals_v2
 import gpe_feedback
 import gpe_feedback_v2
 import gpe_feedback_v3
+import input_modulation
 
 STN_POPS = ['PVP_pop', 'PVN_pop']
+# signals of the cortical input saved with the spikes (network_metrics.spike_data): the population arrival rate
+# (1 ms bins) and, with cfg.ctx_rate_mod, the rate envelope and slow-oscillation phase
+CTX_SIGNALS = {}
 
 
 def input_models(cfg):
@@ -80,11 +84,22 @@ def add_cortical_input(netParams, cfg, cellLocsPerPop):
     nAssemblies = max(1, math.ceil(nSTN / cfg.ctx_cells_per_assembly))
     axis, scale = topography_scale(cellLocs, cfg)
 
+    # optional time-varying rate envelope (held-out validation hook, off by default: cfg.ctx_rate_mod = None)
+    rateMod = getattr(cfg, 'ctx_rate_mod', None)
+    extra = {}
+    CTX_SIGNALS.clear()
+    if rateMod is not None:
+        nSteps = int(np.ceil(cfg.duration / 1000 / cfg.ctx_dt))
+        spec = {'seed': cfg.ctx_seed, **rateMod} if rateMod['type'] == 'slow_osc' else rateMod # slow-wave timing differs per seed
+        envelope, signals = input_modulation.ctx_envelope(spec, nSteps, cfg.ctx_dt)
+        extra['rate_envelope'] = envelope
+        CTX_SIGNALS.update(signals)
+
     # generate at the highest per-cell rate, then thin each cell's events to its own rate
     # (thinning keeps the arrivals Poisson and keeps the shared fraction of each cell's input)
     time_s, neuron_id, _ = ctxModel.generate_arrivals(n_neurons=nSTN, duration_s=cfg.duration / 1000, dt_s=cfg.ctx_dt,
                                              params=dataclasses.replace(params, rate_hz=params.rate_hz * scale.max()),
-                                             n_assemblies=nAssemblies, seed=cfg.ctx_seed)
+                                             n_assemblies=nAssemblies, seed=cfg.ctx_seed, **extra)
     keep = np.random.default_rng([cfg.ctx_seed, 1]).random(len(time_s)) < (scale / scale.max())[neuron_id]
     time_ms, neuron_id = time_s[keep] * 1000, neuron_id[keep]
 
@@ -98,6 +113,7 @@ def add_cortical_input(netParams, cfg, cellLocsPerPop):
                                                'weight': params.conductance_nS * 1e-3, 'delay': cfg.ctx_delay,
                                                'sec': 'soma', 'loc': 0.5}
         first += n
+    CTX_SIGNALS['ctx_rate'] = (np.histogram(time_ms, bins=np.arange(0, cfg.duration + 1, 1.0))[0] / nSTN * 1000).astype(np.float32)
     rates = np.bincount(neuron_id, minlength=nSTN) / (cfg.duration / 1000)
     print(f"Cortical input (v{cfg.input_version}, {cfg.ctx_state}): {len(time_ms)} arrivals to {nSTN} STN cells "
           f"({rates.mean():.1f} /s per cell, {nAssemblies} assemblies)")
@@ -144,6 +160,12 @@ class GPeFeedback:
                 ncs.append(nc)
             self.netcons.append(ncs)
 
+        # optional time-varying factor on the GPe baseline (target) rate per group (held-out validation hook,
+        # off by default: cfg.gpe_rate_mod = None); the STN->GPe feedback stays in the loop
+        self.rateMod = getattr(cfg, 'gpe_rate_mod', None)
+        self.baseline = np.array(self.generator.gpe_baseline_hz, dtype=float)
+        self.betaPhase, self.inBurst = [], []
+
         self.nSpikesRead = 0
         self.rates, self.arrivalTimes, self.arrivalCells = [], [], []
 
@@ -155,7 +177,14 @@ class GPeFeedback:
         newIds = [self.stnIndex[int(g)] for g in newGids if int(g) in self.stnIndex]
         self.nSpikesRead = n
 
+        if self.rateMod is not None:
+            self.generator.gpe_baseline_hz = self.baseline * input_modulation.gpe_factor(self.rateMod, t / 1000, self.generator.n_groups)
         arrivals = self.generator.step(newIds)
+        if hasattr(self.generator, 'beta_hz') and hasattr(self.generator, 'beta_phase'):
+            # phase of the pallidal beta drive (common oscillator, before the per-group jitter) and burst flag
+            tb = (self.generator.step_index - 1) * self.generator.dt_s
+            self.betaPhase.append(float(np.mod(2 * np.pi * self.generator.beta_hz * tb + np.angle(np.exp(1j * self.generator.beta_phase).mean()), 2 * np.pi)))
+            self.inBurst.append(bool(self.generator.in_burst))
         for i in arrivals:
             ncs = self.netcons[i]
             ncs[self.rng.integers(len(ncs))].event(t)
