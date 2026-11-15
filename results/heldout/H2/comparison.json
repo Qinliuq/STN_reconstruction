@@ -1,0 +1,7 @@
+{
+ "verdict": "H2 (pooled check): MISMATCH \u2014 similar distributions for 0/3 features; medians model vs rat: rate_hz 17.7 vs 25.7; cv 0.837 vs 1.32; burst_share 0 vs 0.0327.",
+ "verdict_word": "mismatch",
+ "model": "rate_hz 17.7; cv 0.837; burst_share 0",
+ "data": "rate_hz 25.7; cv 1.32; burst_share 0.0327",
+ "statistic": "Mann-Whitney + KS (medians shown)"
+}
