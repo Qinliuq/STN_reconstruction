@@ -128,7 +128,9 @@ def main():
          "false positives (Poisson ≈ 0.10 at 300 s, 20 Hz). log_isi_bimodality follows the reference code (Pearson kurtosis in Sarle's "
          "denominator; values are about half of the usual coefficient)."),
     ]
-    C.write_summary('H1', line, sections, pred)
+    C.write_summary('H1', line, sections, pred,
+                    dict(verdict_word=verdict, model=f"bimodal {S['n_seeds_sig_p05']}/5 seeds (BIC k2 {S['n_seeds_bic_k2']}/5); bursty {C.fmt(S['bursty_frac'])}; V(PV+) {C.fmt(S['V'])}",
+                 data=f"bimodal (sil 0.367, p 0.005; BIC k2); bursty {k}/{n} = {k/n:.2f}", statistic='silhouette vs Gaussian null, GMM BIC, Wilson CI, Cramer V'))
 
 
 if __name__ == '__main__':

@@ -126,7 +126,9 @@ def main():
                  "recovery and 10-20 s after-effects are not tested. Route magnitudes are a priori (priors.json), not fitted."),
                 ('Caveats', 'Mouse, dopamine-intact, anesthetized, multi-unit clusters (low rates ~1-4 Hz) vs a rat-based healthy model '
                  'state without anesthesia; striatal stimulation reaches the STN through routes the model represents only as input-rate changes.')]
-    C.write_summary('H4', line, sections, pred)
+    C.write_summary('H4', line, sections, pred,
+                    dict(verdict_word=overall, model='; '.join(f"{r.scenario}: pop x{r.model_pop_ratio}, inh {r.model_frac_inh}, exc {r.model_frac_exc}" for r in tab.itertuples()),
+                 data=f"D2 {T['D2']['n_inh']}/{T['D2']['n']} inh, x{T['D2']['median_ratio_resp']:.2f}; D1 {T['D1']['n_exc']}/{T['D1']['n']} exc, x{T['D1']['median_ratio_resp']:.2f}", statistic='per-cell Wilcoxon p<0.01, Wilson CI'))
 
 
 if __name__ == '__main__':

@@ -177,7 +177,9 @@ def main():
                  "cortical input rate (phase 0 = peak input) or the GPe beta drive (phase 0 = peak GPe rate); the rat reference is surface EEG, "
                  "whose polarity relative to cortical firing is not established here, so preferred phases are compared for concentration, "
                  "not absolute angle. Rat EEG is mostly slow-wave dominated; activated epochs exist in 3 of 6 sessions. Anesthesia: urethane (rat).")]
-    C.write_summary('H3', line, sections, pred)
+    C.write_summary('H3', line, sections, pred,
+                    dict(verdict_word=overall, model=f"slow PPC {ma.slow_ctx_ppc.median():.3g}; beta PPC {mb.beta_ctx_ppc.median():.3g} (ctx) / {mb.beta_gpe_all_ppc.median():.3g} (GPe)",
+                 data=f"slow PPC {re.slow_ppc.median():.3g}; beta (all epochs) {re.beta_all_ppc.median():.3g}; activated: {n_beta} units", statistic='Mann-Whitney on PPC (medians shown)'))
 
 
 if __name__ == '__main__':

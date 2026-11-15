@@ -59,7 +59,9 @@ def main():
             + '; '.join(f'{f} {a:.3g} vs {b:.3g}' for f, (a, b) in med.items()) + '.')
     C.write_summary('H2', line, [('Tests', C.md_table(tab)),
                                  ('Note', 'Pooled check only: the model was not tuned to these distributions and will not be. '
-                                  'Model cells are 5 seeds x 58 cells of one network (not independent); rat units are urethane-anesthetized.')], pred)
+                                  'Model cells are 5 seeds x 58 cells of one network (not independent); rat units are urethane-anesthetized.')], pred,
+                    dict(verdict_word=verdict, model='; '.join(f'{f} {a:.3g}' for f, (a, b) in med.items()),
+                 data='; '.join(f'{f} {b:.3g}' for f, (a, b) in med.items()), statistic='Mann-Whitney + KS (medians shown)'))
 
 
 if __name__ == '__main__':

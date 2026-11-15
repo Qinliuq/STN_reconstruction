@@ -37,7 +37,7 @@ def wilson(k, n, z=1.96):
     return (m - c, m + c)
 
 
-def write_summary(test, verdict_line, sections, pred):
+def write_summary(test, verdict_line, sections, pred, table=None):
     with open(os.path.join(out_dir(test), 'summary.md'), 'w') as fh:
         fh.write(f'# {test}\n\n**{verdict_line}**\n\n')
         fh.write(f"Prediction written {pred['created']} (git {pred['git']['hash'][:8]}"
@@ -45,7 +45,7 @@ def write_summary(test, verdict_line, sections, pred):
         for title, body in sections:
             fh.write(f'## {title}\n\n{body}\n\n')
     with open(os.path.join(out_dir(test), 'comparison.json'), 'w') as fh:
-        json.dump(dict(verdict=verdict_line), fh, indent=1)
+        json.dump(dict(verdict=verdict_line, **(table or {})), fh, indent=1)
     print(verdict_line)
 
 
