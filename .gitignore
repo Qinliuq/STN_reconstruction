@@ -17,3 +17,4 @@ env/
 sweeps/out/
 net2D-*.png
 model_output*
+sweeps/heldout_runs.log

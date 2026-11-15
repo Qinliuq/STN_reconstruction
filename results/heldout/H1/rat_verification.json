@@ -1,0 +1,61 @@
+{
+ "clustering_73": {
+  "silhouette": 0.36726912562686365,
+  "null_mean": 0.26060476423856493,
+  "null_p95": 0.3207254135341689,
+  "p": 0.005,
+  "sizes": [
+   33,
+   40
+  ],
+  "bic_k1": 582.670364115382,
+  "bic_k2": 555.6595785601288,
+  "prefers_k2": true,
+  "label_agreement": 1.0,
+  "ari": 1.0,
+  "reference": {
+   "silhouette": 0.367,
+   "null_p95": 0.316,
+   "p": 0.002,
+   "sizes": [
+    33,
+    40
+   ],
+   "bic_k1": 556,
+   "bic_k2": 583
+  }
+ },
+ "feature_port": {
+  "n_units_compared": 45,
+  "max_abs_diff": {
+   "rate_hz": 2.842170943040401e-14,
+   "cv": 1.8207657603852567e-14,
+   "lv": 1.7225110227059304e-13,
+   "frac_isi_lt10ms": 9.540979117872439e-17,
+   "short_isi_rate_relative": 9.367506770274758e-17,
+   "pause_time_frac": 4.107825191113079e-15,
+   "burst_share": 9.71445146547012e-17,
+   "log_isi_bimodality": 7.234768339969833e-13,
+   "n_spikes": 0.0
+  }
+ },
+ "clustering_dedup": {
+  "silhouette": 0.3412912577494624,
+  "null_mean": 0.26837395182866985,
+  "null_p95": 0.3385586345662147,
+  "p": 0.047,
+  "sizes": [
+   20,
+   25
+  ],
+  "bic_k1": 365.3766112805485,
+  "bic_k2": 356.5444477098005,
+  "prefers_k2": true,
+  "n": 45,
+  "agreement_with_saved": 1.0,
+  "saved_cluster_sizes": [
+   20,
+   25
+  ]
+ }
+}
