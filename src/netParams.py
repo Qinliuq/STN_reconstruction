@@ -21,14 +21,14 @@ stnParams.secs.soma['threshold'] = -30
 netParams.popParams['STN_pop'] = {'cellType': 'STN_cell', 'numCells': cfg.num_vals}
 
 # # rebound burst
-# cfg.IClamp_amp = -0.35
-# netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 600, 'dur': 1000, 'amp': cfg.IClamp_amp}
+cfg.IClamp_amp = -0.4
+netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 500, 'dur': 1000, 'amp': cfg.IClamp_amp}
 
 # slow bursting
-cfg.IClamp_amp = -0.16
-netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 0, 'dur': 40000, 'amp': cfg.IClamp_amp}
+# cfg.IClamp_amp = -0.25
+# netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 0, 'dur': 40000, 'amp': cfg.IClamp_amp}
 
-# # # fast bursting
+# # fast bursting
 # cfg.IClamp_amp = -0.35
 # netParams.stimSourceParams['clamp'] = {'type': 'IClamp', 'del': 0, 'dur': 40000, 'amp': cfg.IClamp_amp}
 

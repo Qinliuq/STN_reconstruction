@@ -24,30 +24,30 @@ saveFolder = 'bursts_37_bevan'
 
 # or, using search through either of parameters' values (others will be fixed):
 # E.g., search through CaL, as in Fig. 1 in park et al.
-cals = np.linspace(0.6, 1.6, cfg.num_vals) # [0.6, 0.8, 1. , 1.2, 1.4, 1.6]
+cals = [0.9] * cfg.num_vals # [0.6, 0.8, 1. , 1.2, 1.4, 1.6]
 
 # # for Kir search it was:
-# kirs = np.linspace(0.1, 1.0, cfg.num_vals) # [0.1 , 0.28, 0.46, 0.64, 0.82, 1.]
+kirs = np.linspace(0.0, 4.0, cfg.num_vals) # [0.1 , 0.28, 0.46, 0.64, 0.82, 1.]
 
 # cals /= 5 # normalize with respect to default CaL value (i.e. 5) from Park et al.
 # cfg.filename = f'{saveFolder}/cat{cat}_cals{cals[0]}-{cals[-1]}_hcn{hcn}_sk{sk}_iclamp_{cfg.IClamp_amp}'
+
+hcns = [1] * cfg.num_vals # np.linspace(0, 4, cfg.num_vals) #
+kdrs = [1] * cfg.num_vals
+
+cats = [0.1] * cfg.num_vals # np.linspace(0.75, 1.1, cfg.num_vals)
 
 for i, cell in enumerate(sim.net.cells):
     gCaL_scale = cals[i] if cals is not None else 1
 
     # # for Kir search it was:
-    # gKir_scale = kirs[i] if kirs is not None else 1
-    # gCaL_scale = 1.2
-
-    gSK_scale = 0.9
+    gKir_scale = kirs[i] if kirs is not None else 1
 
     # Na   
     default_gNa_soma = 1.483419823e-02 
-    default_gNa_dend = 1.0e-7
     cell.secs.soma.hObj.gna_Na = default_gNa_soma
     # NaL (can int#rchange with the Do & Bean model)
     default_gNaL_soma = 1.108670852e-05
-    default_gNaL_dend = 0.81e-5
     cell.secs.soma.hObj.gna_NaL = default_gNaL_soma
 
     if isBatchRun:
@@ -55,23 +55,26 @@ for i, cell in enumerate(sim.net.cells):
         gCaT_scale = cfg.gCaT_scale
         gHCN_scale = cfg.gHCN_scale
     else:
-        gCaT_scale = 1
-        gHCN_scale = 1
+        gCaT_scale = cats[i]
+        gHCN_scale = hcns[i]
 
     # linear conductances (loaded from files)...
-    set_values_from_file(cell, "gk_KDR")  
+    set_values_from_file(cell, "gk_KDR", soma_scale=kdrs[i], dend_scale=kdrs[i])  
     set_values_from_file(cell, "gk_Kv31")
     set_values_from_file(cell, "gcaN_HVA")
     set_values_from_file(cell, "gk_Ih", soma_scale=gHCN_scale, dend_scale=gHCN_scale)
     set_values_from_file(cell, "gcaT_CaT", soma_scale=gCaT_scale, dend_scale=gCaT_scale)
     # set_values_from_file(cell, "gcaT_CaT", dend_scale=1.2) # modulate CaT as e.g. in Fig. 6C
-    set_values_from_file(cell, "gk_sKCa", soma_scale=gSK_scale, dend_scale=gSK_scale)
+
+    set_values_from_file(cell, "gk_sKCa")
+    # set_values_from_file(cell, "gk_sKCa", soma_scale=0.1, dend_scale=0.0)
     # set_values_from_file(cell, "gk_sKCa", "apamin0.9") # apply apamin
 
-    # # for Kir search it was:
-    # set_values_from_file(cell, "gk_Kir", soma_scale=gKir_scale, dend_scale=gKir_scale)
+    # for Kir search it was:
+    set_values_from_file(cell, "gk_Kir", soma_scale=gKir_scale, dend_scale=gKir_scale)
 
-    set_values_from_file(cell, "gcaL_HVA", soma_scale=gCaL_scale, dend_scale=gCaL_scale)
+    set_values_from_file(cell, "gcaL_HVA", soma_scale=1, dend_scale=gCaL_scale)
+    # set_values_from_file(cell, "gcaL_HVA")
     # set_values_from_file(cell, "gcaL_HVA", "dl0.9") # 10% decrease in dendritic linear CaL (see Figure 6A, 8A)
 
 from neuron import h
@@ -82,7 +85,7 @@ for sec in h.allsec():
     h.ion_style("ca_ion",3,2,1,1,1)   
     h.pop_section()
 
-# apply_CSF_Beurrier()
+# apply_CSF_Beurrier() # used only when comparing AP shape
 apply_CSF_Bevan()
 
 sim.simulate()
