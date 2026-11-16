@@ -1,0 +1,45 @@
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+NEURON -- VERSION 8.2.0 HEAD (156b9dee) 2022-07-01
+Duke, Yale, and the BlueBrain Project -- Copyright 1984-2021
+See http://neuron.yale.edu/neuron/credits
+
+Additional mechanisms from files
+ "mod/CaT.mod" "mod/Cacum.mod" "mod/HVA.mod" "mod/Ih.mod" "mod/KDR.mod" "mod/Kv31.mod" "mod/Na.mod" "mod/NaL.mod" "mod/STh.mod" "mod/sKCa.mod"
+
+
+Creating network of 1 cell populations on 1 hosts...:   0%|          |[AWarning: no DISPLAY environment variable.
+--No graphics will be displayed.
+NEURON -- VERSION 8.2.0 HEAD (156b9dee) 2022-07-01
+Duke, Yale, and the BlueBrain Project -- Copyright 1984-2021
+See http://neuron.yale.edu/neuron/credits
+
+Additional mechanisms from files
+ "mod/CaT.mod" "mod/Cacum.mod" "mod/HVA.mod" "mod/Ih.mod" "mod/KDR.mod" "mod/Kv31.mod" "mod/Na.mod" "mod/NaL.mod" "mod/STh.mod" "mod/sKCa.mod"
+
+Creating network of 1 cell populations on 1 hosts...: 100%|##########|
+/Users/vb/cns/npenv/lib/python3.9/site-packages/neuron/.data/bin/nrniv: syntax error
+ near line 1
+ from multiprocessing.resource_tracker import main;main(5)
+                    ^
+/Users/vb/cns/npenv/lib/python3.9/site-packages/neuron/.data/bin/nrniv: arg not valid statement: from multiprocessing.resource_tracker import main;main(5)
+ near line 0
+ ^
+0 /Users/vb/cns/npenv/bin/nrniv: can't open simConfig=gCaT-gHCN/gCaT-gHCN_17_1_cfg.json
+Could not open netParams=gCaT-gHCN/gCaT-gHCN_netParams.py
+writing to a broken pipe
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+NEURON -- VERSION 8.2.0 HEAD (156b9dee) 2022-07-01
+Duke, Yale, and the BlueBrain Project -- Copyright 1984-2021
+See http://neuron.yale.edu/neuron/credits
+
+Additional mechanisms from files
+ "mod/CaT.mod" "mod/Cacum.mod" "mod/HVA.mod" "mod/Ih.mod" "mod/KDR.mod" "mod/Kv31.mod" "mod/Na.mod" "mod/NaL.mod" "mod/STh.mod" "mod/sKCa.mod"
+/Users/vb/cns/npenv/lib/python3.9/site-packages/neuron/.data/bin/nrniv: syntax error
+ near line 1
+ from multiprocessing.resource_tracker import main;main(3)
+                    ^
+/Users/vb/cns/npenv/lib/python3.9/site-packages/neuron/.data/bin/nrniv: arg not valid statement: from multiprocessing.resource_tracker import main;main(3)
+ near line 0
+ ^

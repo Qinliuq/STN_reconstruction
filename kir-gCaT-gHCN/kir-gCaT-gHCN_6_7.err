@@ -1,0 +1,12 @@
+/Users/vb/cns/STN/env/bin/nrniv:10: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+  from pkg_resources import working_set
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+NEURON -- VERSION 8.2.6-1-gb6e6a5fad+ build-osx-wheels-script (b6e6a5fad+) 2024-07-25
+Duke, Yale, and the BlueBrain Project -- Copyright 1984-2022
+See http://neuron.yale.edu/neuron/credits
+
+Additional mechanisms from files
+ "mod/CaT.mod" "mod/Cacum.mod" "mod/HVA.mod" "mod/Ih.mod" "mod/KDR.mod" "mod/Kir.mod" "mod/Kv31.mod" "mod/Na.mod" "mod/NaL.mod" "mod/STh.mod" "mod/sKCa.mod"
+0 /Users/vb/cns/STN/env/bin/nrniv: can't open simConfig=kir-gCaT-gHCN/kir-gCaT-gHCN_6_7_cfg.json
+Could not open netParams=kir-gCaT-gHCN/kir-gCaT-gHCN_netParams.py
