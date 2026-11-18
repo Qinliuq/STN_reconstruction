@@ -21,8 +21,6 @@ for cell in sim.net.cells:
     if cell.tags.get('cellType') in ['PVP_cell', 'PVN_cell']:
         set_conductances(cell, cfg)
 set_ion_styles()
-if getattr(cfg, 'nthread', 1) > 1: # NEURON multithreading (fixed step); default 1 = unchanged
-    sim.pc.nthread(cfg.nthread)
 
 # apply_CSF_Beurrier()
 apply_CSF_Bevan()
