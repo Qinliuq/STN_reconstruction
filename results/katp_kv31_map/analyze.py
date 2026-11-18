@@ -124,7 +124,7 @@ gs = sorted(grid.katp_gbar.unique())
 fig, axs = plt.subplots(1, 3, figsize=(13, 4), constrained_layout=True)
 for ax, (col, title, cmap) in zip(axs, [('spont_cv', 'spontaneous ISI CV', 'viridis'),
                                         ('spont_rate', 'spontaneous rate (Hz)', 'magma'),
-                                        ('burst_share', 'Poisson-surprise burst share', 'cividis')]):
+                                        ('spont_bursts_per_s', 'spontaneous bursts/s (>=3 spikes, ISI < 20 ms)', 'cividis')]):
     M = np.array([[grid[(grid.kv31 == k) & (grid.katp_gbar == g)][col].iloc[0] for g in gs] for k in kvs])
     im = ax.imshow(M, origin='lower', aspect='auto', cmap=cmap)
     fig.colorbar(im, ax=ax, shrink=0.8)
@@ -141,8 +141,8 @@ for ax, (col, title, cmap) in zip(axs, [('spont_cv', 'spontaneous ISI CV', 'viri
     ax.set_xlabel('K_ATP gbar (x1e-5 S/cm2)')
     ax.set_ylabel('PV+ Kv3.1 scale (Kir 0.3)')
     ax.set_title(title, fontsize=10)
-fig.suptitle('PV+ Kv3.1 x K_ATP (k_Ca 20 uM). Flags: B spontaneous burst/pause, D no block at +0.8 nA, '
-             'P -0.16 nA bursts + rebound kept; red box = admissible', fontsize=9)
+fig.suptitle('PV+ Kv3.1 x K_ATP (k_Ca 20 uM). Flags: B spontaneous burst/pause (Poisson-surprise rule; burst share 0 in every cell), '
+             'D no block at +0.8 nA, P -0.16 nA bursts + rebound kept; red box = admissible (none)', fontsize=9)
 fig.savefig(os.path.join(HERE, 'map.png'), dpi=130)
 
 pd.set_option('display.width', 250)
