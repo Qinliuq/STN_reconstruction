@@ -14,7 +14,8 @@ sys.path.insert(0, 'src')
 import sweep  # noqa: E402
 
 SPECS = ['validation/heldout/model/specs/H1_pd.py', 'validation/heldout/model/specs/H3_slowosc.py',
-         'validation/heldout/model/specs/H4_opto.py']
+         'validation/heldout/model/specs/H4_opto.py',
+         'validation/heldout/model/specs/H5_healthy.py']
 
 
 def main():

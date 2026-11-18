@@ -146,3 +146,18 @@ def test_burst_baseline():
     r = burst_pause(bursty, T)
     assert r['burst_pause'] and r['burst_share'] > r['p95_poisson'] and r['cv'] > 1
     assert not burst_pause(regular[:20], T)['burst_pause'] # too few spikes
+
+
+def test_oscillation_test():
+    from validation.heldout.metrics.oscillation import oscillation_test
+    rng = np.random.default_rng(5)
+    T = 20.0
+    # Poisson: rarely oscillatory (any of 19 windows > 99.9th percentile: ~2% expected)
+    hits = [oscillation_test(np.sort(rng.uniform(0, T, 400)), 0, T, n_surr=100, seed=i)['oscillatory'] for i in range(10)]
+    assert sum(hits) <= 2
+    # rate-modulated at 8 Hz (inhomogeneous Poisson, 20 Hz mean): oscillatory, peak in the 7-9 Hz window
+    t = np.arange(0, T, 0.001)
+    lam = 20 * (1 + 0.9 * np.sin(2 * np.pi * 8 * t))
+    st = t[rng.random(len(t)) < lam * 0.001]
+    r = oscillation_test(st, 0, T, n_surr=100)
+    assert r['oscillatory'] and r['peak_hz'] == 8.0
