@@ -1,0 +1,6 @@
+kv31,kir,katp_gbar,spont_rate,spont_cv,spont_bursts_per_s,spont_spikes_per_burst,spont_rate_1_4s,spont_cv_1_4s,spont_bursts_per_s_1_4s,spont_spikes_per_burst_1_4s,burst_share,p95_poisson,n_spikes,hold016_rate,hold016_bursts_per_s,hold016_spikes_per_burst,rebound_spikes,rebound_hz,depol08_rate,depol08_last_spike,depol08_trough_late,c1_burst_pause,c2_no_block,c3_phenotype,admissible
+1,0.3,0,26.5,0.005454,0,,26.33,0.00536,0,,0,0.1518,265,20.6,4,5,15,155.6,448.7,3998,-34.63,False,False,True,False
+1,0.3,1e-05,13.5,0.1333,0,,13.33,0.1199,0,,0,0.194,135,17.6,3.4,5,14,153.5,442.7,4000,-35.16,False,False,True,False
+1,0.3,2e-05,7,0.00461,0,,7,0.007415,0,,0,0.2065,70,14.6,2.8,5,13,161.3,436,4000,-35.66,False,False,True,False
+1,0.3,3e-05,12.2,0.758,0,,12,0.7701,0,,0,0.1921,122,0,0,,13,160.9,428.7,3998,-36.15,False,False,False,False
+1,0.3,5e-05,9.8,0.852,0,,10,0.8739,0,,0,0.1918,98,0,0,,12,159,413,3999,-37.17,False,False,False,False
