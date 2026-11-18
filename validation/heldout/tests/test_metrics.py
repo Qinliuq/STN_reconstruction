@@ -128,3 +128,21 @@ def test_response_classification():
     assert r0['resp'] == 'ns'
     c, p = response.profile(st, onsets, -1, 4, 1.0)
     assert len(c) == 5 and p[1] < p[0]
+
+
+def test_burst_baseline():
+    from validation.heldout.metrics.burst_baseline import burst_pause
+    rng = np.random.default_rng(3)
+    T = 10.0
+    # Poisson trains pass only at about the 5% level of the rule (burst share > p95 and CV > 1: ~2-3%)
+    fp = np.mean([burst_pause(np.sort(rng.uniform(0, T, 200)), T, seed=i)['burst_pause'] for i in range(40)])
+    assert fp <= 0.1
+    regular = np.arange(0.01, T, 0.05)
+    assert not burst_pause(regular, T)['burst_pause']
+    # 3-spike bursts (5 ms ISI) at ~5 Hz with jittered inter-burst intervals
+    starts = np.cumsum(rng.uniform(0.15, 0.25, 50))
+    bursty = np.sort(np.concatenate([starts + k * 0.005 for k in range(3)]))
+    bursty = bursty[bursty < T]
+    r = burst_pause(bursty, T)
+    assert r['burst_pause'] and r['burst_share'] > r['p95_poisson'] and r['cv'] > 1
+    assert not burst_pause(regular[:20], T)['burst_pause'] # too few spikes
