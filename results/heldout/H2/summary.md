@@ -1,8 +1,8 @@
 # H2
 
-**H2 (pooled check): MISMATCH — similar distributions for 0/3 features; medians model vs rat: rate_hz 17.7 vs 25.7; cv 0.837 vs 1.32; burst_share 0 vs 0.0327.**
+**H2 (pooled check): MISMATCH — similar distributions for 0/3 features; medians model vs rat (45 units): rate_hz 17.7 vs 29; cv 0.837 vs 1.32; burst_share 0 vs 0.0327.**
 
-Prediction written 2026-11-15T13:20:20 (git 63ec255d); compared 2026-11-15T13:20:29.
+Prediction written 2026-11-15T13:20:20 (git 63ec255d); compared 2026-11-18T13:41:42.
 
 ## Tests
 

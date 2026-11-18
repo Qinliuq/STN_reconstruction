@@ -2,6 +2,8 @@
 H2 (pooled check, not fitting): model PD per-cell rate / CV / burst share vs the rat single units as distributions
 (Mann-Whitney, KS, ECDFs). Per feature: 'similar' if both tests give p >= 0.05, else 'differs'. The test line counts
 the similar features. Reads H2/prediction.json first.
+Revised 2026-11-18: the primary data reference is the 45 distinct SS units (28 of the 73 rows are duplicate exports);
+the 73-row comparison is still in the table.
 
     python -m validation.heldout.compare.compare_H2
 """
@@ -31,16 +33,16 @@ def main():
                 rows.append(dict(feature=f, data=name, model_cells=grp, **r))
     tab = pd.DataFrame(rows)
     tab.to_csv(os.path.join(out, 'distribution_tests.csv'), index=False)
-    main_rows = tab[(tab.data == 'rat_73') & (tab.model_cells == 'all')]
+    main_rows = tab[(tab.data == 'rat_dedup_45') & (tab.model_cells == 'all')]
     sim = [(r.feature, (r.mw_p >= 0.05) and (r.ks_p >= 0.05)) for r in main_rows.itertuples()]
 
     plt = C.style()
     fig, axs = plt.subplots(1, 3, figsize=(11, 3.3))
     for ax, (f, lab) in zip(axs, FEATS):
         x, y = stats.ecdf(rat[f].values)
-        ax.step(x, y, color=C.COL['data'], label='rat SS (73)', where='post')
+        ax.step(x, y, color=C.COL['data'], ls=':', label='rat SS rows (73, with duplicates)', where='post')
         x, y = stats.ecdf(dedup[f].values)
-        ax.step(x, y, color=C.COL['data'], ls=':', label='rat dedup (45)', where='post')
+        ax.step(x, y, color=C.COL['data'], label='rat distinct units (45)', where='post')
         for grp, c, ls in (('all', C.COL['model'], '-'), ('PV+', C.COL['PV+'], '--'), ('PV-', C.COL['PV-'], '--')):
             x, y = stats.ecdf(pc[f][grp])
             ax.step(x, y, color=c, ls=ls, label=f'model {grp}', where='post')
@@ -54,8 +56,8 @@ def main():
     fig.savefig(os.path.join(out, 'H2_summary.png'), dpi=150)
     nsim = sum(s for _, s in sim)
     verdict = 'match' if nsim == 3 else ('partial' if nsim else 'mismatch')
-    med = {f: (np.median(pc[f]['all']), rat[f].median()) for f, _ in FEATS}
-    line = (f"H2 (pooled check): {verdict.upper()} — similar distributions for {nsim}/3 features; medians model vs rat: "
+    med = {f: (np.median(pc[f]['all']), dedup[f].median()) for f, _ in FEATS}
+    line = (f"H2 (pooled check): {verdict.upper()} — similar distributions for {nsim}/3 features; medians model vs rat (45 units): "
             + '; '.join(f'{f} {a:.3g} vs {b:.3g}' for f, (a, b) in med.items()) + '.')
     C.write_summary('H2', line, [('Tests', C.md_table(tab)),
                                  ('Note', 'Pooled check only: the model was not tuned to these distributions and will not be. '

@@ -10,6 +10,9 @@ H3 comparison: spike phase-locking to cortex. Reads H3/prediction.json first, th
 Verdict per band (fixed before the comparison): match if the model and rat PPC distributions do not differ
 (Mann-Whitney p >= 0.05); partial if they differ but the medians are within a factor 3 and the same sign; else mismatch.
 Overall: match if both bands match, mismatch if both mismatch, else partial.
+Revised 2026-11-18 (on review; the original verdict is reported as `verdict_v1`): slow-band locking is set mainly by
+the imposed input envelope (priors.json), so it is reported but no longer counts towards the verdict. The overall
+verdict uses the beta band only; if beta is not testable, the verdict is 'uninformative'.
 
     python -m validation.heldout.compare.compare_H3
 """
@@ -90,8 +93,9 @@ def main():
     vb2, rb2 = band_verdict(ma.beta_ctx_ppc, re.beta_all_ppc)
     vb2_gpe, rb2_gpe = band_verdict(ma.beta_gpe_all_ppc, re.beta_all_ppc)
     tested = [v for v in (vs, vb) if v != 'not testable']
-    overall = ('match' if tested and all(v == 'match' for v in tested) else
+    verdict_v1 = ('match' if tested and all(v == 'match' for v in tested) else
                'mismatch' if tested and all(v == 'mismatch' for v in tested) else 'partial')
+    overall = vb if vb != 'not testable' else 'uninformative'
 
     rows = []
     def add(src, grp, s, ppc, pref, pval):
@@ -158,7 +162,7 @@ def main():
     fig.savefig(os.path.join(out, 'H3_summary.png'), dpi=150)
 
     n_beta = int(re.beta_activated_ppc.notna().sum())
-    line = (f"H3: {overall.upper()} — slow PPC {vs} (model median {ma.slow_ctx_ppc.median():.3g} vs rat {re.slow_ppc.median():.3g}); "
+    line = (f"H3: {overall.upper()} (original rule: {verdict_v1}; the slow-band result is set mainly by the imposed input envelope) — slow PPC {vs} (model median {ma.slow_ctx_ppc.median():.3g} vs rat {re.slow_ppc.median():.3g}); "
             f"beta PPC to cortical input {vb} (model {mb.beta_ctx_ppc.median():.3g} vs rat activated-epoch {re.beta_activated_ppc.median():.3g}, "
             f"{n_beta} rat units qualify); beta to GPe drive {vb_gpe} (model {mb.beta_gpe_all_ppc.median():.3g}). "
             f"Secondary, slow-wave epochs: beta {vb2} (model PD+SO {ma.beta_ctx_ppc.median():.3g} vs rat all-epoch {re.beta_all_ppc.median():.3g}).")

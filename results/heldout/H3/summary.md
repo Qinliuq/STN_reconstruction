@@ -1,8 +1,8 @@
 # H3
 
-**H3: MATCH — slow PPC match (model median 0.0862 vs rat 0.0806); beta PPC to cortical input not testable (model 0.00337 vs rat activated-epoch nan, 0 rat units qualify); beta to GPe drive not testable (model 0.00367). Secondary, slow-wave epochs: beta mismatch (model PD+SO 0.0043 vs rat all-epoch -4.62e-05).**
+**H3: UNINFORMATIVE (original rule: match; the slow-band result is set mainly by the imposed input envelope) — slow PPC match (model median 0.0862 vs rat 0.0806); beta PPC to cortical input not testable (model 0.00337 vs rat activated-epoch nan, 0 rat units qualify); beta to GPe drive not testable (model 0.00367). Secondary, slow-wave epochs: beta mismatch (model PD+SO 0.0043 vs rat all-epoch -4.62e-05).**
 
-Prediction written 2026-11-15T13:20:22 (git 63ec255d); compared 2026-11-15T13:20:31.
+Prediction written 2026-11-15T13:20:22 (git 63ec255d); compared 2026-11-18T13:41:44.
 
 ## Summary table
 

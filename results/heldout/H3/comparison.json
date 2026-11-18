@@ -1,6 +1,6 @@
 {
- "verdict": "H3: MATCH \u2014 slow PPC match (model median 0.0862 vs rat 0.0806); beta PPC to cortical input not testable (model 0.00337 vs rat activated-epoch nan, 0 rat units qualify); beta to GPe drive not testable (model 0.00367). Secondary, slow-wave epochs: beta mismatch (model PD+SO 0.0043 vs rat all-epoch -4.62e-05).",
- "verdict_word": "match",
+ "verdict": "H3: UNINFORMATIVE (original rule: match; the slow-band result is set mainly by the imposed input envelope) \u2014 slow PPC match (model median 0.0862 vs rat 0.0806); beta PPC to cortical input not testable (model 0.00337 vs rat activated-epoch nan, 0 rat units qualify); beta to GPe drive not testable (model 0.00367). Secondary, slow-wave epochs: beta mismatch (model PD+SO 0.0043 vs rat all-epoch -4.62e-05).",
+ "verdict_word": "uninformative",
  "model": "slow PPC 0.0862; beta PPC 0.00337 (ctx) / 0.00367 (GPe)",
  "data": "slow PPC 0.0806; beta (all epochs) -4.62e-05; activated: 0 units",
  "statistic": "Mann-Whitney on PPC (medians shown)"
