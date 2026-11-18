@@ -82,8 +82,14 @@ cfg.gpe_rate_mod = None # multiplies the GPe baseline (target) rate; 'blocks' on
 
 # Ca2+-gated K_ATP current (mod/katp_stn.mod, Kir6.2/SUR1), uniform in all sections; 0 = not inserted.
 # pdscale > 1 models its augmented expression after dopamine depletion (Shen & Johnson 2012)
-cfg.katp_gbar = 0.0 # S/cm2
+cfg.katp_gbar = 0.0 # S/cm2; scalar (both types) or per type, e.g. {'PVP': 3e-5, 'PVN': 0.0}
 cfg.katp_pdscale = 1.0
+# K_ATP density x katp_state_scale[state]: upregulated after dopamine depletion, so absent in the healthy state.
+# state = cfg.katp_state if set, else 'parkinsonian' when ctx_state and gpe_state are both parkinsonian (tools.katp_density)
+cfg.katp_state_scale = {'healthy': 0.0, 'parkinsonian': 1.0}
+cfg.katp_state = None
+
+cfg.nthread = 1 # NEURON threads per run (src/init.py); 1 = single-threaded as before
 # half-activating [Ca]i (mM). The mod default (5e-4 = 0.5 uM) is far below this model's Cacum range
 # (~0.1-1 uM when silent, ~30-80 uM when firing), which keeps K_ATP almost fully open in any active cell
 cfg.katp_kca = 5e-4

@@ -22,9 +22,9 @@ pvn = netParams.importCellParams(label='PVN_cell', fileName='cells/SThprotocell.
 
 pvp.secs.soma['threshold'] = -30
 pvn.secs.soma['threshold'] = -30
-from tools import add_katp
-add_katp(pvp, cfg.katp_gbar, cfg.katp_pdscale, cfg.katp_kca)
-add_katp(pvn, cfg.katp_gbar, cfg.katp_pdscale, cfg.katp_kca)
+from tools import add_katp, katp_density
+add_katp(pvp, katp_density(cfg, 'PVP'), cfg.katp_pdscale, cfg.katp_kca)
+add_katp(pvn, katp_density(cfg, 'PVN'), cfg.katp_pdscale, cfg.katp_kca)
 
 
 # ------------------------------------------------ NETWORK & POPULATIONS ------------------------------------------------

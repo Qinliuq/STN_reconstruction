@@ -5,6 +5,7 @@ import json
 import os
 
 import numpy as np
+from validation.heldout.model.common import sha256_variants
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
@@ -21,7 +22,7 @@ def require_prediction(test):
                          'The comparison data are not read before the prediction exists.')
     pred = json.load(open(p, encoding='utf-8'))
     for f, h in pred['files'].items():
-        if hashlib.sha256(open(os.path.join(ROOT, f), 'rb').read()).hexdigest() != h:
+        if h not in sha256_variants(os.path.join(ROOT, *f.replace('\\', '/').split('/'))):
             raise SystemExit(f'{f} changed after prediction.json was written; rerun the prediction')
     print(f"prediction for {test}: written {pred['created']}, git {pred['git']['hash'][:8]}{' (dirty)' if pred['git']['dirty'] else ''}")
     pred['_compared'] = datetime.datetime.now().isoformat(timespec='seconds')

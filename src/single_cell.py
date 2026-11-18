@@ -80,7 +80,11 @@ cfg.dt = netCfg.dt
 cfg.recordCells = ['all']
 cfg.recordTraces = {'V_soma': {'sec': 'soma', 'loc': 0.5, 'var': 'v'}}
 # K_ATP: inserted if swept or enabled in cfg.py; then also record somatic [Ca]i and the K_ATP gate
-katp = bool(args.param and args.param.startswith('katp')) or netCfg.katp_gbar > 0
+# single cells have no network state: per-type cfg.katp_gbar is used as is (katp_state_scale is not applied)
+def katp_gbar_cfg(cellType):
+    g = netCfg.katp_gbar
+    return g.get(cellType[:3], 0.0) if isinstance(g, dict) else g
+katp = bool(args.param and args.param.startswith('katp')) or any(katp_gbar_cfg(c) > 0 for c in cellTypes)
 if katp:
     cfg.recordTraces['cai'] = {'sec': 'soma', 'loc': 0.5, 'var': 'cai'}
     cfg.recordTraces['katp_o'] = {'sec': 'soma', 'loc': 0.5, 'mech': 'katp_stn', 'var': 'o'}
@@ -97,7 +101,7 @@ for cellType in {cellType for _, cellType, _ in conditions}:
     cellParams = netParams.importCellParams(label=cellType, fileName='cells/SThprotocell.hoc', cellName='SThcell', cellArgs=[0, protoCell])
     cellParams.secs.soma['threshold'] = -30
     if katp:
-        add_katp(cellParams, netCfg.katp_gbar, netCfg.katp_pdscale, netCfg.katp_kca, force=True)
+        add_katp(cellParams, katp_gbar_cfg(cellType), netCfg.katp_pdscale, netCfg.katp_kca, force=True)
 for c, (_, cellType, _) in enumerate(conditions):
     pop = f'cond{c}_pop'
     netParams.popParams[pop] = {'cellType': cellType, 'numCells': len(names)} # one unconnected cell per protocol
@@ -112,7 +116,7 @@ for cell in sim.net.cells:
     c = int(cell.tags['pop'][len('cond'):-len('_pop')])
     set_conductances(cell, netCfg, overrides=conditions[c][2])
     if katp:
-        gbar = conditions[c][2].get('katp_gbar', netCfg.katp_gbar)
+        gbar = conditions[c][2].get('katp_gbar', katp_gbar_cfg(conditions[c][1]))
         pdscale = conditions[c][2].get('katp_pdscale', netCfg.katp_pdscale)
         for sec in cell.secs.values():
             for seg in sec['hObj']:

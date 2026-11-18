@@ -65,6 +65,20 @@ def set_conductances(cell, cfg, overrides=None):
     set_values_from_file(cell, "gcaL_HVA", soma_scale=gCaL_scale, dend_scale=gCaL_scale)
     # set_values_from_file(cell, "gcaL_HVA", "dl0.9") # 10% decrease in dendritic linear CaL (see Figure 6A, 8A)
 
+def katp_density(cfg, cell_type):
+    """Effective K_ATP gbar (S/cm2) for cell_type 'PVP' or 'PVN' in this run.
+
+    cfg.katp_gbar is a scalar (both types) or a dict {'PVP': x, 'PVN': y}; it is multiplied by
+    cfg.katp_state_scale[state] (dopamine-depletion dependence). state = cfg.katp_state if set, otherwise
+    'parkinsonian' when both cfg.ctx_state and cfg.gpe_state are 'parkinsonian', else 'healthy'.
+    """
+    g = cfg.katp_gbar
+    g = g.get(cell_type, 0.0) if isinstance(g, dict) else g
+    state = getattr(cfg, 'katp_state', None) or \
+        ('parkinsonian' if cfg.ctx_state == 'parkinsonian' and cfg.gpe_state == 'parkinsonian' else 'healthy')
+    scale = getattr(cfg, 'katp_state_scale', None) or {}
+    return float(g) * scale.get(state, 1.0)
+
 def add_katp(cellParams, gbar, pdscale=1.0, kca=5e-4, force=False):
     # insert the Ca2+-gated K_ATP current (mod/katp_stn.mod) uniformly in all sections (gbar in S/cm2);
     # skipped when gbar is 0 (unless force), so the model is unchanged by default

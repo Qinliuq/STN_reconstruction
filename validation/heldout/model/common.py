@@ -4,6 +4,7 @@ import glob
 import hashlib
 import json
 import os
+import pathlib
 import runpy
 import subprocess
 
@@ -51,17 +52,36 @@ def cell_trains(d, t0_s=T0_S):
     return out
 
 
+TEXT_EXT = ('.csv', '.json', '.md', '.txt', '.py')
+
+
 def sha256(path):
-    return hashlib.sha256(open(path, 'rb').read()).hexdigest()
+    # text files are hashed with LF line endings, so a git checkout with CRLF (Windows) gives the same hash
+    b = open(path, 'rb').read()
+    if path.endswith(TEXT_EXT):
+        b = b.replace(b'\r\n', b'\n')
+    return hashlib.sha256(b).hexdigest()
+
+
+def sha256_variants(path):
+    """Accepted hashes of a file: raw bytes, LF and CRLF line endings (older predictions hashed raw Windows files)."""
+    b = open(path, 'rb').read()
+    lf = b.replace(b'\r\n', b'\n')
+    return {hashlib.sha256(x).hexdigest() for x in (b, lf, lf.replace(b'\n', b'\r\n'))}
+
+
+def relposix(p):
+    # repo-relative path with '/' separators, so prediction.json reads the same on Windows and Linux
+    return pathlib.Path(os.path.relpath(p, ROOT)).as_posix()
 
 
 def write_prediction(test, metrics, runs, files=()):
     """results/heldout/<test>/prediction.json: model metrics + git hash + config, written before any data is read."""
     d = out_dir(test)
     pred = dict(test=test, created=datetime.datetime.now().isoformat(timespec='seconds'), git=git_info(),
-                priors=PRIORS, runs=[dict(label=l, seed=s, spikes=os.path.relpath(p, ROOT), spikes_sha256=sha256(p), cfg=c)
+                priors=PRIORS, runs=[dict(label=l, seed=s, spikes=relposix(p), spikes_sha256=sha256(p), cfg=c)
                                      for l, s, _, c, p in runs],
-                files={os.path.relpath(f, ROOT): sha256(f) for f in files}, metrics=metrics)
+                files={relposix(f): sha256(f) for f in files}, metrics=metrics)
     with open(os.path.join(d, 'prediction.json'), 'w', encoding='utf-8') as fh:
         json.dump(pred, fh, indent=1, default=_json)
     print(f'wrote {os.path.join(d, "prediction.json")}')
