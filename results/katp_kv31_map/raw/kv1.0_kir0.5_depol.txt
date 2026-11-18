@@ -1,0 +1,28 @@
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+ 
+loading STh cell data structures...
+ 
+  2 trees
+  loaded tree 0 (23 branches)
+  loaded tree 1 (11 branches)
+
+Start time:  2026-11-18 13:43:30.516191
+
+
+Creating network of 5 cell populations on 1 hosts...:   0%|          |[A
+
+Creating network of 5 cell populations on 1 hosts...:  60%|######    |[A
+Creating network of 5 cell populations on 1 hosts...: 100%|##########|
+  Number of cells on node 0: 25 
+  Done; cell creation time = 0.31 s.
+Making connections...
+  Number of connections on node 0: 0 
+  Done; cell connection time = 0.00 s.
+Adding stims...
+  Number of stims on node 0: 25 
+  Done; cell stims creation time = 0.00 s.
+Recording 75 traces of 3 types on node 0
+Setting in vitro parameters based on Bevan & Wilson (1999)
+
+Running simulation using NEURON for 4000.0 ms...
