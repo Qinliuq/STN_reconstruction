@@ -36,16 +36,16 @@ def main():
         if not os.path.exists(f):
             lines.append(f'| {test} | {src} | {metric} | pending | | | pending | {CAVEATS[test]} |')
             continue
-        v = json.load(open(f))
+        v = json.load(open(f, encoding='utf-8'))
         lines.append(f"| {test} | {src} | {metric} | {v.get('model', '')} | {v.get('data', '')} | {v.get('statistic', '')} | "
                      f"**{v.get('verdict_word', '')}** | {CAVEATS[test]} |")
     lines += ['', 'One-line verdicts:', '']
     for test, _, _ in ROWS:
         f = os.path.join(C.out_dir(test), 'comparison.json')
         if os.path.exists(f):
-            lines.append(f"- {json.load(open(f))['verdict']}")
+            lines.append(f"- {json.load(open(f, encoding='utf-8'))['verdict']}")
     lines += ['', 'Details: `H<n>/summary.md`, figures `H<n>/H<n>_summary.png`, tables `H<n>/*.csv`.']
-    with open(os.path.join(C.ROOT, 'results', 'heldout', 'README.md'), 'w') as fh:
+    with open(os.path.join(C.ROOT, 'results', 'heldout', 'README.md'), 'w', encoding='utf-8') as fh:
         fh.write('\n'.join(lines) + '\n')
 
 

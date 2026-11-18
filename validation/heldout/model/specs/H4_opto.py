@@ -1,6 +1,6 @@
 # H4 held-out runs: virtual D2- / D1-MSN stimulation in the healthy state, compressed protocol (priors.json)
 import json, os
-_p = json.load(open(os.path.join('validation', 'heldout', 'priors.json')))['H4_optogenetics']
+_p = json.load(open(os.path.join('validation', 'heldout', 'priors.json'), encoding='utf-8'))['H4_optogenetics']
 _proto = {k: _p['protocol'][k] for k in ('pre_s', 'on_s', 'post_s', 't_start_s')}
 _sc = _p['scenarios']
 duration = _p['duration_ms']

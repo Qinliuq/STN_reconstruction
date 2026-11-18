@@ -10,7 +10,7 @@ import subprocess
 import numpy as np
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-PRIORS = json.load(open(os.path.join(ROOT, 'validation', 'heldout', 'priors.json')))
+PRIORS = json.load(open(os.path.join(ROOT, 'validation', 'heldout', 'priors.json'), encoding='utf-8'))
 T0_S = PRIORS['transient_ms'] / 1000
 
 
@@ -35,7 +35,7 @@ def load_runs(spec_name):
             f = os.path.join(d, 'model_output_spikes.npz')
             if not os.path.exists(f):
                 raise SystemExit(f'missing run {f}: run python -m validation.heldout.model.run_all first')
-            runs.append((cond['label'], seed, dict(np.load(f)), open(os.path.join(d, 'cfg_run.py')).read(), f))
+            runs.append((cond['label'], seed, dict(np.load(f)), open(os.path.join(d, 'cfg_run.py'), encoding='utf-8').read(), f))
     return runs
 
 
@@ -62,7 +62,7 @@ def write_prediction(test, metrics, runs, files=()):
                 priors=PRIORS, runs=[dict(label=l, seed=s, spikes=os.path.relpath(p, ROOT), spikes_sha256=sha256(p), cfg=c)
                                      for l, s, _, c, p in runs],
                 files={os.path.relpath(f, ROOT): sha256(f) for f in files}, metrics=metrics)
-    with open(os.path.join(d, 'prediction.json'), 'w') as fh:
+    with open(os.path.join(d, 'prediction.json'), 'w', encoding='utf-8') as fh:
         json.dump(pred, fh, indent=1, default=_json)
     print(f'wrote {os.path.join(d, "prediction.json")}')
 

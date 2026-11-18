@@ -38,7 +38,7 @@ def main():
 
     def one(item):
         d, cfgPath = item
-        with open(os.path.join(d, 'run.log'), 'w') as log:
+        with open(os.path.join(d, 'run.log'), 'w', encoding='utf-8') as log:
             subprocess.run([sys.executable, 'src/init.py', f'simConfig={cfgPath}', 'netParams=src/netParams.py'],
                            stdout=log, stderr=subprocess.STDOUT, env={**os.environ, 'MPLBACKEND': 'Agg'})
         ok = os.path.exists(os.path.join(d, 'model_output_spikes.npz'))

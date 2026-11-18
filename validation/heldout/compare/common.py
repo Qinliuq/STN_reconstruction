@@ -19,7 +19,7 @@ def require_prediction(test):
     if not os.path.exists(p):
         raise SystemExit(f'{p} is missing: run the model prediction (validation/heldout/model/predict_*.py) first. '
                          'The comparison data are not read before the prediction exists.')
-    pred = json.load(open(p))
+    pred = json.load(open(p, encoding='utf-8'))
     for f, h in pred['files'].items():
         if hashlib.sha256(open(os.path.join(ROOT, f), 'rb').read()).hexdigest() != h:
             raise SystemExit(f'{f} changed after prediction.json was written; rerun the prediction')
@@ -34,17 +34,17 @@ def wilson(k, n, z=1.96):
     p = k / n
     c = z * np.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / (1 + z * z / n)
     m = (p + z * z / (2 * n)) / (1 + z * z / n)
-    return (m - c, m + c)
+    return (float(m - c), float(m + c))
 
 
 def write_summary(test, verdict_line, sections, pred, table=None):
-    with open(os.path.join(out_dir(test), 'summary.md'), 'w') as fh:
+    with open(os.path.join(out_dir(test), 'summary.md'), 'w', encoding='utf-8') as fh:
         fh.write(f'# {test}\n\n**{verdict_line}**\n\n')
         fh.write(f"Prediction written {pred['created']} (git {pred['git']['hash'][:8]}"
                  f"{', uncommitted changes' if pred['git']['dirty'] else ''}); compared {pred['_compared']}.\n\n")
         for title, body in sections:
             fh.write(f'## {title}\n\n{body}\n\n')
-    with open(os.path.join(out_dir(test), 'comparison.json'), 'w') as fh:
+    with open(os.path.join(out_dir(test), 'comparison.json'), 'w', encoding='utf-8') as fh:
         json.dump(dict(verdict=verdict_line, **(table or {})), fh, indent=1)
     print(verdict_line)
 

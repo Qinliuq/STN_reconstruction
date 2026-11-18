@@ -54,7 +54,7 @@ def main():
     res['clustering_dedup'] = dict(r, n=len(dedup), agreement_with_saved=float(max(np.mean(lab == dedup.ward_cluster.values),
                                                                                     np.mean(lab == 1 - dedup.ward_cluster.values))),
                                    saved_cluster_sizes=np.bincount(dedup.ward_cluster.values).tolist())
-    with open(os.path.join(OUT, 'rat_verification.json'), 'w') as fh:
+    with open(os.path.join(OUT, 'rat_verification.json'), 'w', encoding='utf-8') as fh:
         json.dump(res, fh, indent=1, default=lambda o: o.item() if hasattr(o, 'item') else str(o))
     print(json.dumps(res, indent=1, default=lambda o: o.item() if hasattr(o, 'item') else str(o)))
 
