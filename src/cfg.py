@@ -71,6 +71,12 @@ cfg.gpe_conductance_nS = 1.0 # per inhibitory arrival (input_version 3; v2 used 
 # sets a GABA:glutamate ratio 1.13 / 0.87 = 1.3x higher in PV+ than PV-, split around 1 to keep the calibrated rates
 cfg.gpe_gaba_scale = {'PVP': 1.13, 'PVN': 0.87}
 cfg.gpe_syn = {'tau2': 8.0} # overrides of the GABA synapse for GPe input (netParams 'GABA' has tau2 = 15 ms, which filters out GPe beta)
+# optional measured receptor profiles (off by default; results/emergent_peak, params/jeon2022_profiles.json):
+# cfg.ctx_gscale = {'x': [...], 'y': [...]}: per-cell cortical conductance factor along the STN axis (mean 1)
+# cfg.gpe_gscale = {'profile': {'x','y'} or None, 'type_ratio': {'PVP': r, 'PVN': r} or None, 'pv_frac_sigma': 0.1}:
+#   per-cell GPe->STN conductance factor (mean 1), replaces cfg.gpe_gaba_scale; see stn_inputs.gpe_cell_scale
+cfg.ctx_gscale = None
+cfg.gpe_gscale = None
 cfg.gpe_params = {} # other GPeInputGenerator arguments, e.g. {'n_gpe_groups': 12, 'target_probability': 0.35, 'stn_to_gpe_gain': 0.5}
 cfg.gpe_seed = 2
 

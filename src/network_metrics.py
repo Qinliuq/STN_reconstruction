@@ -79,6 +79,8 @@ def spike_data(sim, cfg, gpe=None):
     try: # cortical input signals (1 ms bins; see stn_inputs.CTX_SIGNALS)
         from stn_inputs import CTX_SIGNALS
         d.update({k: np.asarray(v) for k, v in CTX_SIGNALS.items()})
+        from stn_inputs import CELL_SCALES # per-cell receptor-profile scales (only when cfg.ctx_gscale / gpe_gscale are set)
+        d.update({k: np.asarray(v) for k, v in CELL_SCALES.items()})
     except ImportError:
         pass
     return d

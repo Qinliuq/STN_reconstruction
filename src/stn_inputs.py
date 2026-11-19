@@ -75,6 +75,37 @@ def separate_coincident(times_ms, step=1e-6):
     rank = np.arange(len(t)) - np.searchsorted(runId, runId)
     return t + rank * step
 
+def profile_scale(axis, profile):
+    # per-cell factor from a tabulated profile {'x': [...], 'y': [...]} (linear interpolation, constant beyond the ends),
+    # normalized to mean 1 over the given cells so the mean drive is unchanged
+    v = np.interp(axis, profile['x'], profile['y'])
+    if np.any(v <= 0):
+        raise ValueError('profile gives a non-positive scale')
+    return v / v.mean()
+
+
+def local_fraction(axis, isA, sigma):
+    # Gaussian-kernel local fraction of cells with isA at each cell's axis position
+    w = np.exp(-(axis[:, None] - axis[None, :]) ** 2 / (2 * sigma ** 2))
+    return (w @ isA.astype(float)) / w.sum(1)
+
+
+def gpe_cell_scale(axis, isPVP, spec):
+    # cfg.gpe_gscale: per-cell GPe->STN conductance factor g_i = P(a_i) * r_t / rbar(a_i) (normalized to mean 1),
+    # rbar(a) = f(a) r_PV+ + (1 - f(a)) r_PV-, f = local PV+ fraction of the model cells (kernel spec['pv_frac_sigma']);
+    # without 'type_ratio' g_i = P(a_i). P from spec['profile'] (flat if None).
+    P = np.interp(axis, spec['profile']['x'], spec['profile']['y']) if spec.get('profile') else np.ones(len(axis))
+    r = spec.get('type_ratio')
+    if r:
+        f = local_fraction(axis, isPVP, spec.get('pv_frac_sigma', 0.1))
+        rt = np.where(isPVP, r['PVP'], r['PVN'])
+        P = P * rt / (f * r['PVP'] + (1 - f) * r['PVN'])
+    return P / P.mean()
+
+
+CELL_SCALES = {} # per-cell scales of the optional receptor profiles, saved with the spikes (network_metrics.spike_data)
+
+
 def add_cortical_input(netParams, cfg, cellLocsPerPop):
     # cellLocsPerPop: {pop: cellsList with 'xnorm'/'ynorm'}, in STN index order (PVP_pop, PVN_pop)
     ctxModel, _ = input_models(cfg)
@@ -103,14 +134,20 @@ def add_cortical_input(netParams, cfg, cellLocsPerPop):
     keep = np.random.default_rng([cfg.ctx_seed, 1]).random(len(time_s)) < (scale / scale.max())[neuron_id]
     time_ms, neuron_id = time_s[keep] * 1000, neuron_id[keep]
 
+    # optional per-cell cortical conductance profile (cfg.ctx_gscale, off by default): weight x profile(axis), mean 1
+    gScale = profile_scale(axis, cfg.ctx_gscale) if getattr(cfg, 'ctx_gscale', None) else None
+    CELL_SCALES.clear()
+    if gScale is not None:
+        CELL_SCALES['ctx_gscale'] = gScale.astype(np.float32)
     first = 0
     for pop, locs in cellLocsPerPop.items():
         n = len(locs)
+        weight = params.conductance_nS * 1e-3 if gScale is None else (params.conductance_nS * 1e-3 * gScale[first:first + n]).tolist()
         spkTimes = [separate_coincident(time_ms[neuron_id == first + i]).tolist() for i in range(n)] # sorted by generate_arrivals
         netParams.popParams[f'Ctx_{pop}'] = {'cellModel': 'VecStim', 'numCells': n, 'spkTimes': spkTimes}
         netParams.connParams[f'Ctx->{pop}'] = {'preConds': {'pop': f'Ctx_{pop}'}, 'postConds': {'pop': pop},
                                                'connList': [[i, i] for i in range(n)], 'synMech': 'glut',
-                                               'weight': params.conductance_nS * 1e-3, 'delay': cfg.ctx_delay,
+                                               'weight': weight, 'delay': cfg.ctx_delay,
                                                'sec': 'soma', 'loc': 0.5}
         first += n
     CTX_SIGNALS['ctx_rate'] = (np.histogram(time_ms, bins=np.arange(0, cfg.duration + 1, 1.0))[0] / nSTN * 1000).astype(np.float32)
@@ -146,8 +183,15 @@ class GPeFeedback:
         synMech = {**synMech, **cfg.gpe_syn} # cfg.gpe_syn overrides the GABA synapse ('e', 'tau1', 'tau2')
         # per-type GPe->STN conductance factor (GABA:glutamate balance per cell type), cfg.gpe_gaba_scale
         gabaScale = {'PVP_cell': cfg.gpe_gaba_scale.get('PVP', 1.0), 'PVN_cell': cfg.gpe_gaba_scale.get('PVN', 1.0)}
+        # optional per-cell GPe->STN conductance profile (cfg.gpe_gscale, off by default); replaces gpe_gaba_scale
+        cellScale = None
+        if getattr(cfg, 'gpe_gscale', None):
+            axisAll = np.array([axis_position(cellsByGid[gid].tags) for gid in gids])
+            isPVP = np.array([cellsByGid[gid].tags['cellType'] == 'PVP_cell' for gid in gids])
+            cellScale = gpe_cell_scale(axisAll, isPVP, cfg.gpe_gscale)
+            CELL_SCALES['gpe_gscale'] = cellScale.astype(np.float32)
         self.syns, self.netcons = [], []
-        for gid in gids:
+        for k, gid in enumerate(gids):
             cell = cellsByGid[gid]
             secNames = [s for s in cell.secs if s != 'soma'] if cell.tags['cellType'] == 'PVP_cell' else ['soma']
             ncs = []
@@ -155,7 +199,8 @@ class GPeFeedback:
                 syn = h.Exp2Syn(cell.secs[secName]['hObj'](0.5))
                 syn.e, syn.tau1, syn.tau2 = synMech['e'], synMech['tau1'], synMech['tau2']
                 nc = h.NetCon(None, syn)
-                nc.weight[0] = cfg.gpe_conductance_nS * synapseScale * gabaScale[cell.tags['cellType']] * 1e-3
+                g = gabaScale[cell.tags['cellType']] if cellScale is None else cellScale[k]
+                nc.weight[0] = cfg.gpe_conductance_nS * synapseScale * g * 1e-3
                 self.syns.append(syn)
                 ncs.append(nc)
             self.netcons.append(ncs)
