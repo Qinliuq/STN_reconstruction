@@ -77,7 +77,7 @@ def bimodality_coeff(x):
 
 def unit_features(spike_times, min_spikes=MIN_SPIKES, min_isis=MIN_ISIS):
     """The 8 features of one spike train (s), or None if it fails the spike-count criteria
-    (defaults: the rat reference rule; H5 passes its own minimum)."""
+    (defaults: the rat reference rule; callers may pass their own minimum)."""
     arr = np.sort(np.asarray(spike_times, dtype=np.float64).ravel())
     if arr.size < min_spikes:
         return None

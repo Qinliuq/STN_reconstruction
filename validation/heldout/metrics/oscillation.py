@@ -1,7 +1,7 @@
 """
-Single-train oscillation test against ISI-shuffled surrogates (shared by model and data; H5).
+Single-train oscillation test against ISI-shuffled surrogates (one function for model and data trains).
 
-Parameters as fixed in validation/heldout/priors.json (H5_primate_change.oscillation_test):
+Written for the dropped H5 test (see validation/heldout/README.md); kept as a tested utility. Parameters:
 - 1 ms bins, mean-subtracted; Welch PSD (Hann, nperseg 2048 bins, 50% overlap)
 - 2 Hz windows with edges 3, 5, ..., 41 Hz; window power = mean PSD in [lo, hi)
 - 200 surrogates: the same ISIs in random order, starting at the first spike

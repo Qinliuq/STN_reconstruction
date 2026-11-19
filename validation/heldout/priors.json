@@ -63,26 +63,5 @@
    }
   },
   "test": "per cell, Wilcoxon signed-rank of the 2 s stim rate vs the 1 s pre rate over the 10 cycles, p < 0.01 (as the ChR2 analysis)"
- },
- "H5_primate_change": {
-  "fixed": "2026-11-18, before the H5 healthy runs and before downloading the primate data",
-  "states": {
-   "healthy": "ctx_state = gpe_state = 'healthy' (configuration D, K_ATP off)",
-   "parkinsonian": "the H1 runs (sweeps/out/heldout/H1_pd, hashes in results/heldout/H1/prediction.json), configuration D"
-  },
-  "duration_ms": 20500,
-  "transient_ms": 500,
-  "analysis_window": "t >= 0.5 s to the end of the run (20 s per cell and seed); the same window length (20 s) is used for the length-matched primate segments",
-  "isi_features": "validation/heldout/metrics/spike_features.py definitions (rate, CV, LV, pause-time fraction = ISIs > 4x mean ISI, frac ISI < 10 ms, Poisson-surprise burst share), applied without the 100-spike inclusion rule; cells with < 20 spikes in the window are excluded and counted",
-  "oscillation_test": {
-   "bin_ms": 1,
-   "psd": "Welch, Hann, nperseg 2048 bins, 50% overlap, of the mean-subtracted binned train",
-   "windows_hz": "2 Hz windows with edges 3, 5, ..., 41 (window power = mean PSD in [lo, hi))",
-   "surrogates": "200 ISI-shuffled trains (same ISIs, random order, same first spike), seed fixed per train",
-   "criterion": "oscillatory if any window exceeds the 99.9th percentile of that window's surrogate powers",
-   "peak": "centre of the significant window with the largest power / surrogate-median ratio"
-  },
-  "length_matching": "each primate unit: >= 10 random 20 s segments (uniform start, seed fixed); per-unit value = median over segments (oscillatory if the majority of segments are); full-length values secondary",
-  "bootstrap": "10,000 resamples of units within each state (data); model = mean +- SD over seeds of the per-seed change of population medians"
  }
 }
