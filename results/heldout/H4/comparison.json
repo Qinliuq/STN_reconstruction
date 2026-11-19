@@ -1,0 +1,7 @@
+{
+ "verdict": "H4: PARTIAL \u2014 D1_ctx match, D2_ctx match, D2_gpe mismatch. Data: D2 binned 37/69 inhibited (0 excited), responders x0.56; D1 27/50 excited, x1.79.",
+ "verdict_word": "partial",
+ "model": "D1_ctx: pop x1.17 \u00b1 0.01, inh 0.00 \u00b1 0.00, exc 0.62 \u00b1 0.07; D2_ctx: pop x0.87 \u00b1 0.01, inh 0.45 \u00b1 0.15, exc 0.00 \u00b1 0.00; D2_gpe: pop x1.19 \u00b1 0.01, inh 0.00 \u00b1 0.00, exc 0.71 \u00b1 0.03",
+ "data": "D2 37/69 inh, x0.56; D1 27/50 exc, x1.79",
+ "statistic": "per-cell Wilcoxon p<0.01, Wilson CI"
+}

@@ -1,0 +1,950 @@
+{
+ "test": "H3",
+ "created": "2026-11-15T13:20:22",
+ "git": {
+  "hash": "63ec255d40ce5efc0a5f993d311dbb96400e511a",
+  "dirty": false
+ },
+ "priors": {
+  "_note": "Input-regime parameters for the held-out tests, fixed before any model run and never changed after looking at the data. They are a priori choices (round values from qualitative literature), not fits. Configuration-D parameters are untouched.",
+  "seeds": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "seed_convention": "as src/sweep.py: ctx_seed = s, gpe_seed = 100 + s; network layout (seeds['loc'], seeds['conn']) fixed, i.e. the same 58 cells (12 PV+, 46 PV-) in every seed",
+  "transient_ms": 500,
+  "H1_H2": {
+   "state": "parkinsonian (ctx_state and gpe_state)",
+   "duration_ms": 20500,
+   "why_20s": "the reference features need >= 100 spikes / 99 ISIs; 20 s gives >= ~300 spikes at the PD rates (16-33 Hz). The rat trains are ~100 s; burst_share has length-dependent false positives (Poisson ~0.1 at 300 s), reported as a caveat"
+  },
+  "H3_slow_oscillation": {
+   "ctx_rate_mod": {
+    "type": "slow_osc",
+    "freq_hz": 1.0,
+    "depth": 0.9,
+    "duty": 0.5,
+    "edge_s": 0.05,
+    "period_cv": 0.1
+   },
+   "state": "parkinsonian + slow oscillation",
+   "duration_ms": 20500,
+   "rationale": {
+    "freq_hz": "~1 Hz cortical slow oscillation under urethane / ketamine anesthesia (Steriade et al. 1993; Magill et al. 2000 in rat STN-cortex recordings). Fixed from the literature, not from the held-out EEG",
+    "depth": "0.9: cortical output in down states is near silent; down-state rate = 10% of up-state rate",
+    "duty": "0.5: up and down states of similar duration at ~1 Hz",
+    "mean_preserved": "the envelope is normalized to mean 1, so the calibrated mean cortical drive is unchanged",
+    "seed": "slow-wave timing seed = ctx_seed (differs between seeds)"
+   },
+   "beta_reference": "GPe beta drive phase (common oscillator phase, saved per 1 ms step) and, as an EEG analogue, the cortical population arrival rate band-passed 13-30 Hz; both from the H1 runs (no slow oscillation)"
+  },
+  "H4_optogenetics": {
+   "state": "healthy (ctx_state and gpe_state)",
+   "protocol": {
+    "pre_s": 1.0,
+    "on_s": 2.0,
+    "post_s": 2.0,
+    "t_start_s": 0.5,
+    "n_cycles": 10
+   },
+   "duration_ms": 50500,
+   "why_compressed": "accepted by the user: the model's slowest processes are ~1 s (Ca, HCN, 20 ms GPe rate constant), so the response to a step input settles within 1 s; the data's 20 s within-block recovery and 10-20 s after-effects are not testable with this protocol",
+   "scenarios": {
+    "D2_gpe": {
+     "label": "D2-MSN, textbook route: GPe rate reduced",
+     "gpe_rate_mod_factor": 0.5,
+     "rationale": "iSPN/D2-MSN input targets prototypic GPe neurons strongly (Ketzef & Silberberg 2021, Neuron); 50% reduction of the GPe baseline rate is an a priori round value (no quantitative in vivo value extracted); the STN->GPe feedback stays active"
+    },
+    "D2_ctx": {
+     "label": "D2-MSN, alternative route: cortical/thalamic drive reduced",
+     "ctx_rate_mod_factor": 0.8,
+     "rationale": "iSPN activation suppresses many M1 neurons within ~100-200 ms (Oldenburg & Sabatini 2015, Neuron; ~46% of units modulated); 20% reduction of the cortical arrival rate is an a priori round value"
+    },
+    "D1_ctx": {
+     "label": "D1-MSN, textbook route: cortical/thalamic drive increased",
+     "ctx_rate_mod_factor": 1.25,
+     "rationale": "dSPN activation disinhibits thalamus and excites most M1 neurons (Oldenburg & Sabatini 2015); +25% of the cortical arrival rate is an a priori round value"
+    }
+   },
+   "test": "per cell, Wilcoxon signed-rank of the 2 s stim rate vs the 1 s pre rate over the 10 cycles, p < 0.01 (as the ChR2 analysis)"
+  }
+ },
+ "runs": [
+  {
+   "label": "pd_so",
+   "seed": 1,
+   "spikes": "sweeps/out/heldout/H3_slowosc/pd_so_s1/model_output_spikes.npz",
+   "spikes_sha256": "ce17ef89fcaa40bddef418657fe71915f957f43996b8b149eddb091d8fe04c8e",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 20500\ncfg.ctx_state = 'parkinsonian'\ncfg.gpe_state = 'parkinsonian'\ncfg.ctx_rate_mod = {'type': 'slow_osc', 'freq_hz': 1.0, 'depth': 0.9, 'duty': 0.5, 'edge_s': 0.05, 'period_cv': 0.1}\ncfg.ctx_seed = 1\ncfg.gpe_seed = 101\ncfg.filename = 'sweeps/out/heldout/H3_slowosc/pd_so_s1/model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "pd_so",
+   "seed": 2,
+   "spikes": "sweeps/out/heldout/H3_slowosc/pd_so_s2/model_output_spikes.npz",
+   "spikes_sha256": "0f26e57dffe4219e59fbb6a4030661571549c2352705e1d7e71e01d039f812d3",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 20500\ncfg.ctx_state = 'parkinsonian'\ncfg.gpe_state = 'parkinsonian'\ncfg.ctx_rate_mod = {'type': 'slow_osc', 'freq_hz': 1.0, 'depth': 0.9, 'duty': 0.5, 'edge_s': 0.05, 'period_cv': 0.1}\ncfg.ctx_seed = 2\ncfg.gpe_seed = 102\ncfg.filename = 'sweeps/out/heldout/H3_slowosc/pd_so_s2/model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "pd_so",
+   "seed": 3,
+   "spikes": "sweeps/out/heldout/H3_slowosc/pd_so_s3/model_output_spikes.npz",
+   "spikes_sha256": "83702cbf289dad78b9fb28fd5b7101abb591abbf63984c495323290a453423bd",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 20500\ncfg.ctx_state = 'parkinsonian'\ncfg.gpe_state = 'parkinsonian'\ncfg.ctx_rate_mod = {'type': 'slow_osc', 'freq_hz': 1.0, 'depth': 0.9, 'duty': 0.5, 'edge_s': 0.05, 'period_cv': 0.1}\ncfg.ctx_seed = 3\ncfg.gpe_seed = 103\ncfg.filename = 'sweeps/out/heldout/H3_slowosc/pd_so_s3/model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "pd_so",
+   "seed": 4,
+   "spikes": "sweeps/out/heldout/H3_slowosc/pd_so_s4/model_output_spikes.npz",
+   "spikes_sha256": "1a54774fdb5e9397a27ea0d547f32f545dd34f90d8aa89c5e6b876d3d17012a1",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 20500\ncfg.ctx_state = 'parkinsonian'\ncfg.gpe_state = 'parkinsonian'\ncfg.ctx_rate_mod = {'type': 'slow_osc', 'freq_hz': 1.0, 'depth': 0.9, 'duty': 0.5, 'edge_s': 0.05, 'period_cv': 0.1}\ncfg.ctx_seed = 4\ncfg.gpe_seed = 104\ncfg.filename = 'sweeps/out/heldout/H3_slowosc/pd_so_s4/model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "pd_so",
+   "seed": 5,
+   "spikes": "sweeps/out/heldout/H3_slowosc/pd_so_s5/model_output_spikes.npz",
+   "spikes_sha256": "47fa70376af2a440cc687c620a9dd6e5a0dd48203cef10d8851efa31071662aa",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 20500\ncfg.ctx_state = 'parkinsonian'\ncfg.gpe_state = 'parkinsonian'\ncfg.ctx_rate_mod = {'type': 'slow_osc', 'freq_hz': 1.0, 'depth': 0.9, 'duty': 0.5, 'edge_s': 0.05, 'period_cv': 0.1}\ncfg.ctx_seed = 5\ncfg.gpe_seed = 105\ncfg.filename = 'sweeps/out/heldout/H3_slowosc/pd_so_s5/model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "pd",
+   "seed": 1,
+   "spikes": "sweeps/out/heldout/H1_pd/pd_s1/model_output_spikes.npz",
+   "spikes_sha256": "d4291d807cb4ccc3d5f331770fcf3d26d233a19a357f9e2fb0363fe08f2cd2a4",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 20500\ncfg.ctx_state = 'parkinsonian'\ncfg.gpe_state = 'parkinsonian'\ncfg.ctx_seed = 1\ncfg.gpe_seed = 101\ncfg.filename = 'sweeps/out/heldout/H1_pd/pd_s1/model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "pd",
+   "seed": 2,
+   "spikes": "sweeps/out/heldout/H1_pd/pd_s2/model_output_spikes.npz",
+   "spikes_sha256": "c36a5d1c778962e7b6067377800a8d7614c0d5319d337abac2ff4b33bc2fd970",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 20500\ncfg.ctx_state = 'parkinsonian'\ncfg.gpe_state = 'parkinsonian'\ncfg.ctx_seed = 2\ncfg.gpe_seed = 102\ncfg.filename = 'sweeps/out/heldout/H1_pd/pd_s2/model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "pd",
+   "seed": 3,
+   "spikes": "sweeps/out/heldout/H1_pd/pd_s3/model_output_spikes.npz",
+   "spikes_sha256": "ba70ae2990827aa16533ba06d96c8b929e9641cfa6020ea7d7217759b0b94e39",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 20500\ncfg.ctx_state = 'parkinsonian'\ncfg.gpe_state = 'parkinsonian'\ncfg.ctx_seed = 3\ncfg.gpe_seed = 103\ncfg.filename = 'sweeps/out/heldout/H1_pd/pd_s3/model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "pd",
+   "seed": 4,
+   "spikes": "sweeps/out/heldout/H1_pd/pd_s4/model_output_spikes.npz",
+   "spikes_sha256": "8fa6fef7749689741623e854319e6ea06acf802bcbe9dbdb26b49947890f2400",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 20500\ncfg.ctx_state = 'parkinsonian'\ncfg.gpe_state = 'parkinsonian'\ncfg.ctx_seed = 4\ncfg.gpe_seed = 104\ncfg.filename = 'sweeps/out/heldout/H1_pd/pd_s4/model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "pd",
+   "seed": 5,
+   "spikes": "sweeps/out/heldout/H1_pd/pd_s5/model_output_spikes.npz",
+   "spikes_sha256": "00937b89346cb97436704446b65a7ce07fdd63a448f8a941ef23279f61298b13",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 20500\ncfg.ctx_state = 'parkinsonian'\ncfg.gpe_state = 'parkinsonian'\ncfg.ctx_seed = 5\ncfg.gpe_seed = 105\ncfg.filename = 'sweeps/out/heldout/H1_pd/pd_s5/model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  }
+ ],
+ "files": {
+  "results/heldout/H3/model_phase_slowosc.csv": "029697ce75fd0e7c9707a99cc6a4e4fd489675553ff14fac76e0dc24ad3b36ba",
+  "results/heldout/H3/model_phase_pd_beta.csv": "a15ca659adf26934d01a71c4efcf06fd589425f15e28ef93f24085d54960e47e"
+ },
+ "metrics": {
+  "slow": {
+   "by_type": {
+    "PV+": {
+     "slow_ctx": {
+      "seedwise_median_ppc": {
+       "mean": 0.03695321341715533,
+       "sd": 0.002436798284598064,
+       "n": 5,
+       "values": [
+        0.036698665535369615,
+        0.03707421859062477,
+        0.03480242542685148,
+        0.03522853954062904,
+        0.040962217992301736
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 1.0,
+       "sd": 0.0,
+       "n": 5,
+       "values": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+       ]
+      },
+      "circ_mean_pref": -0.10618748121347876
+     }
+    },
+    "PV-": {
+     "slow_ctx": {
+      "seedwise_median_ppc": {
+       "mean": 0.09825567974969407,
+       "sd": 0.005263528435291475,
+       "n": 5,
+       "values": [
+        0.09187835486881667,
+        0.1060305715796559,
+        0.10023774948578446,
+        0.09673926592262927,
+        0.09639245689158402
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.9913043478260869,
+       "sd": 0.011907012119677518,
+       "n": 5,
+       "values": [
+        1.0,
+        1.0,
+        1.0,
+        0.9782608695652174,
+        0.9782608695652174
+       ]
+      },
+      "circ_mean_pref": -0.17445926485635185
+     }
+    }
+   },
+   "by_cluster": {
+    "bursty": {
+     "slow_ctx": {
+      "seedwise_median_ppc": {
+       "mean": 0.09527525576959037,
+       "sd": 0.00595411227892494,
+       "n": 5,
+       "values": [
+        0.08723504555142661,
+        0.10390346744863702,
+        0.0945026504723293,
+        0.09434265848397491,
+        0.09639245689158402
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.9913043478260869,
+       "sd": 0.011907012119677518,
+       "n": 5,
+       "values": [
+        1.0,
+        1.0,
+        1.0,
+        0.9782608695652174,
+        0.9782608695652174
+       ]
+      },
+      "circ_mean_pref": -0.1773041419499369
+     }
+    },
+    "regular": {
+     "slow_ctx": {
+      "seedwise_median_ppc": {
+       "mean": 0.04201328214510315,
+       "sd": 0.0034921129664335754,
+       "n": 5,
+       "values": [
+        0.04540117183550754,
+        0.04117163489214695,
+        0.04541121651156806,
+        0.03712016949399144,
+        0.040962217992301736
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 1.0,
+       "sd": 0.0,
+       "n": 5,
+       "values": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+       ]
+      },
+      "circ_mean_pref": -0.11345423627189526
+     }
+    }
+   },
+   "all": {
+    "all": {
+     "slow_ctx": {
+      "seedwise_median_ppc": {
+       "mean": 0.0861532805460796,
+       "sd": 0.0029805401855536105,
+       "n": 5,
+       "values": [
+        0.08656748520893978,
+        0.086390488262245,
+        0.08118885998788394,
+        0.08913445273012041,
+        0.08748511654120886
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.993103448275862,
+       "sd": 0.009443492370778746,
+       "n": 5,
+       "values": [
+        1.0,
+        1.0,
+        1.0,
+        0.9827586206896551,
+        0.9827586206896551
+       ]
+      },
+      "circ_mean_pref": -0.160303514084722
+     }
+    }
+   }
+  },
+  "beta_in_slowosc_runs": {
+   "all": {
+    "beta_ctx": {
+     "seedwise_median_ppc": {
+      "mean": 0.004103202211756786,
+      "sd": 0.0013760786887016298,
+      "n": 5,
+      "values": [
+       0.0020592058381655046,
+       0.005555638034407151,
+       0.004960810879825751,
+       0.004478113093889957,
+       0.0034622432124955683
+      ]
+     },
+     "frac_rayleigh_p01": {
+      "mean": 0.19310344827586207,
+      "sd": 0.07045798876449157,
+      "n": 5,
+      "values": [
+       0.10344827586206896,
+       0.25862068965517243,
+       0.25862068965517243,
+       0.20689655172413793,
+       0.13793103448275862
+      ]
+     },
+     "circ_mean_pref": 1.1707853981681935
+    },
+    "beta_gpe_all": {
+     "seedwise_median_ppc": {
+      "mean": 0.0029882663147225257,
+      "sd": 0.002147596226156866,
+      "n": 5,
+      "values": [
+       0.0002384177007938851,
+       0.0032666675739633304,
+       0.004482964906618583,
+       0.005488898208008609,
+       0.00146438318422822
+      ]
+     },
+     "frac_rayleigh_p01": {
+      "mean": 0.18965517241379312,
+      "sd": 0.12492566160508137,
+      "n": 5,
+      "values": [
+       0.017241379310344827,
+       0.2413793103448276,
+       0.22413793103448276,
+       0.3448275862068966,
+       0.1206896551724138
+      ]
+     },
+     "circ_mean_pref": -1.4999272288359178
+    },
+    "beta_gpe_burst": {
+     "seedwise_median_ppc": {
+      "mean": 0.01566014527193465,
+      "sd": 0.0042310485039183145,
+      "n": 5,
+      "values": [
+       0.009669364190670496,
+       0.01924586590667289,
+       0.016998143592770167,
+       0.019395291945640825,
+       0.012992060723918872
+      ]
+     },
+     "frac_rayleigh_p01": {
+      "mean": 0.4206896551724138,
+      "sd": 0.128213740983298,
+      "n": 5,
+      "values": [
+       0.20689655172413793,
+       0.46551724137931033,
+       0.4482758620689655,
+       0.5517241379310345,
+       0.43103448275862066
+      ]
+     },
+     "circ_mean_pref": -1.550236970251565
+    }
+   }
+  },
+  "beta": {
+   "by_type": {
+    "PV+": {
+     "beta_gpe_all": {
+      "seedwise_median_ppc": {
+       "mean": 0.00461109098240788,
+       "sd": 0.0011762461407299357,
+       "n": 5,
+       "values": [
+        0.0028206130156174384,
+        0.005220234515449276,
+        0.005341236039236356,
+        0.005649844637487249,
+        0.004023526704249078
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.3833333333333333,
+       "sd": 0.13944333775567927,
+       "n": 5,
+       "values": [
+        0.16666666666666666,
+        0.5,
+        0.4166666666666667,
+        0.5,
+        0.3333333333333333
+       ]
+      },
+      "circ_mean_pref": -1.1813829063854742
+     },
+     "beta_gpe_burst": {
+      "seedwise_median_ppc": {
+       "mean": 0.020642114826552774,
+       "sd": 0.002847566687232784,
+       "n": 5,
+       "values": [
+        0.016957799483537726,
+        0.021727824791263846,
+        0.02397623703111048,
+        0.022048438584990494,
+        0.01850027424186132
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.8166666666666668,
+       "sd": 0.06972166887783962,
+       "n": 5,
+       "values": [
+        0.8333333333333334,
+        0.8333333333333334,
+        0.75,
+        0.9166666666666666,
+        0.75
+       ]
+      },
+      "circ_mean_pref": -1.2359025939602781
+     },
+     "beta_ctx": {
+      "seedwise_median_ppc": {
+       "mean": 0.0009683855571180448,
+       "sd": 0.0011803842715258264,
+       "n": 5,
+       "values": [
+        -0.0007741528772495488,
+        0.001971403487110975,
+        0.0003240302449644184,
+        0.0019413866652502427,
+        0.001379260265514137
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.0,
+       "sd": 0.0,
+       "n": 5,
+       "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+       ]
+      },
+      "circ_mean_pref": 1.4057187365809898
+     },
+     "slow_ctx_control": {
+      "seedwise_median_ppc": {
+       "mean": 0.001403351602806025,
+       "sd": 0.0017056928434897633,
+       "n": 5,
+       "values": [
+        0.0038680729892075372,
+        8.454888175659335e-05,
+        0.0005828060836958028,
+        -3.7688545805307792e-06,
+        0.002485098913950723
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.016666666666666666,
+       "sd": 0.037267799624996496,
+       "n": 5,
+       "values": [
+        0.08333333333333333,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+       ]
+      },
+      "circ_mean_pref": -1.0074068345808187
+     }
+    },
+    "PV-": {
+     "beta_gpe_all": {
+      "seedwise_median_ppc": {
+       "mean": 0.002967728708775743,
+       "sd": 0.00223744247391902,
+       "n": 5,
+       "values": [
+        -0.00012842902704234197,
+        0.004035729687654437,
+        0.0015418522247869588,
+        0.005500809817393483,
+        0.0038886808410861784
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.1826086956521739,
+       "sd": 0.08220726261386538,
+       "n": 5,
+       "values": [
+        0.08695652173913043,
+        0.2826086956521739,
+        0.10869565217391304,
+        0.21739130434782608,
+        0.21739130434782608
+       ]
+      },
+      "circ_mean_pref": -1.370806784969691
+     },
+     "beta_gpe_burst": {
+      "seedwise_median_ppc": {
+       "mean": 0.011296081676990827,
+       "sd": 0.00597685810179538,
+       "n": 5,
+       "values": [
+        0.002930645064811527,
+        0.016188773770637634,
+        0.012525721715678876,
+        0.017158129247670722,
+        0.007677138586155378
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.32608695652173914,
+       "sd": 0.05953506059838763,
+       "n": 5,
+       "values": [
+        0.2826086956521739,
+        0.34782608695652173,
+        0.2608695652173913,
+        0.41304347826086957,
+        0.32608695652173914
+       ]
+      },
+      "circ_mean_pref": -1.384325252864907
+     },
+     "beta_ctx": {
+      "seedwise_median_ppc": {
+       "mean": 0.004981138816243903,
+       "sd": 0.0027051510301522217,
+       "n": 5,
+       "values": [
+        0.0024285213528530986,
+        0.008482693695249198,
+        0.0021437556798789394,
+        0.006500152602087852,
+        0.005350570751150423
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.21304347826086953,
+       "sd": 0.1204512624103919,
+       "n": 5,
+       "values": [
+        0.10869565217391304,
+        0.391304347826087,
+        0.15217391304347827,
+        0.2826086956521739,
+        0.13043478260869565
+       ]
+      },
+      "circ_mean_pref": 1.3502626013196248
+     },
+     "slow_ctx_control": {
+      "seedwise_median_ppc": {
+       "mean": 0.0004094104394284716,
+       "sd": 0.0010528196401906656,
+       "n": 5,
+       "values": [
+        0.001720398304857279,
+        -0.000746587976185917,
+        0.001173863603237105,
+        -0.00048136727862770317,
+        0.0003807455438615943
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.02608695652173913,
+       "sd": 0.038888138739126776,
+       "n": 5,
+       "values": [
+        0.08695652173913043,
+        0.0,
+        0.0,
+        0.0,
+        0.043478260869565216
+       ]
+      },
+      "circ_mean_pref": -0.8347117170180621
+     }
+    }
+   },
+   "by_cluster": {
+    "bursty": {
+     "beta_gpe_all": {
+      "seedwise_median_ppc": {
+       "mean": 0.0031307330496188647,
+       "sd": 0.002287972905977699,
+       "n": 5,
+       "values": [
+        3.735285879568627e-05,
+        0.004910183801815814,
+        0.0014754893505780488,
+        0.005341958395818595,
+        0.0038886808410861784
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.18831207086774424,
+       "sd": 0.07540348064424256,
+       "n": 5,
+       "values": [
+        0.1111111111111111,
+        0.29545454545454547,
+        0.12195121951219512,
+        0.1956521739130435,
+        0.21739130434782608
+       ]
+      },
+      "circ_mean_pref": -1.4042196497091721
+     },
+     "beta_gpe_burst": {
+      "seedwise_median_ppc": {
+       "mean": 0.012793916755488532,
+       "sd": 0.006244912953651704,
+       "n": 5,
+       "values": [
+        0.0048060651092181085,
+        0.01784309590714068,
+        0.014813010011572623,
+        0.01883027416335588,
+        0.007677138586155378
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.34454888224771574,
+       "sd": 0.05713549005203419,
+       "n": 5,
+       "values": [
+        0.3055555555555556,
+        0.36363636363636365,
+        0.2926829268292683,
+        0.43478260869565216,
+        0.32608695652173914
+       ]
+      },
+      "circ_mean_pref": -1.4067919605945065
+     },
+     "beta_ctx": {
+      "seedwise_median_ppc": {
+       "mean": 0.004774507624341796,
+       "sd": 0.0030751390811568236,
+       "n": 5,
+       "values": [
+        0.001434866548429095,
+        0.008888641932514705,
+        0.0020373410037606465,
+        0.006161117885854111,
+        0.005350570751150423
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.19558040639694935,
+       "sd": 0.14064278983770695,
+       "n": 5,
+       "values": [
+        0.05555555555555555,
+        0.4090909090909091,
+        0.12195121951219512,
+        0.2608695652173913,
+        0.13043478260869565
+       ]
+      },
+      "circ_mean_pref": 1.3648940474740507
+     },
+     "slow_ctx_control": {
+      "seedwise_median_ppc": {
+       "mean": 0.0004351984121433865,
+       "sd": 0.0010077039572477698,
+       "n": 5,
+       "values": [
+        0.001701416739611977,
+        -0.000746587976185917,
+        0.0011477137406656073,
+        -0.0003072959872363293,
+        0.0003807455438615943
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.025362318840579712,
+       "sd": 0.03747855229271232,
+       "n": 5,
+       "values": [
+        0.08333333333333333,
+        0.0,
+        0.0,
+        0.0,
+        0.043478260869565216
+       ]
+      },
+      "circ_mean_pref": -0.76059644969079
+     }
+    },
+    "regular": {
+     "beta_gpe_all": {
+      "seedwise_median_ppc": {
+       "mean": 0.0039486479164395644,
+       "sd": 0.0018384067319376044,
+       "n": 5,
+       "values": [
+        0.0026021732000496983,
+        0.004629622611898633,
+        0.0018921280759911763,
+        0.006595788990009234,
+        0.004023526704249078
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.34605296664120194,
+       "sd": 0.1810170798516648,
+       "n": 5,
+       "values": [
+        0.09090909090909091,
+        0.42857142857142855,
+        0.29411764705882354,
+        0.5833333333333334,
+        0.3333333333333333
+       ]
+      },
+      "circ_mean_pref": -1.1116675027319505
+     },
+     "beta_gpe_burst": {
+      "seedwise_median_ppc": {
+       "mean": 0.01683352779511354,
+       "sd": 0.0031929865551175805,
+       "n": 5,
+       "values": [
+        0.012971814567121452,
+        0.020432495059602547,
+        0.013992414917102923,
+        0.018270640189879464,
+        0.01850027424186132
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.6744970715558951,
+       "sd": 0.13249009977704712,
+       "n": 5,
+       "values": [
+        0.5454545454545454,
+        0.7142857142857143,
+        0.5294117647058824,
+        0.8333333333333334,
+        0.75
+       ]
+      },
+      "circ_mean_pref": -1.1867126693366732
+     },
+     "beta_ctx": {
+      "seedwise_median_ppc": {
+       "mean": 0.0013557051177485499,
+       "sd": 0.0010611536930328874,
+       "n": 5,
+       "values": [
+        6.933942554043422e-05,
+        0.002310474634203025,
+        0.000537648568218203,
+        0.00248180269526695,
+        0.001379260265514137
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.06746880570409983,
+       "sd": 0.06445951733626622,
+       "n": 5,
+       "values": [
+        0.13636363636363635,
+        0.0,
+        0.11764705882352941,
+        0.08333333333333333,
+        0.0
+       ]
+      },
+      "circ_mean_pref": 1.3425248689317932
+     },
+     "slow_ctx_control": {
+      "seedwise_median_ppc": {
+       "mean": 0.0014037554438135116,
+       "sd": 0.0017336363368843052,
+       "n": 5,
+       "values": [
+        0.0038680729892075372,
+        -7.570531048101605e-05,
+        0.0008483682217774178,
+        -0.00010705759538710396,
+        0.002485098913950723
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.01818181818181818,
+       "sd": 0.040655781409087086,
+       "n": 5,
+       "values": [
+        0.09090909090909091,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+       ]
+      },
+      "circ_mean_pref": -1.1519366294327962
+     }
+    }
+   },
+   "all": {
+    "all": {
+     "beta_gpe_all": {
+      "seedwise_median_ppc": {
+       "mean": 0.003495913941440569,
+       "sd": 0.0017442130475874762,
+       "n": 5,
+       "values": [
+        0.0015328251603402875,
+        0.004631077266835849,
+        0.0018316578158306472,
+        0.005500809817393483,
+        0.003983199646802578
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.22413793103448273,
+       "sd": 0.08791412954470318,
+       "n": 5,
+       "values": [
+        0.10344827586206896,
+        0.3275862068965517,
+        0.1724137931034483,
+        0.27586206896551724,
+        0.2413793103448276
+       ]
+      },
+      "circ_mean_pref": -1.3199842345442927
+     },
+     "beta_gpe_burst": {
+      "seedwise_median_ppc": {
+       "mean": 0.013630393542698368,
+       "sd": 0.0057711922051990674,
+       "n": 5,
+       "values": [
+        0.005127881088738143,
+        0.018652670044741027,
+        0.0146670562757928,
+        0.01883027416335588,
+        0.010874086140863994
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.4275862068965517,
+       "sd": 0.058974590953403704,
+       "n": 5,
+       "values": [
+        0.39655172413793105,
+        0.4482758620689655,
+        0.3620689655172414,
+        0.5172413793103449,
+        0.41379310344827586
+       ]
+      },
+      "circ_mean_pref": -1.3487148379919174
+     },
+     "beta_ctx": {
+      "seedwise_median_ppc": {
+       "mean": 0.003514548262453143,
+       "sd": 0.002142012714070691,
+       "n": 5,
+       "values": [
+        0.0013155459317037881,
+        0.006380380220017086,
+        0.0014817746552076344,
+        0.004543352431748587,
+        0.003851688073588622
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.16896551724137931,
+       "sd": 0.09553031156686255,
+       "n": 5,
+       "values": [
+        0.08620689655172414,
+        0.3103448275862069,
+        0.1206896551724138,
+        0.22413793103448276,
+        0.10344827586206896
+       ]
+      },
+      "circ_mean_pref": 1.3595081388386838
+     },
+     "slow_ctx_control": {
+      "seedwise_median_ppc": {
+       "mean": 0.0008233426729986299,
+       "sd": 0.0012597140279134206,
+       "n": 5,
+       "values": [
+        0.002557366189234726,
+        -0.0005412759734719722,
+        0.0009949527266093152,
+        -0.00025422660143190274,
+        0.0013598970240529828
+       ]
+      },
+      "frac_rayleigh_p01": {
+       "mean": 0.02413793103448276,
+       "sd": 0.03777396948311491,
+       "n": 5,
+       "values": [
+        0.08620689655172414,
+        0.0,
+        0.0,
+        0.0,
+        0.034482758620689655
+       ]
+      },
+      "circ_mean_pref": -0.8717699439756618
+     }
+    }
+   }
+  },
+  "phase_convention": "phase 0 = peak of the reference (cortical input rate or GPe rate); radians in (-pi, pi]"
+ }
+}

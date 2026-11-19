@@ -1,0 +1,4 @@
+scenario,route,pathway,verdict,model_pop_ratio,data_pop_ratio,model_frac_inh,model_frac_exc,data_inh_exc,model_resp_ratio,data_resp_ratio,model_onset_late_post,data_early_late_post,resp_frac_PVp,resp_frac_PVm,type_V,type_fisher_p
+D1_ctx,"D1-MSN, textbook route: cortical/thalamic drive increased",D1,match,1.17 ± 0.01,1.43,0.00 ± 0.00,0.62 ± 0.07,"0/50 inh, 27/50 exc",1.21 ± 0.01,1.79,1.20 / 1.19 / 1.00,2.08 / 1.79 / 1.34,0.58 ± 0.13,0.63 ± 0.06,0.04,0.459
+D2_ctx,"D2-MSN, alternative route: cortical/thalamic drive reduced",D2,match,0.87 ± 0.01,0.68,0.45 ± 0.15,0.00 ± 0.00,"37/69 inh, 0/69 exc",0.83 ± 0.02,0.56,0.86 / 0.86 / 1.01,0.51 / 0.62 / 0.92,0.50 ± 0.10,0.44 ± 0.17,0.05,0.467
+D2_gpe,"D2-MSN, textbook route: GPe rate reduced",D2,mismatch,1.19 ± 0.01,0.68,0.00 ± 0.00,0.71 ± 0.03,"37/69 inh, 0/69 exc",1.23 ± 0.02,0.56,1.20 / 1.20 / 1.00,0.51 / 0.62 / 0.92,0.80 ± 0.14,0.68 ± 0.04,0.10,0.0815

@@ -1,0 +1,7 @@
+{
+ "verdict": "H1: MISMATCH ON PHENOTYPE (RATE-BIMODAL ONLY) \u2014 model PD bimodal in 5/5 seeds (silhouette p<0.05), BIC k=2 in 5/5, but the split is PV+ (fast, regular) vs PV- (slower): model cells on the data's burst/pause centroids 0.00 \u00b1 0.00 bursty vs data 20/45 = 0.44 (95% CI 0.31-0.59); own-cluster bursty fraction 0.73 \u00b1 0.07; model 'bursty' cluster is PV- (Cramer's V 0.85 \u00b1 0.13). Original rule (73 rows, no phenotype criterion): partial.",
+ "verdict_word": "mismatch on phenotype (rate-bimodal only)",
+ "model": "bimodal 5/5 seeds (BIC k2 5/5), split by PV type; bursty on data centroids 0.00; own clusters 0.73 \u00b1 0.07",
+ "data": "45 distinct units: bimodal (sil 0.341, p 0.047; BIC k2 marginal); bursty 20/45 = 0.44",
+ "statistic": "silhouette vs Gaussian null, GMM BIC, Wilson CI, data-centroid assignment, Cramer V"
+}

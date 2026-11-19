@@ -50,8 +50,14 @@ parser.add_argument('--param', choices=['gCaT', 'gCaL', 'gHCN', 'gSK', 'gKir', '
 parser.add_argument('--values', type=float, nargs='+', help='values of the scale to sweep')
 parser.add_argument('--protocols', choices=['default', 'depol'], default='default',
                     help='protocol set: default, or depol (strong depolarizing steps, reports depolarization block)')
+parser.add_argument('--duration', type=float, default=4000, help='ms (protocol steps of the default set span the whole run)')
+parser.add_argument('--save', help='write spike times and per-cell Vm summaries to this .npz (for external analysis)')
 parser.add_argument('--cfg', nargs='*', default=[], metavar='KEY=VALUE', help='override cfg.py settings, e.g. katp_kca=0.02')
 args = parser.parse_args()
+if args.duration != duration:
+    duration = args.duration
+    protocols = {k: [(d, duration if dur == 4000 else dur, a) for d, dur, a in v] for k, v in protocols.items()}
+    depolProtocols = {k: [(d, duration, a) for d, dur, a in v] for k, v in depolProtocols.items()}
 import ast
 for item in args.cfg:
     key, value = item.split('=', 1)
@@ -80,7 +86,11 @@ cfg.dt = netCfg.dt
 cfg.recordCells = ['all']
 cfg.recordTraces = {'V_soma': {'sec': 'soma', 'loc': 0.5, 'var': 'v'}}
 # K_ATP: inserted if swept or enabled in cfg.py; then also record somatic [Ca]i and the K_ATP gate
-katp = bool(args.param and args.param.startswith('katp')) or netCfg.katp_gbar > 0
+# single cells have no network state: per-type cfg.katp_gbar is used as is (katp_state_scale is not applied)
+def katp_gbar_cfg(cellType):
+    g = netCfg.katp_gbar
+    return g.get(cellType[:3], 0.0) if isinstance(g, dict) else g
+katp = bool(args.param and args.param.startswith('katp')) or any(katp_gbar_cfg(c) > 0 for c in cellTypes)
 if katp:
     cfg.recordTraces['cai'] = {'sec': 'soma', 'loc': 0.5, 'var': 'cai'}
     cfg.recordTraces['katp_o'] = {'sec': 'soma', 'loc': 0.5, 'mech': 'katp_stn', 'var': 'o'}
@@ -97,7 +107,7 @@ for cellType in {cellType for _, cellType, _ in conditions}:
     cellParams = netParams.importCellParams(label=cellType, fileName='cells/SThprotocell.hoc', cellName='SThcell', cellArgs=[0, protoCell])
     cellParams.secs.soma['threshold'] = -30
     if katp:
-        add_katp(cellParams, netCfg.katp_gbar, netCfg.katp_pdscale, netCfg.katp_kca, force=True)
+        add_katp(cellParams, katp_gbar_cfg(cellType), netCfg.katp_pdscale, netCfg.katp_kca, force=True)
 for c, (_, cellType, _) in enumerate(conditions):
     pop = f'cond{c}_pop'
     netParams.popParams[pop] = {'cellType': cellType, 'numCells': len(names)} # one unconnected cell per protocol
@@ -112,7 +122,7 @@ for cell in sim.net.cells:
     c = int(cell.tags['pop'][len('cond'):-len('_pop')])
     set_conductances(cell, netCfg, overrides=conditions[c][2])
     if katp:
-        gbar = conditions[c][2].get('katp_gbar', netCfg.katp_gbar)
+        gbar = conditions[c][2].get('katp_gbar', katp_gbar_cfg(conditions[c][1]))
         pdscale = conditions[c][2].get('katp_pdscale', netCfg.katp_pdscale)
         for sec in cell.secs.values():
             for seg in sec['hObj']:
@@ -228,6 +238,21 @@ for name in names:
             print(f"  {lab:>16}: rate {s['rate']:5.1f} Hz | ISI CV {s['cv']:4.2f} | bursts {s['bursts']:3d} | "
                   f"spikes in bursts {s['fracInBursts']:4.2f} | spikes/burst {s['spikesPerBurst']:4.1f}" + spike_shape(c, names.index(name)) + katp_stats(c, names.index(name))
                   + block_stats(c, names.index(name), spikes))
+
+if args.save:
+    t = np.array(sim.allSimData['t'])
+    out = {'labels': np.array([lab for lab, _, _ in conditions]), 'protocols': np.array(names),
+           'duration': duration, 'transient': transient}
+    for c in range(len(conditions)):
+        for i in range(len(names)):
+            gid, spikes = cell_spikes(c, i)
+            v = np.array(sim.allSimData['V_soma'][f'cell_{gid}'])
+            out[f'spk_{c}_{i}'] = spikes
+            out[f'vmin_{c}_{i}'] = v[t >= transient].min() # spike trough (most negative Vm after the transient)
+            out[f'vend_{c}_{i}'] = v[t >= duration - 500].mean()
+            out[f'vminlate_{c}_{i}'] = v[t >= duration - 1000].min() # trough over the last second (near-block check)
+    np.savez(args.save, **out)
+    print(f"Saved {args.save}")
 
 # ------------------------------------------------ FIGURE ------------------------------------------------
 t = np.array(sim.allSimData['t'])

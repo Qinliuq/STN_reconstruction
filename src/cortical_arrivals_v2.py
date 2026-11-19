@@ -96,6 +96,7 @@ def generate_arrivals(
     params: InputParams,
     n_assemblies: int = 64,
     seed: int = 1,
+    rate_envelope: np.ndarray | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Generate cortical arrivals using a vectorized discrete-time Poisson draw.
 
@@ -108,6 +109,10 @@ def generate_arrivals(
     The returned time is the bin's left edge. Choose dt_s small relative to the
     STN integration step / synaptic time constants. For very long simulations,
     generate and save in chunks to limit memory use.
+
+    rate_envelope (optional, one value per time bin): multiplies the rate of both the
+    private and the shared processes (held-out validation input hooks, src/input_modulation.py).
+    None (default) leaves the generator unchanged.
     """
     if n_neurons <= 0 or duration_s <= 0 or dt_s <= 0:
         raise ValueError("neurons, duration, and dt must be positive")
@@ -136,6 +141,11 @@ def generate_arrivals(
     # Keep instantaneous rate nonnegative. Beta modulation is active only
     # inside bursts; outside bursts, the rate is the unmodulated baseline.
     modulation = np.maximum(0.0, 1.0 + params.beta_modulation * burst * beta)
+    if rate_envelope is not None:
+        rate_envelope = np.asarray(rate_envelope, dtype=np.float64)
+        if rate_envelope.shape != (n_steps,) or np.any(rate_envelope < 0):
+            raise ValueError(f"rate_envelope must be nonnegative with shape ({n_steps},)")
+        modulation = modulation * rate_envelope
 
     shared_rate = params.rate_hz * params.shared_fraction
     private_rate = params.rate_hz * (1.0 - params.shared_fraction)

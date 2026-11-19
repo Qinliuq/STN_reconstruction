@@ -56,6 +56,7 @@ class GPeInputGenerator:
         burst_duration_s: float = 0.0,
         beta_phase_jitter: float = 0.3,
         synapse_scale: float = 1.0,  # used by stn_inputs.GPeFeedback; accepted here so STATES can be passed whole
+        group_center_map: tuple | list | None = None,  # (slope, intercept): STN home = intercept + slope * GPe position
         seed: int = 1,
     ) -> None:
         stn_axis = np.asarray(stn_axis, dtype=float)
@@ -84,6 +85,9 @@ class GPeInputGenerator:
 
         # Group home positions along the STN axis and Gaussian affinity to each STN cell.
         self.group_center = (np.arange(self.n_groups) + 0.5) / self.n_groups
+        if group_center_map is not None:  # measured GPe position -> STN projection centroid mapping (off by default)
+            slope, intercept = group_center_map
+            self.group_center = intercept + slope * self.group_center
         affinity = np.exp(-(stn_axis[None, :] - self.group_center[:, None]) ** 2 / (2 * topo_sigma ** 2))  # groups x stn
 
         # GPe -> STN: sparse, local connections; every STN cell gets at least its nearest group.

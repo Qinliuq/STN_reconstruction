@@ -71,13 +71,29 @@ cfg.gpe_conductance_nS = 1.0 # per inhibitory arrival (input_version 3; v2 used 
 # sets a GABA:glutamate ratio 1.13 / 0.87 = 1.3x higher in PV+ than PV-, split around 1 to keep the calibrated rates
 cfg.gpe_gaba_scale = {'PVP': 1.13, 'PVN': 0.87}
 cfg.gpe_syn = {'tau2': 8.0} # overrides of the GABA synapse for GPe input (netParams 'GABA' has tau2 = 15 ms, which filters out GPe beta)
+# optional measured receptor profiles (off by default; results/emergent_peak, params/jeon2022_profiles.json):
+# cfg.ctx_gscale = {'x': [...], 'y': [...]}: per-cell cortical conductance factor along the STN axis (mean 1)
+# cfg.gpe_gscale = {'profile': {'x','y'} or None, 'type_ratio': {'PVP': r, 'PVN': r} or None, 'pv_frac_sigma': 0.1}:
+#   per-cell GPe->STN conductance factor (mean 1), replaces cfg.gpe_gaba_scale; see stn_inputs.gpe_cell_scale
+cfg.ctx_gscale = None
+cfg.gpe_gscale = None
 cfg.gpe_params = {} # other GPeInputGenerator arguments, e.g. {'n_gpe_groups': 12, 'target_probability': 0.35, 'stn_to_gpe_gain': 0.5}
 cfg.gpe_seed = 2
 
+# time-varying input rates (held-out validation hooks, src/input_modulation.py); None = off (the default model).
+# e.g. {'type': 'slow_osc', 'freq_hz': 1.0, 'depth': 0.9, 'duty': 0.5} for anesthesia-like cortical up/down states, or
+# {'type': 'blocks', 'pre_s': 1, 'on_s': 2, 'post_s': 2, 'factor': 0.5, 't_start_s': 0.5} for a repeating stimulation protocol
+cfg.ctx_rate_mod = None # multiplies the cortical arrival rate
+cfg.gpe_rate_mod = None # multiplies the GPe baseline (target) rate; 'blocks' only, factor scalar or one per GPe group
+
 # Ca2+-gated K_ATP current (mod/katp_stn.mod, Kir6.2/SUR1), uniform in all sections; 0 = not inserted.
 # pdscale > 1 models its augmented expression after dopamine depletion (Shen & Johnson 2012)
-cfg.katp_gbar = 0.0 # S/cm2
+cfg.katp_gbar = 0.0 # S/cm2; scalar (both types) or per type, e.g. {'PVP': 3e-5, 'PVN': 0.0}
 cfg.katp_pdscale = 1.0
+# K_ATP density x katp_state_scale[state]: upregulated after dopamine depletion, so absent in the healthy state.
+# state = cfg.katp_state if set, else 'parkinsonian' when ctx_state and gpe_state are both parkinsonian (tools.katp_density)
+cfg.katp_state_scale = {'healthy': 0.0, 'parkinsonian': 1.0}
+cfg.katp_state = None
 # half-activating [Ca]i (mM). The mod default (5e-4 = 0.5 uM) is far below this model's Cacum range
 # (~0.1-1 uM when silent, ~30-80 uM when firing), which keeps K_ATP almost fully open in any active cell
 cfg.katp_kca = 5e-4

@@ -1,0 +1,37 @@
+{
+ "panel": "Fig. 7H middle",
+ "page": 11,
+ "image": "native 300 ppi JPEG (pdfimages)",
+ "axis_x_px": 460,
+ "x_end_px": 732,
+ "y_ticks_px": [
+  1526.5,
+  1566.5,
+  1606.5,
+  1646.0,
+  1686.0,
+  1725.5
+ ],
+ "y_tick_values": [
+  0.6,
+  0.5,
+  0.4,
+  0.3,
+  0.2,
+  0.1
+ ],
+ "y_per_px": 0.002512550728994445,
+ "axis_per_px": 0.003676470588235294,
+ "tick_fit_max_residual": 0.0005865023297758065,
+ "se_halfwidth_median": {
+  "Gria1": 0.05904494213136924,
+  "Gabra1": 0.017587855102961125,
+  "Pvalb": 0.038944536299413635
+ },
+ "interpolated_columns": {
+  "Gria1": 0,
+  "Gabra1": 16,
+  "Pvalb": 9
+ },
+ "reading_error": "line centre +-1 px = +-0.0025 fraction; axis position +-2 px = +-0.0074"
+}

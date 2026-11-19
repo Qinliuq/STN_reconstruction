@@ -73,6 +73,16 @@ def spike_data(sim, cfg, gpe=None):
     if gpe is not None:
         d['gpe_rate'] = np.array(gpe.rates).mean(1) # mean over GPe groups, one value per step of gpe_dt_ms
         d['gpe_dt_ms'] = gpe.dt
+        if getattr(gpe, 'betaPhase', None):
+            d['gpe_beta_phase'] = np.array(gpe.betaPhase, dtype=np.float32) # per step of gpe_dt_ms, from t = 0
+            d['gpe_in_burst'] = np.array(gpe.inBurst, dtype=bool)
+    try: # cortical input signals (1 ms bins; see stn_inputs.CTX_SIGNALS)
+        from stn_inputs import CTX_SIGNALS
+        d.update({k: np.asarray(v) for k, v in CTX_SIGNALS.items()})
+        from stn_inputs import CELL_SCALES # per-cell receptor-profile scales (only when cfg.ctx_gscale / gpe_gscale are set)
+        d.update({k: np.asarray(v) for k, v in CELL_SCALES.items()})
+    except ImportError:
+        pass
     return d
 
 

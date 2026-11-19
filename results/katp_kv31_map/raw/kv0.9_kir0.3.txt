@@ -1,0 +1,82 @@
+Warning: no DISPLAY environment variable.
+--No graphics will be displayed.
+ 
+loading STh cell data structures...
+ 
+  2 trees
+  loaded tree 0 (23 branches)
+  loaded tree 1 (11 branches)
+
+Start time:  2026-11-18 13:58:51.646462
+
+
+Creating network of 5 cell populations on 1 hosts...:   0%|          |[A
+
+Creating network of 5 cell populations on 1 hosts...:  60%|######    |[A
+Creating network of 5 cell populations on 1 hosts...: 100%|##########|
+  Number of cells on node 0: 30 
+  Done; cell creation time = 0.32 s.
+Making connections...
+  Number of connections on node 0: 0 
+  Done; cell connection time = 0.00 s.
+Adding stims...
+  Number of stims on node 0: 25 
+  Done; cell stims creation time = 0.00 s.
+Recording 90 traces of 3 types on node 0
+Setting in vitro parameters based on Bevan & Wilson (1999)
+
+Running simulation using NEURON for 11000.0 ms...
+  Done; run time = 932.68 s; real-time ratio: 0.01.
+
+Gathering data...
+  Done; gather time = 0.39 s.
+
+Analyzing...
+  Cells: 30
+  Connections: 0 (0.00 per cell)
+  Spikes: 4721 (14.31 Hz)
+  Simulated time: 11.0 s; 1 workers
+  Run time: 932.68 s
+
+Cells without synaptic input; stats over 1000-11000.0 ms
+burst = >=3 spikes with ISI < 20 ms, flanked by pauses > 3x the intra-burst ISI
+
+=== spontaneous (0 nA)
+   PV+ katp_gbar=0: rate  28.6 Hz | ISI CV 0.01 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.62 ms | trough -68.8 mV | cai 46.979 uM | K_ATP o 0.845
+  PV+ katp_gbar=1e-05: rate  14.7 Hz | ISI CV 0.17 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.62 ms | trough -68.9 mV | cai 27.138 uM | K_ATP o 0.646
+  PV+ katp_gbar=2e-05: rate  13.9 Hz | ISI CV 0.62 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.62 ms | trough -69.0 mV | cai 25.078 uM | K_ATP o 0.603
+  PV+ katp_gbar=3e-05: rate  12.2 Hz | ISI CV 0.79 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.62 ms | trough -68.7 mV | cai 22.099 uM | K_ATP o 0.537
+  PV+ katp_gbar=5e-05: rate  10.1 Hz | ISI CV 0.91 | bursts   2 | spikes in bursts 0.06 | spikes/burst  3.0 | AP width 0.62 ms | trough -69.5 mV | cai 18.567 uM | K_ATP o 0.448
+=== depolarizing +0.05 nA
+   PV+ katp_gbar=0: rate  62.2 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.62 ms | trough -68.3 mV | cai 93.432 uM | K_ATP o 0.955
+  PV+ katp_gbar=1e-05: rate  52.3 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.62 ms | trough -68.5 mV | cai 79.928 uM | K_ATP o 0.940
+  PV+ katp_gbar=2e-05: rate  40.5 Hz | ISI CV 0.00 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.62 ms | trough -68.6 mV | cai 63.587 uM | K_ATP o 0.909
+  PV+ katp_gbar=3e-05: rate  26.4 Hz | ISI CV 0.01 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.62 ms | trough -68.8 mV | cai 43.962 uM | K_ATP o 0.828
+  PV+ katp_gbar=5e-05: rate   7.3 Hz | ISI CV 0.01 | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | AP width 0.63 ms | trough -68.7 mV | cai 16.072 uM | K_ATP o 0.394
+=== hold -0.16 nA
+   PV+ katp_gbar=0: rate  23.3 Hz | ISI CV 1.86 | bursts  38 | spikes in bursts 0.97 | spikes/burst  6.0 | AP width 0.63 ms | trough -77.7 mV | cai 36.948 uM | K_ATP o 0.710
+  PV+ katp_gbar=1e-05: rate  20.5 Hz | ISI CV 1.92 | bursts  33 | spikes in bursts 0.97 | spikes/burst  6.0 | AP width 0.63 ms | trough -78.6 mV | cai 32.686 uM | K_ATP o 0.648
+  PV+ katp_gbar=2e-05: rate  17.8 Hz | ISI CV 2.01 | bursts  27 | spikes in bursts 0.97 | spikes/burst  6.4 | AP width 0.63 ms | trough -79.5 mV | cai 28.272 uM | K_ATP o 0.563
+  PV+ katp_gbar=3e-05: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.961 uM | K_ATP o 0.013
+  PV+ katp_gbar=5e-05: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.848 uM | K_ATP o 0.007
+=== hold -0.25 nA
+   PV+ katp_gbar=0: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.599 uM | K_ATP o 0.006
+  PV+ katp_gbar=1e-05: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.571 uM | K_ATP o 0.006
+  PV+ katp_gbar=2e-05: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.548 uM | K_ATP o 0.006
+  PV+ katp_gbar=3e-05: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.529 uM | K_ATP o 0.006
+  PV+ katp_gbar=5e-05: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.498 uM | K_ATP o 0.006
+=== hold -0.35 nA
+   PV+ katp_gbar=0: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.342 uM | K_ATP o 0.005
+  PV+ katp_gbar=1e-05: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.335 uM | K_ATP o 0.005
+  PV+ katp_gbar=2e-05: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.328 uM | K_ATP o 0.005
+  PV+ katp_gbar=3e-05: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.323 uM | K_ATP o 0.005
+  PV+ katp_gbar=5e-05: rate   0.0 Hz | ISI CV  nan | bursts   0 | spikes in bursts 0.00 | spikes/burst  nan | cai 0.313 uM | K_ATP o 0.005
+=== rebound (-0.25 nA, 1000-1500 ms)
+   PV+ katp_gbar=0: before step  28.0 Hz | rebound  15 spikes over   85 ms ( 165 Hz) | late  28.6 Hz | cai 46.090 uM | K_ATP o 0.818
+  PV+ katp_gbar=1e-05: before step  16.0 Hz | rebound  14 spikes over   76 ms ( 172 Hz) | late  14.8 Hz | cai 27.674 uM | K_ATP o 0.634
+  PV+ katp_gbar=2e-05: before step  14.0 Hz | rebound  14 spikes over   74 ms ( 176 Hz) | late  13.8 Hz | cai 25.351 uM | K_ATP o 0.590
+  PV+ katp_gbar=3e-05: before step  12.0 Hz | rebound  14 spikes over   74 ms ( 176 Hz) | late  12.2 Hz | cai 22.881 uM | K_ATP o 0.532
+  PV+ katp_gbar=5e-05: before step  12.0 Hz | rebound  14 spikes over   78 ms ( 166 Hz) | late  10.0 Hz | cai 19.474 uM | K_ATP o 0.451
+Saved results/katp_kv31_map/raw/kv0.9_kir0.3.npz
+
+Saved single_cell_PVP_katp_gbar_katp_kca=0.02_PVP_gKv31_scale=0.9_PVP_gKir_scale=0.3.png
