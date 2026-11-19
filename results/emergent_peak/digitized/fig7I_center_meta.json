@@ -1,0 +1,20 @@
+{
+ "panel": "Fig. 7I center",
+ "page": 11,
+ "axis_x_px": 1513,
+ "axis_y_px": 1767,
+ "x_end_px": 1776,
+ "y_unit": "A.U.: pixel height above the x axis / mean of all four curves (no y ticks in the panel)",
+ "axis_per_px": 0.0038022813688212928,
+ "crossing_axis1": {
+  "Gria1": 0.4296577946768061,
+  "Gabra1": 0.42585551330798477
+ },
+ "missing_before_fill": {
+  "Gria1_solid": 3,
+  "Gria1_dotted": 3,
+  "Gabra1_solid": 4,
+  "Gabra1_dotted": 5
+ },
+ "reading_error": "line centre +-1 px; baseline +-3 px (arrow bar thickness), i.e. ~2-6% of a curve height of 50-170 px; axis position +-2 px"
+}

@@ -1,0 +1,24 @@
+{
+ "panel": "Fig. 1H right top",
+ "page": 3,
+ "axis_box_px": [
+  1832,
+  1349,
+  2022,
+  1538
+ ],
+ "ring_radius_px": 5.25,
+ "n_points": 50,
+ "n_expected": 55,
+ "spearman_rho": 0.8778402267377624,
+ "paper_rho": 0.886,
+ "ols_box_units": {
+  "slope": 1.053718508545062,
+  "intercept": 0.0010362956348075603,
+  "r": 0.8755160832870441,
+  "slope_se": 0.08393766424780454,
+  "resid_sd": 0.11458008779265678
+ },
+ "note": "no tick labels: units are fractions of the axis box; data range in box units: GPe 0.08-0.95, STN 0.06-0.93",
+ "reading_error": "circle centre +-1 px = +-0.0053 (x), +-0.0053 (y) box units"
+}
