@@ -1,0 +1,18 @@
+{
+ "panel": "Fig. S5D motor (human)",
+ "page": 33,
+ "baseline_row": 1055,
+ "x_span_px": [
+  1047,
+  1120
+ ],
+ "centroid_axis1": 0.4979870333577329,
+ "peaks_axis1_gt60pct": [
+  0.23,
+  0.25,
+  0.85,
+  0.88
+ ],
+ "reading_error": "+-1 px = +-0.014 axis (85 px panel); y has no ticks",
+ "note": "supplementary: human, bimodal; not used for the model locus"
+}

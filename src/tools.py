@@ -127,10 +127,12 @@ def apply_CSF_Bevan():
     # cli0_cl_ion = 4
     # clo0_cl_ion = 132.5
 
-def generate_locs(num, pv_percent, seed=0, plot=True, pvp_placement='gradient'):
+def generate_locs(num, pv_percent, seed=0, plot=True, pvp_placement='gradient', pvp_profile=None):
     # pvp_placement: 'gradient' = PV+ cells concentrated around axis ~0.67 (skew-normal over the 12 grids);
     # 'uniform' = PV+ cells spread in proportion to the cells per grid (same total cells per grid, only the
-    # PV+ / PV- mix along the axis changes)
+    # PV+ / PV- mix along the axis changes); 'profile' = PV+ share of each grid proportional to a measured local PV+
+    # fraction profile pvp_profile {'x': axis positions, 'y': fraction} (e.g. Jeon et al. 2022 Fig. 7H Pvalb), same
+    # cells per grid and same PV+ total; largest-remainder rounding (deterministic), positions from `seed` as before
 
     from scipy.stats import skewnorm
 
@@ -170,8 +172,19 @@ def generate_locs(num, pv_percent, seed=0, plot=True, pvp_placement='gradient'):
         pvp_points_per_grid = np.floor(share).astype(int)
         extra = int(round(total_points)) - pvp_points_per_grid.sum()
         pvp_points_per_grid[np.argsort(-(share - pvp_points_per_grid), kind='stable')[:extra]] += 1
+    elif pvp_placement == 'profile':
+        if pvp_profile is None:
+            raise ValueError("pvp_placement 'profile' needs pvp_profile = {'x': [...], 'y': [...]}")
+        n_g = np.array(points_per_grid)
+        frac = np.interp(grid_centers[:n_grids], pvp_profile['x'], pvp_profile['y'])
+        share = frac * n_g
+        share *= total_points / share.sum()
+        share = np.minimum(share, n_g)
+        pvp_points_per_grid = np.floor(share).astype(int)
+        extra = int(round(total_points)) - pvp_points_per_grid.sum()
+        pvp_points_per_grid[np.argsort(-(share - pvp_points_per_grid), kind='stable')[:extra]] += 1
     else:
-        raise ValueError(f"pvp_placement must be 'gradient' or 'uniform', not {pvp_placement!r}")
+        raise ValueError(f"pvp_placement must be 'gradient', 'uniform' or 'profile', not {pvp_placement!r}")
     pvn_points_per_grid = np.array([int(points_per_grid[i]-pvp_points_per_grid[i]) for i in range(n_grids)])
 
     pvp_x = np.zeros(pvp_points_per_grid.sum(),)

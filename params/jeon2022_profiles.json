@@ -1,7 +1,7 @@
 {
  "source": "Jeon H, Lee H, Kwon D-H, et al. Topographic connectivity and cellular profiling reveal detailed input pathways and functionally distinct cell types in the subthalamic nucleus. Cell Reports 38:110439 (2022). doi:10.1016/j.celrep.2022.110439",
- "created": "2026-11-19",
- "git_at_creation": "f8711521c1026dd08bbb6daf31ef6a09600103f6",
+ "created": "2026-11-22",
+ "git_at_creation": "2849e262dac08baf7d17be177fedcc2c38d557f1",
  "method": "tools/digitize_jeon2022/ (native 300 ppi figure images extracted with pdfimages; colour-mask line tracing, colormap inversion, ring matched filter); digitized data and overlays in results/emergent_peak/digitized/",
  "axis": "Jeon STN axis 1 (ventromedial 0 -> dorsolateral 1) taken as the model axis (xnorm + ynorm)/2, 1 = dorsal end; checked: Pvalb fraction rises toward the model PV+ region (both 0-1 normalized)",
  "assumption_conductance": "fraction of receptor-positive cells (Fig. 7H) is proportional to synaptic conductance",
@@ -384,5 +384,75 @@
   ],
   "mapping_resid_sd": 0.07151757547795083,
   "note": "group home position = intercept + slope * GPe position (0..1); config D keeps sigma 0.1 and evenly spaced homes (0.04-0.96)"
+ },
+ "pvp_profile": {
+  "x": [
+   0.0,
+   0.05,
+   0.1,
+   0.15,
+   0.2,
+   0.25,
+   0.3,
+   0.35,
+   0.4,
+   0.45,
+   0.5,
+   0.55,
+   0.6,
+   0.65,
+   0.7,
+   0.75,
+   0.8,
+   0.85,
+   0.9,
+   0.95,
+   1.0
+  ],
+  "y": [
+   0.0685,
+   0.0708,
+   0.0797,
+   0.0942,
+   0.1132,
+   0.1359,
+   0.1612,
+   0.1881,
+   0.2156,
+   0.2428,
+   0.2686,
+   0.2921,
+   0.3123,
+   0.3282,
+   0.3388,
+   0.3431,
+   0.3402,
+   0.3289,
+   0.3085,
+   0.2778,
+   0.2358
+  ]
+ },
+ "somatomotor_locus": {
+  "centre": 0.6345,
+  "reading_error": 0.0621,
+  "run_at": [
+   0.5723,
+   0.6345,
+   0.6966
+  ],
+  "width": 0.2191,
+  "iqr": [
+   0.5852018267619522,
+   0.7095841525152695
+  ],
+  "via_gpe_mapping": 0.69660023173772,
+  "associative_median": 0.7198469998728132,
+  "associative_iqr": [
+   0.6100028746563703,
+   0.7755667825960716
+  ],
+  "limbic_median": 0.35379031659214744,
+  "note": "Fig. 3C sensorimotor rows (median of per-row centroids). Reading error = max(CI half-width x sqrt(1.8), difference to the estimate via HP_GPe and the Fig. 1H mapping); M is run at centre and centre +- error. The sensorimotor territory overlaps the associative one (IQRs). Human Fig. S5D (supplementary, not used): bimodal motor profile, centroid 0.50."
  }
 }

@@ -32,7 +32,8 @@ popOrder = cfg.pop_order # (was 30) we can start with lower value for speed, and
 PVPproportion = 0.2 # the percentage of PVP neurons; 1-popScale is the percetage of PVN neurons; cholinergic interneurons neglected for now
 
 from tools import generate_locs
-pvpLocs, pvnLocs = generate_locs(popOrder, PVPproportion, seed=cfg.seeds['loc'], pvp_placement=cfg.pvp_placement)
+pvpLocs, pvnLocs = generate_locs(popOrder, PVPproportion, seed=cfg.seeds['loc'], pvp_placement=cfg.pvp_placement,
+                                 pvp_profile=getattr(cfg, 'pvp_profile', None))
 
 # STN pops
 netParams.popParams['PVP_pop'] = {'cellType': 'PVP_cell', 'cellsList': pvpLocs}

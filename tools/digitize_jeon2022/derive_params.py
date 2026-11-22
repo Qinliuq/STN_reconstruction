@@ -83,9 +83,27 @@ def main():
                             note='group home position = intercept + slope * GPe position (0..1); config D keeps sigma 0.1 and '
                                  'evenly spaced homes (0.04-0.96)'),
     )
+    # PV+ placement from the Pvalb fraction profile (shape only; total PV+ count unchanged): tools.generate_locs 'profile'
+    out['pvp_profile'] = {'x': prof['Pvalb']['x'], 'y': prof['Pvalb']['y']}
+    # condition M: somatomotor hyperdirect locus (Fig. 3C), width = GPe->STN sigma (Fig. 1E)
+    m = json.load(open(os.path.join(DIG, 'fig3C_meta.json')))['groups']
+    sm = m['sensorimotor']
+    half_ci = (sm['stn_ci95'][1] - sm['stn_ci95'][0]) / 2 * np.sqrt(1.8)  # rows ~1.8 px: inflate the CI
+    method_gap = abs(sm['stn_via_gpe_mapping'] - sm['stn_median'])
+    err = max(half_ci, method_gap)
+    out['somatomotor_locus'] = dict(
+        centre=round(sm['stn_median'], 4), reading_error=round(float(err), 4),
+        run_at=[round(sm['stn_median'] - err, 4), round(sm['stn_median'], 4), round(sm['stn_median'] + err, 4)],
+        width=out['gpe_topography']['topo_sigma'], iqr=sm['stn_iqr'], via_gpe_mapping=sm['stn_via_gpe_mapping'],
+        associative_median=m['associative']['stn_median'], associative_iqr=m['associative']['stn_iqr'],
+        limbic_median=m['limbic']['stn_median'],
+        note='Fig. 3C sensorimotor rows (median of per-row centroids). Reading error = max(CI half-width x sqrt(1.8), '
+             'difference to the estimate via HP_GPe and the Fig. 1H mapping); M is run at centre and centre +- error. '
+             'The sensorimotor territory overlaps the associative one (IQRs). Human Fig. S5D (supplementary, not used): '
+             'bimodal motor profile, centroid 0.50.')
     os.makedirs(os.path.join(ROOT, 'params'), exist_ok=True)
     json.dump(out, open(os.path.join(ROOT, 'params', 'jeon2022_profiles.json'), 'w'), indent=1)
-    print(json.dumps({k: out[k] for k in ('per_type_ratio', 'gpe_topography')}, indent=1))
+    print(json.dumps({k: out[k] for k in ('per_type_ratio', 'gpe_topography', 'somatomotor_locus')}, indent=1))
     for g, p in prof.items():
         print(g, 'cubic R2 %.3f; linear %.3f %+.3f*a (R2 %.3f)' % (p['cubic_r2'], p['linear']['intercept'], p['linear']['slope'], p['linear']['r2']))
 
