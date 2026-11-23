@@ -19,3 +19,4 @@ net2D-*.png
 model_output*
 sweeps/heldout_runs.log
 sweeps/emergent_peak_run*.log
+sweeps/emergent_peak_fu*.log
