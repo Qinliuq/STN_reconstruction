@@ -34,10 +34,10 @@ COND = ['F', 'F_cfgD', 'noPV', 'noRec', 'abs', 'sig', 'ref', 'M0', 'M1', 'M2']
 MIN_NEFF = 5
 
 
-def load(label):
+def load(label, out=None):
     runs = []
     for s in SEEDS:
-        f = os.path.join(OUT, f'{label}_s{s}', 'model_output_metrics.json')
+        f = os.path.join(out or OUT, f'{label}_s{s}', 'model_output_metrics.json')
         if os.path.exists(f):
             runs.append(json.load(open(f)))
     return runs
@@ -55,8 +55,8 @@ def peak(prof, neff, pos):
     return float(pos[int(np.argmax(p))])
 
 
-def summarize(label):
-    runs = load(label)
+def summarize(label, out=None):
+    runs = load(label, out)
     if not runs:
         return None
     pos = [round(x, 2) for x in runs[0]['profile']['positions']]
@@ -74,7 +74,8 @@ def summarize(label):
                 pair_PVP=np.mean([r['beta_pow_pair_PVP_pop'] for r in runs]) * 1e6, pair_PVN=np.mean([r['beta_pow_pair_PVN_pop'] for r in runs]) * 1e6,
                 pair_cross=np.mean([r['beta_pow_pair_cross'] for r in runs]) * 1e6,
                 rate_PVP=np.mean([r['rate_PVP_pop'] for r in runs]), rate_PVN=np.mean([r['rate_PVN_pop'] for r in runs]),
-                bursts=np.mean([r['frac_spikes_in_bursts'] for r in runs]))
+                bursts=np.mean([r['frac_spikes_in_bursts'] for r in runs]),
+                pair_ratio_seeds=[r['beta_pow_pair_PVP_pop'] / r['beta_pow_pair_PVN_pop'] for r in runs])
 
 
 def verdict(s):
