@@ -1,0 +1,25 @@
+{
+ "c": {
+  "1_cond2_peak_in_055_080": false,
+  "2_cond3_peak_gt_085": false,
+  "3_cond6_peak_gt_085": false,
+  "4_cond2_ratio_gt_cond1": true,
+  "hypothesis_survives": false,
+  "values": {
+   "cond1_peak": 0.05,
+   "cond1_ratio": 1.2724397424398426,
+   "cond2_peak": 0.05,
+   "cond2_ratio": 1.3517447661895017,
+   "cond3_peak": 0.05,
+   "cond6_peak": 0.7,
+   "cond2b_peak": 0.05,
+   "cond2b_ratio": 0.8194802512810216,
+   "cond4_peak": 0.6,
+   "cond5_peak": 0.6,
+   "cond5_gain_over_own_control": 1.3128365175730972,
+   "cond2_gain_over_control": 1.0623251703829963
+  },
+  "2b_rule1_peak_in_055_080": false,
+  "2b_rule4_ratio_gt_cond1": false
+ }
+}
