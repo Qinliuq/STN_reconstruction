@@ -173,9 +173,35 @@ class GPeFeedback:
         cellsByGid = {cell.gid: cell for cell in sim.net.cells}
         if cfg.input_version >= 3:
             stateParams['stn_axis'] = [axis_position(cellsByGid[gid].tags) for gid in gids]
+        # data-derived PD drive topography (cfg.pd_drive, off by default; results/drive_topography): the PD CHANGE of
+        # the GPe->STN synapse scale and/or of the pallidal beta depth is distributed along the axis by s(x)
+        driveS = None
+        drv = getattr(cfg, 'pd_drive', None)
+        if drv and cfg.gpe_state == 'parkinsonian':
+            from stn_drive_topography import drive_scaling
+            hooks = drv['hooks']
+            if hooks not in ('both', 'gpe', 'beta'):
+                raise ValueError(f"cfg.pd_drive['hooks'] must be 'both', 'gpe' or 'beta', not {hooks!r}")
+            axisAll = np.array(stateParams['stn_axis'])
+            s = drive_scaling(axisAll, **drv['drive'])
+            s = s / s.mean()  # renormalize over the realised cell positions
+            if abs(s.mean() - 1) >= 1e-6:
+                raise RuntimeError(f'pd_drive: mean s over cells = {s.mean()}, not 1')
+            if hooks in ('both', 'gpe'):
+                driveS = s
+            shaped = hooks in ('both', 'beta')
+            stateParams['beta_depth_shape'] = (lambda c: drive_scaling(np.asarray(c), **drv['drive'])) if shaped else \
+                (lambda c: np.ones(len(c)))
+            stateParams['beta_depth_mean'] = drv['depth_mean']
+            stateParams['beta_depth_base'] = drv.get('depth_base', 0.1)
+            CELL_SCALES['pd_drive_s'] = s.astype(np.float32)
         self.generator = gpeModel.GPeInputGenerator(n_stn=len(gids), dt_s=cfg.gpe_dt,
                                                     feedback_delay_s=max(0.0, cfg.gpe_feedback_delay - cfg.gpe_dt),
                                                     seed=cfg.gpe_seed, **stateParams)
+        if 'pd_drive_s' in CELL_SCALES and getattr(cfg, 'pd_drive', None) and cfg.gpe_state == 'parkinsonian':
+            CELL_SCALES['gpe_beta_depth'] = np.asarray(self.generator.beta_depth, dtype=np.float32)
+            CELL_SCALES['gpe_synapse_scale'] = (np.full(len(gids), synapseScale) if driveS is None
+                                                else 1.0 + (synapseScale - 1.0) * driveS).astype(np.float32)
         self.rng = np.random.default_rng(cfg.gpe_seed)
 
         # GABA synapses: on all dendritic sections for PV+ cells, on the soma for PV- cells (as in the previous GPe->STN rules);
@@ -200,7 +226,8 @@ class GPeFeedback:
                 syn.e, syn.tau1, syn.tau2 = synMech['e'], synMech['tau1'], synMech['tau2']
                 nc = h.NetCon(None, syn)
                 g = gabaScale[cell.tags['cellType']] if cellScale is None else cellScale[k]
-                nc.weight[0] = cfg.gpe_conductance_nS * synapseScale * g * 1e-3
+                sc = synapseScale if driveS is None else 1.0 + (synapseScale - 1.0) * driveS[k]  # change scaled, not total
+                nc.weight[0] = cfg.gpe_conductance_nS * sc * g * 1e-3
                 self.syns.append(syn)
                 ncs.append(nc)
             self.netcons.append(ncs)

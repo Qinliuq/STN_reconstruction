@@ -77,6 +77,12 @@ cfg.gpe_syn = {'tau2': 8.0} # overrides of the GABA synapse for GPe input (netPa
 #   per-cell GPe->STN conductance factor (mean 1), replaces cfg.gpe_gaba_scale; see stn_inputs.gpe_cell_scale
 cfg.ctx_gscale = None
 cfg.gpe_gscale = None
+# cfg.pd_drive (off by default; results/drive_topography): data-derived PD drive topography, PD state only.
+#   {'drive': kwargs of stn_drive_topography.drive_scaling, 'hooks': 'both' | 'gpe' | 'beta', 'depth_mean': M, 'depth_base': 0.1}
+#   GPe->STN synapse scale of cell i = 1 + (synapse_scale - 1) * s(x_i) (hooks 'both' / 'gpe'; else uniform);
+#   GPe group beta depth = depth_base + (M - depth_base) * s(c_g) (s = 1 for hooks 'gpe'), normalized so that the
+#   connection-weighted mean depth received by the cells is M; overrides the state's graded beta depth.
+cfg.pd_drive = None
 cfg.gpe_params = {} # other GPeInputGenerator arguments, e.g. {'n_gpe_groups': 12, 'target_probability': 0.35, 'stn_to_gpe_gain': 0.5}
 cfg.gpe_seed = 2
 
