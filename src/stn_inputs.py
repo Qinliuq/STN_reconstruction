@@ -160,6 +160,11 @@ def add_cortical_input(netParams, cfg, cellLocsPerPop):
 
 
 # ------------------------------------------------ GPe ------------------------------------------------
+def gabaScale0(cfg, cellType):
+    # per-type GPe->STN factor used for the coverage normalization's population mean (cfg.gpe_gaba_scale)
+    return cfg.gpe_gaba_scale.get('PVP' if cellType == 'PVP_cell' else 'PVN', 1.0)
+
+
 class GPeFeedback:
     def __init__(self, sim, cfg, synMech):
         self.sim = sim
@@ -204,6 +209,37 @@ class GPeFeedback:
                                                 else 1.0 + (synapseScale - 1.0) * driveS).astype(np.float32)
         self.rng = np.random.default_rng(cfg.gpe_seed)
 
+        # GPe->STN coverage / resolution fixes (results/edge_artefacts; off by default). Per-arrival weight factor f_i:
+        #  cfg.gpe_coverage_norm (F2): f_i proportional to 1 / (number of GPe groups cell i receives), so every cell gets
+        #    the same total GPe weight up to its type factor; the population-mean total weight is kept;
+        #  cfg.gpe_drive_ref (F3, e.g. {'n_groups': 12}): the population-mean total weight is set to that of the reference
+        #    group layout ((g + 0.5)/n_ref, same sigma) in expectation at the realised positions: x E_ref / E_actual,
+        #    E = mean over cells of the sum over groups of the Gaussian affinity (the expected number of groups per cell).
+        nGroups = np.asarray(self.generator.inputs_per_stn, dtype=float)
+        axisAll = np.asarray(stateParams['stn_axis'], dtype=float) if 'stn_axis' in stateParams else None
+        baseW = np.array([gabaScale0(cfg, cellsByGid[gid].tags['cellType']) for gid in gids])  # type factor (for the mean)
+        targetTotal = (nGroups * baseW).mean()
+        ref = getattr(cfg, 'gpe_drive_ref', None)
+        if (ref or getattr(cfg, 'gpe_coverage_norm', False)) and getattr(cfg, 'gpe_gscale', None):
+            raise ValueError('cfg.gpe_coverage_norm / gpe_drive_ref are defined with cfg.gpe_gaba_scale, not cfg.gpe_gscale')
+        if ref:
+            sig = stateParams.get('topo_sigma', 0.10)
+            aff = lambda homes: np.exp(-(axisAll[None, :] - np.asarray(homes)[:, None]) ** 2 / (2 * sig ** 2)).sum(0).mean()
+            nRef = ref['n_groups']
+            targetTotal *= aff((np.arange(nRef) + 0.5) / nRef) / aff(self.generator.group_center)
+        if getattr(cfg, 'gpe_coverage_norm', False):
+            covF = targetTotal / (nGroups * baseW.mean())
+        else:
+            covF = np.full(len(gids), targetTotal / (nGroups * baseW).mean())
+        if not ref and not getattr(cfg, 'gpe_coverage_norm', False):
+            covF = None  # configuration D: weights untouched (bit-identical)
+        else:
+            got = (nGroups * baseW * covF).mean()
+            if abs(got / targetTotal - 1) > 1e-9:
+                raise RuntimeError(f'GPe coverage factor: population-mean total weight {got} != {targetTotal}')
+            CELL_SCALES['gpe_coverage_factor'] = covF.astype(np.float32)
+        CELL_SCALES['gpe_groups_cell'] = nGroups.astype(np.float32)
+
         # GABA synapses: on all dendritic sections for PV+ cells, on the soma for PV- cells (as in the previous GPe->STN rules);
         # each arrival goes to one randomly chosen synapse of the target cell
         synMech = {**synMech, **cfg.gpe_syn} # cfg.gpe_syn overrides the GABA synapse ('e', 'tau1', 'tau2')
@@ -217,6 +253,7 @@ class GPeFeedback:
             cellScale = gpe_cell_scale(axisAll, isPVP, cfg.gpe_gscale)
             CELL_SCALES['gpe_gscale'] = cellScale.astype(np.float32)
         self.syns, self.netcons = [], []
+        wCell = []
         for k, gid in enumerate(gids):
             cell = cellsByGid[gid]
             secNames = [s for s in cell.secs if s != 'soma'] if cell.tags['cellType'] == 'PVP_cell' else ['soma']
@@ -227,10 +264,12 @@ class GPeFeedback:
                 nc = h.NetCon(None, syn)
                 g = gabaScale[cell.tags['cellType']] if cellScale is None else cellScale[k]
                 sc = synapseScale if driveS is None else 1.0 + (synapseScale - 1.0) * driveS[k]  # change scaled, not total
-                nc.weight[0] = cfg.gpe_conductance_nS * sc * g * 1e-3
+                nc.weight[0] = cfg.gpe_conductance_nS * sc * g * 1e-3 * (1.0 if covF is None else covF[k])
                 self.syns.append(syn)
                 ncs.append(nc)
             self.netcons.append(ncs)
+            wCell.append(ncs[0].weight[0] * 1e3)
+        CELL_SCALES['gpe_weight_cell_nS'] = np.array(wCell, dtype=np.float32)  # per-arrival weight of each cell (log)
 
         # optional time-varying factor on the GPe baseline (target) rate per group (held-out validation hook,
         # off by default: cfg.gpe_rate_mod = None); the STN->GPe feedback stays in the loop

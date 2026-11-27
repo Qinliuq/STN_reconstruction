@@ -33,7 +33,7 @@ PVPproportion = 0.2 # the percentage of PVP neurons; 1-popScale is the percetage
 
 from tools import generate_locs
 pvpLocs, pvnLocs = generate_locs(popOrder, PVPproportion, seed=cfg.seeds['loc'], pvp_placement=cfg.pvp_placement,
-                                 pvp_profile=getattr(cfg, 'pvp_profile', None))
+                                 pvp_profile=getattr(cfg, 'pvp_profile', None), grid=getattr(cfg, 'loc_grid', 'original'))
 
 # STN pops
 netParams.popParams['PVP_pop'] = {'cellType': 'PVP_cell', 'cellsList': pvpLocs}

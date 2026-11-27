@@ -83,6 +83,14 @@ cfg.gpe_gscale = None
 #   GPe group beta depth = depth_base + (M - depth_base) * s(c_g) (s = 1 for hooks 'gpe'), normalized so that the
 #   connection-weighted mean depth received by the cells is M; overrides the state's graded beta depth.
 cfg.pd_drive = None
+# Edge / coverage bias fixes (results/edge_artefacts; all off by default = configuration D):
+#   cfg.loc_grid: 'original' (cells around bins i/12, axis clipped) or 'centred' (F1: around (i + 0.5)/12, reflected)
+#   cfg.gpe_coverage_norm (F2): GPe->STN per-arrival weight x 1 / (groups received), population-mean total kept
+#   cfg.gpe_drive_ref (F3): e.g. {'n_groups': 12} with cfg.gpe_params {'n_gpe_groups': 48, 'home_range': [1/24, 23/24]}:
+#     total GPe weight scaled to the 12-group layout's expected total at the realised positions
+cfg.loc_grid = 'original'
+cfg.gpe_coverage_norm = False
+cfg.gpe_drive_ref = None
 cfg.gpe_params = {} # other GPeInputGenerator arguments, e.g. {'n_gpe_groups': 12, 'target_probability': 0.35, 'stn_to_gpe_gain': 0.5}
 cfg.gpe_seed = 2
 

@@ -127,12 +127,16 @@ def apply_CSF_Bevan():
     # cli0_cl_ion = 4
     # clo0_cl_ion = 132.5
 
-def generate_locs(num, pv_percent, seed=0, plot=True, pvp_placement='gradient', pvp_profile=None):
+def generate_locs(num, pv_percent, seed=0, plot=True, pvp_placement='gradient', pvp_profile=None, grid='original'):
     # pvp_placement: 'gradient' = PV+ cells concentrated around axis ~0.67 (skew-normal over the 12 grids);
     # 'uniform' = PV+ cells spread in proportion to the cells per grid (same total cells per grid, only the
     # PV+ / PV- mix along the axis changes); 'profile' = PV+ share of each grid proportional to a measured local PV+
     # fraction profile pvp_profile {'x': axis positions, 'y': fraction} (e.g. Jeon et al. 2022 Fig. 7H Pvalb), same
     # cells per grid and same PV+ total; largest-remainder rounding (deterministic), positions from `seed` as before
+    # grid: 'original' = cells drawn around bin centres i/12 (0..0.917; positions clipped to 0..1 later, in the axis);
+    # 'centred' (fix F1, results/edge_artefacts; cfg.loc_grid) = cells drawn around (i + 0.5)/12 and x, y reflected at 0
+    # and 1 instead of clipped. Cells per bin and PV+ per bin are unchanged (the placement rules still use the original
+    # bin positions i/12), and the random draws are the same, so every cell moves by +1/24 (then reflected).
 
     from scipy.stats import skewnorm
 
@@ -186,6 +190,12 @@ def generate_locs(num, pv_percent, seed=0, plot=True, pvp_placement='gradient', 
     else:
         raise ValueError(f"pvp_placement must be 'gradient', 'uniform' or 'profile', not {pvp_placement!r}")
     pvn_points_per_grid = np.array([int(points_per_grid[i]-pvp_points_per_grid[i]) for i in range(n_grids)])
+    if grid == 'original':
+        place_centers = grid_centers
+    elif grid == 'centred':
+        place_centers = (np.arange(n_grids) + 0.5) / n_grids
+    else:
+        raise ValueError(f"grid must be 'original' or 'centred', not {grid!r}")
 
     pvp_x = np.zeros(pvp_points_per_grid.sum(),)
     pvp_y = np.zeros(pvp_points_per_grid.sum(),)
@@ -196,18 +206,22 @@ def generate_locs(num, pv_percent, seed=0, plot=True, pvp_placement='gradient', 
     for i in range(n_grids):
         end_idx = start_idx + pvp_points_per_grid[i]
         if end_idx > start_idx:  # Avoid empty ranges
-            pvp_x[start_idx:end_idx] = randGen.normal(loc=grid_centers[i], scale=0.05, size=(end_idx - start_idx))
-            pvp_y[start_idx:end_idx] = randGen.normal(loc=grid_centers[i], scale=0.05, size=(end_idx - start_idx))
+            pvp_x[start_idx:end_idx] = randGen.normal(loc=place_centers[i], scale=0.05, size=(end_idx - start_idx))
+            pvp_y[start_idx:end_idx] = randGen.normal(loc=place_centers[i], scale=0.05, size=(end_idx - start_idx))
         start_idx = end_idx
         
     start_idx = 0
     for i in range(n_grids):
         end_idx = start_idx + pvn_points_per_grid[i]
         if end_idx > start_idx:  # Avoid empty ranges
-            pvn_x[start_idx:end_idx] = randGen.normal(loc=grid_centers[i], scale=0.05, size=(end_idx - start_idx))
-            pvn_y[start_idx:end_idx] = randGen.normal(loc=grid_centers[i], scale=0.05, size=(end_idx - start_idx))
+            pvn_x[start_idx:end_idx] = randGen.normal(loc=place_centers[i], scale=0.05, size=(end_idx - start_idx))
+            pvn_y[start_idx:end_idx] = randGen.normal(loc=place_centers[i], scale=0.05, size=(end_idx - start_idx))
         start_idx = end_idx
 
+    if grid == 'centred':  # reflect at 0 and 1 (sd 0.05: one reflection suffices; asserted)
+        reflect = lambda v: 1 - np.abs(1 - np.abs(v))
+        pvp_x, pvp_y, pvn_x, pvn_y = (reflect(v) for v in (pvp_x, pvp_y, pvn_x, pvn_y))
+        assert all(((v >= 0) & (v <= 1)).all() for v in (pvp_x, pvp_y, pvn_x, pvn_y))
     pvp_z = randGen.uniform(0, 1, len(pvp_x))
     pvn_z = randGen.uniform(0, 1, len(pvn_x))
 

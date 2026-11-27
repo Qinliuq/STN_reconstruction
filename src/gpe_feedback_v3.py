@@ -57,6 +57,7 @@ class GPeInputGenerator:
         beta_phase_jitter: float = 0.3,
         synapse_scale: float = 1.0,  # used by stn_inputs.GPeFeedback; accepted here so STATES can be passed whole
         group_center_map: tuple | list | None = None,  # (slope, intercept): STN home = intercept + slope * GPe position
+        home_range: tuple | list | None = None,  # (first, last) home: n groups evenly spaced over it (fix F3); None = (g + 0.5)/n
         beta_depth_shape=None,  # callable c_g -> shape s (data-derived drive, cfg.pd_drive; off by default)
         beta_depth_mean: float | None = None,  # M: connection-weighted mean depth received by the STN cells
         beta_depth_base: float = 0.1,  # depth at s = 0 (healthy depth)
@@ -88,6 +89,8 @@ class GPeInputGenerator:
 
         # Group home positions along the STN axis and Gaussian affinity to each STN cell.
         self.group_center = (np.arange(self.n_groups) + 0.5) / self.n_groups
+        if home_range is not None:
+            self.group_center = np.linspace(home_range[0], home_range[1], self.n_groups)
         if group_center_map is not None:  # measured GPe position -> STN projection centroid mapping (off by default)
             slope, intercept = group_center_map
             self.group_center = intercept + slope * self.group_center
