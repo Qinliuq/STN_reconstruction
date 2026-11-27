@@ -213,8 +213,10 @@ def beta_ppc(d, n_shuffle=PPC_SHUFFLES, seed=0):
     d: one run's spike data, or a list of runs of the SAME network (same cells and positions, e.g. input seeds), whose
     in-episode spikes are then pooled per cell (PPC across runs). Phase = the GPe generator's common beta phase
     (d['gpe_beta_phase'], one value per GPe step), only inside beta episodes (d['gpe_in_burst']), t >= t0. Per cell:
-    pairwise phase consistency PPC = (|sum e^(i phi)|^2 - N) / (N (N - 1)) over its N in-episode spikes (unbiased by
-    spike count; NaN if N < PPC_MIN_SPIKES). Significance: each run's phase and episode series are rotated together by
+    pairwise phase consistency over pairs of in-episode spikes from DIFFERENT beta episodes (PPC_1 of Vinck et al.
+    2012): PPC = (|sum_all|^2 - sum_e |sum_e|^2) / (N^2 - sum_e n_e^2), sum = sum of e^(i phi) (all spikes / episode e).
+    Unbiased by spike count and by within-episode spike-history dependence (regular, pacemaking firing within an
+    episode biases the all-pairs PPC negative). NaN if N < PPC_MIN_SPIKES or fewer than 2 episodes have spikes. Significance: each run's phase and episode series are rotated together by
     a random circular shift (>= PPC_MIN_SHIFT_MS from 0), n_shuffle times; p = (1 + #(PPC_shuffled >= PPC)) /
     (1 + n_shuffle); locked if p < 0.05. Profile along the axis with the same Gaussian kernel as the other profiles,
     n_eff = sum of kernel weights over cells with a valid PPC (cells, not pairs).
@@ -233,24 +235,40 @@ def beta_ppc(d, n_shuffle=PPC_SHUFFLES, seed=0):
         spk, spkt = r['spkid'], r['spkt']
         idx = [np.clip(np.floor(spkt[(spk == g) & (spkt >= t0)] / dt).astype(int) - i0, 0, L - 1) for g in gids]
         shifts = np.concatenate([[0], rng.integers(PPC_MIN_SHIFT_MS / dt, L - PPC_MIN_SHIFT_MS / dt, n_shuffle)])
-        prep.append((phase[i0:], inb[i0:], L, idx, shifts))
+        ib = inb[i0:]
+        ep = np.cumsum(np.diff(np.concatenate([[0], ib.astype(int)])) == 1)  # episode number (valid where ib)
+        if ib[0] and ib[-1]:  # an episode wrapping around the circular shift is one episode
+            ep[ep == ep[-1]] = ep[0]
+        prep.append((phase[i0:], ib, ep, L, idx, shifts))
 
-    def z_n(c, s):  # resultant and count of cell c's in-episode spikes, pooled over runs, for shuffle s
-        z, n = 0j, 0
-        for ph, ib, L, idx, shifts in prep:
+    def stats(c, s):  # cell c, shuffle s: resultant, sum over episodes of |episode resultant|^2, spikes, sum n_e^2
+        z, se, n, sn = 0j, 0.0, 0, 0
+        for r, (ph, ib, ep, L, idx, shifts) in enumerate(prep):
             j = (idx[c] + shifts[s]) % L
-            sel = ib[j]
-            n += int(sel.sum())
-            z += np.exp(1j * ph[j[sel]]).sum()
-        return z, n
+            j = j[ib[j]]
+            if not len(j):
+                continue
+            e = np.unique(ep[j], return_inverse=True)[1]
+            u = np.exp(1j * ph[j])
+            ze = np.bincount(e, u.real) + 1j * np.bincount(e, u.imag)
+            ne = np.bincount(e)
+            z += u.sum()
+            se += float((np.abs(ze) ** 2).sum())
+            n += len(j)
+            sn += int((ne ** 2).sum())
+        return z, se, n, sn
 
-    ppc_f = lambda z, n: float((abs(z) ** 2 - n) / (n * (n - 1))) if n >= PPC_MIN_SPIKES else np.nan
+    def ppc_f(z, se, n, sn):
+        if n < PPC_MIN_SPIKES or n * n - sn <= 0:
+            return np.nan
+        return float((abs(z) ** 2 - se) / (n * n - sn))
+
     ppc, nsp, pval = np.full(nC, np.nan), np.zeros(nC, int), np.full(nC, np.nan)
     for c in range(nC):
-        z, n = z_n(c, 0)
-        ppc[c], nsp[c] = ppc_f(z, n), n
+        st = stats(c, 0)
+        ppc[c], nsp[c] = ppc_f(*st), st[2]
         if np.isfinite(ppc[c]):
-            sh = np.array([ppc_f(*z_n(c, s)) for s in range(1, n_shuffle + 1)])
+            sh = np.array([ppc_f(*stats(c, s)) for s in range(1, n_shuffle + 1)])
             sh = sh[np.isfinite(sh)]
             pval[c] = (1 + (sh >= ppc[c]).sum()) / (1 + len(sh))
     valid = np.isfinite(ppc)
