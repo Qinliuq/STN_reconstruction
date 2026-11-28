@@ -1,0 +1,10 @@
+label,variant,state,depth,rate_PVP,rate_PVN,rate_PVP_vs_T0_pct,rate_PVN_vs_T0_pct,breach_10pct
+T0_healthy,T0,healthy,,37.66,20.28,,,False
+T0_graded_pd,T0,PD,graded,32.69,16.77,0,0,False
+T0_uniform_pd,T0,PD,uniform,33.37,17.01,0,0,False
+T1_healthy,T1,healthy,,40.32,19.53,,,False
+T1_graded_pd,T1,PD,graded,35.44,16.07,8.401,-4.179,False
+T1_uniform_pd,T1,PD,uniform,35.51,16.21,6.434,-4.673,False
+T2_healthy,T2,healthy,,39.09,19.89,,,False
+T2_graded_pd,T2,PD,graded,34.43,16.24,5.302,-3.173,False
+T2_uniform_pd,T2,PD,uniform,34.56,16.83,3.576,-1.074,False

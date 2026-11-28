@@ -171,6 +171,8 @@ def figure(profs):
                 a.plot(POS, y, ls, color='k' if d == 'graded' else '0.5', lw=1.6, label=f'{d} depth')
                 a.plot(POS[ne < FLAG], y[ne < FLAG], 'o', color='tab:red', ms=3)
             a.axvspan(0.55, 0.8, color='0.93', zorder=-1)
+            if f'{v}|graded' not in profs and i == 0:
+                a.text(0.5, 0.5, f'{v} held: not run\n(seed-1 smoke: PV+ rate +20% vs T0)', ha='center', va='center', transform=a.transAxes, fontsize=9)
             if i == 0:
                 a.set_title(v, fontsize=10)
             if j == 0:
