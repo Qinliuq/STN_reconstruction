@@ -56,6 +56,11 @@ class GPeInputGenerator:
         burst_duration_s: float = 0.0,
         beta_phase_jitter: float = 0.3,
         synapse_scale: float = 1.0,  # used by stn_inputs.GPeFeedback; accepted here so STATES can be passed whole
+        group_center_map: tuple | list | None = None,  # (slope, intercept): STN home = intercept + slope * GPe position
+        home_range: tuple | list | None = None,  # (first, last) home: n groups evenly spaced over it (fix F3); None = (g + 0.5)/n
+        beta_depth_shape=None,  # callable c_g -> shape s (data-derived drive, cfg.pd_drive; off by default)
+        beta_depth_mean: float | None = None,  # M: connection-weighted mean depth received by the STN cells
+        beta_depth_base: float = 0.1,  # depth at s = 0 (healthy depth)
         seed: int = 1,
     ) -> None:
         stn_axis = np.asarray(stn_axis, dtype=float)
@@ -84,6 +89,11 @@ class GPeInputGenerator:
 
         # Group home positions along the STN axis and Gaussian affinity to each STN cell.
         self.group_center = (np.arange(self.n_groups) + 0.5) / self.n_groups
+        if home_range is not None:
+            self.group_center = np.linspace(home_range[0], home_range[1], self.n_groups)
+        if group_center_map is not None:  # measured GPe position -> STN projection centroid mapping (off by default)
+            slope, intercept = group_center_map
+            self.group_center = intercept + slope * self.group_center
         affinity = np.exp(-(stn_axis[None, :] - self.group_center[:, None]) ** 2 / (2 * topo_sigma ** 2))  # groups x stn
 
         # GPe -> STN: sparse, local connections; every STN cell gets at least its nearest group.
@@ -100,6 +110,19 @@ class GPeInputGenerator:
         self.beta_hz = beta_hz
         self.beta_depth = beta_floor + (beta_modulation - beta_floor) * np.exp(
             -(self.group_center - beta_center) ** 2 / (2 * beta_width ** 2))
+        self.beta_depth_shape_norm = None
+        if beta_depth_shape is not None:  # data-derived drive: depth_g = base + (M - base) * s_g (no random draws)
+            s_raw = np.asarray(beta_depth_shape(self.group_center), dtype=float)
+            received = (connected * s_raw[:, None]).sum(axis=0) / connected.sum(axis=0)  # mean s over each cell's groups
+            s_g = s_raw / received.mean()
+            self.beta_depth_shape_norm = s_g
+            self.beta_depth = beta_depth_base + (beta_depth_mean - beta_depth_base) * s_g
+            got = ((connected * self.beta_depth[:, None]).sum(axis=0) / connected.sum(axis=0)).mean()
+            if abs(got - beta_depth_mean) > 1e-9:
+                raise RuntimeError(f"connection-weighted mean depth {got} != M {beta_depth_mean}")
+            if self.beta_depth.max() > 1.0 + 1e-12 or self.beta_depth.min() < 0:
+                raise ValueError(f"beta depth outside [0, 1]: {self.beta_depth.min():.4f}-{self.beta_depth.max():.4f} "
+                                 f"(M {beta_depth_mean} too large for max s {s_g.max():.4f})")
         self.burst_start_prob = burst_rate_hz * dt_s
         self.burst_steps = int(round(burst_duration_s / dt_s))
         self.burst_steps_left = 0

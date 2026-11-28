@@ -17,3 +17,9 @@ env/
 sweeps/out/
 net2D-*.png
 model_output*
+sweeps/heldout_runs.log
+sweeps/emergent_peak_run*.log
+sweeps/emergent_peak_fu*.log
+sweeps/drive_topography_run*.log
+sweeps/edge_artefacts_run*.log
+sweeps/ctx_topography_*.log

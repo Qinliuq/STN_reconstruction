@@ -30,8 +30,12 @@ import cortical_arrivals_v2
 import gpe_feedback
 import gpe_feedback_v2
 import gpe_feedback_v3
+import input_modulation
 
 STN_POPS = ['PVP_pop', 'PVN_pop']
+# signals of the cortical input saved with the spikes (network_metrics.spike_data): the population arrival rate
+# (1 ms bins) and, with cfg.ctx_rate_mod, the rate envelope and slow-oscillation phase
+CTX_SIGNALS = {}
 
 
 def input_models(cfg):
@@ -53,6 +57,10 @@ def topography_scale(cellLocs, cfg):
     # per-cell cortical rate scale from the position along the STN axis: scale = intercept + slope * axis,
     # normalized to mean 1
     axis = np.array([axis_position(loc) for loc in cellLocs])
+    variant = getattr(cfg, 'ctx_topo_variant', None)
+    if variant is not None: # results/ctx_topography; replaces cfg.ctx_topography
+        import ctx_topography
+        return axis, ctx_topography.rate_scale(axis, variant)
     if cfg.ctx_topography is None:
         return axis, np.ones(len(axis))
     intercept, slope = cfg.ctx_topography
@@ -71,6 +79,37 @@ def separate_coincident(times_ms, step=1e-6):
     rank = np.arange(len(t)) - np.searchsorted(runId, runId)
     return t + rank * step
 
+def profile_scale(axis, profile):
+    # per-cell factor from a tabulated profile {'x': [...], 'y': [...]} (linear interpolation, constant beyond the ends),
+    # normalized to mean 1 over the given cells so the mean drive is unchanged
+    v = np.interp(axis, profile['x'], profile['y'])
+    if np.any(v <= 0):
+        raise ValueError('profile gives a non-positive scale')
+    return v / v.mean()
+
+
+def local_fraction(axis, isA, sigma):
+    # Gaussian-kernel local fraction of cells with isA at each cell's axis position
+    w = np.exp(-(axis[:, None] - axis[None, :]) ** 2 / (2 * sigma ** 2))
+    return (w @ isA.astype(float)) / w.sum(1)
+
+
+def gpe_cell_scale(axis, isPVP, spec):
+    # cfg.gpe_gscale: per-cell GPe->STN conductance factor g_i = P(a_i) * r_t / rbar(a_i) (normalized to mean 1),
+    # rbar(a) = f(a) r_PV+ + (1 - f(a)) r_PV-, f = local PV+ fraction of the model cells (kernel spec['pv_frac_sigma']);
+    # without 'type_ratio' g_i = P(a_i). P from spec['profile'] (flat if None).
+    P = np.interp(axis, spec['profile']['x'], spec['profile']['y']) if spec.get('profile') else np.ones(len(axis))
+    r = spec.get('type_ratio')
+    if r:
+        f = local_fraction(axis, isPVP, spec.get('pv_frac_sigma', 0.1))
+        rt = np.where(isPVP, r['PVP'], r['PVN'])
+        P = P * rt / (f * r['PVP'] + (1 - f) * r['PVN'])
+    return P / P.mean()
+
+
+CELL_SCALES = {} # per-cell scales of the optional receptor profiles, saved with the spikes (network_metrics.spike_data)
+
+
 def add_cortical_input(netParams, cfg, cellLocsPerPop):
     # cellLocsPerPop: {pop: cellsList with 'xnorm'/'ynorm'}, in STN index order (PVP_pop, PVN_pop)
     ctxModel, _ = input_models(cfg)
@@ -80,33 +119,65 @@ def add_cortical_input(netParams, cfg, cellLocsPerPop):
     nAssemblies = max(1, math.ceil(nSTN / cfg.ctx_cells_per_assembly))
     axis, scale = topography_scale(cellLocs, cfg)
 
+    # optional time-varying rate envelope (held-out validation hook, off by default: cfg.ctx_rate_mod = None)
+    rateMod = getattr(cfg, 'ctx_rate_mod', None)
+    extra = {}
+    CTX_SIGNALS.clear()
+    if rateMod is not None:
+        nSteps = int(np.ceil(cfg.duration / 1000 / cfg.ctx_dt))
+        spec = {'seed': cfg.ctx_seed, **rateMod} if rateMod['type'] == 'slow_osc' else rateMod # slow-wave timing differs per seed
+        envelope, signals = input_modulation.ctx_envelope(spec, nSteps, cfg.ctx_dt)
+        extra['rate_envelope'] = envelope
+        CTX_SIGNALS.update(signals)
+
     # generate at the highest per-cell rate, then thin each cell's events to its own rate
     # (thinning keeps the arrivals Poisson and keeps the shared fraction of each cell's input)
     time_s, neuron_id, _ = ctxModel.generate_arrivals(n_neurons=nSTN, duration_s=cfg.duration / 1000, dt_s=cfg.ctx_dt,
                                              params=dataclasses.replace(params, rate_hz=params.rate_hz * scale.max()),
-                                             n_assemblies=nAssemblies, seed=cfg.ctx_seed)
+                                             n_assemblies=nAssemblies, seed=cfg.ctx_seed, **extra)
     keep = np.random.default_rng([cfg.ctx_seed, 1]).random(len(time_s)) < (scale / scale.max())[neuron_id]
     time_ms, neuron_id = time_s[keep] * 1000, neuron_id[keep]
 
+    # optional per-cell cortical conductance profile (cfg.ctx_gscale, off by default): weight x profile(axis), mean 1
+    gScale = profile_scale(axis, cfg.ctx_gscale) if getattr(cfg, 'ctx_gscale', None) else None
+    variant = getattr(cfg, 'ctx_topo_variant', None)
+    if variant is not None:
+        import ctx_topography
+        if gScale is not None:
+            raise ValueError('cfg.ctx_topo_variant cannot be combined with cfg.ctx_gscale')
+        gScale = ctx_topography.g_scale(axis, variant)
+    CELL_SCALES.clear()
+    if gScale is not None:
+        CELL_SCALES['ctx_gscale'] = gScale.astype(np.float32)
     first = 0
     for pop, locs in cellLocsPerPop.items():
         n = len(locs)
+        weight = params.conductance_nS * 1e-3 if gScale is None else (params.conductance_nS * 1e-3 * gScale[first:first + n]).tolist()
         spkTimes = [separate_coincident(time_ms[neuron_id == first + i]).tolist() for i in range(n)] # sorted by generate_arrivals
         netParams.popParams[f'Ctx_{pop}'] = {'cellModel': 'VecStim', 'numCells': n, 'spkTimes': spkTimes}
         netParams.connParams[f'Ctx->{pop}'] = {'preConds': {'pop': f'Ctx_{pop}'}, 'postConds': {'pop': pop},
                                                'connList': [[i, i] for i in range(n)], 'synMech': 'glut',
-                                               'weight': params.conductance_nS * 1e-3, 'delay': cfg.ctx_delay,
+                                               'weight': weight, 'delay': cfg.ctx_delay,
                                                'sec': 'soma', 'loc': 0.5}
         first += n
+    CTX_SIGNALS['ctx_rate'] = (np.histogram(time_ms, bins=np.arange(0, cfg.duration + 1, 1.0))[0] / nSTN * 1000).astype(np.float32)
     rates = np.bincount(neuron_id, minlength=nSTN) / (cfg.duration / 1000)
     print(f"Cortical input (v{cfg.input_version}, {cfg.ctx_state}): {len(time_ms)} arrivals to {nSTN} STN cells "
           f"({rates.mean():.1f} /s per cell, {nAssemblies} assemblies)")
-    if cfg.ctx_topography is not None:
+    if getattr(cfg, 'ctx_topo_variant', None) is not None:
+        print(f"  topography variant {cfg.ctx_topo_variant}: rate scale {scale.min():.2f}-{scale.max():.2f}, conductance scale "
+              f"{'uniform' if gScale is None else f'{gScale.min():.2f}-{gScale.max():.2f}'} (arrivals {rates.min():.0f}-{rates.max():.0f} /s)")
+    elif cfg.ctx_topography is not None:
         print(f"  topography {cfg.ctx_topography}: rate scale {scale.min():.2f}-{scale.max():.2f} along the STN axis "
               f"(arrivals {rates.min():.0f}-{rates.max():.0f} /s; corr(axis, arrivals) = {np.corrcoef(axis, rates)[0, 1]:.2f})")
 
 
 # ------------------------------------------------ GPe ------------------------------------------------
+def gabaScale0(cfg, cellType):
+    # per-type GPe->STN factor used for the coverage normalization's population mean (cfg.gpe_gaba_scale)
+    return cfg.gpe_gaba_scale.get('PVP' if cellType == 'PVP_cell' else 'PVN', 1.0)
+
+
 class GPeFeedback:
     def __init__(self, sim, cfg, synMech):
         self.sim = sim
@@ -120,18 +191,83 @@ class GPeFeedback:
         cellsByGid = {cell.gid: cell for cell in sim.net.cells}
         if cfg.input_version >= 3:
             stateParams['stn_axis'] = [axis_position(cellsByGid[gid].tags) for gid in gids]
+        # data-derived PD drive topography (cfg.pd_drive, off by default; results/drive_topography): the PD CHANGE of
+        # the GPe->STN synapse scale and/or of the pallidal beta depth is distributed along the axis by s(x)
+        driveS = None
+        drv = getattr(cfg, 'pd_drive', None)
+        if drv and cfg.gpe_state == 'parkinsonian':
+            from stn_drive_topography import drive_scaling
+            hooks = drv['hooks']
+            if hooks not in ('both', 'gpe', 'beta'):
+                raise ValueError(f"cfg.pd_drive['hooks'] must be 'both', 'gpe' or 'beta', not {hooks!r}")
+            axisAll = np.array(stateParams['stn_axis'])
+            s = drive_scaling(axisAll, **drv['drive'])
+            s = s / s.mean()  # renormalize over the realised cell positions
+            if abs(s.mean() - 1) >= 1e-6:
+                raise RuntimeError(f'pd_drive: mean s over cells = {s.mean()}, not 1')
+            if hooks in ('both', 'gpe'):
+                driveS = s
+            shaped = hooks in ('both', 'beta')
+            stateParams['beta_depth_shape'] = (lambda c: drive_scaling(np.asarray(c), **drv['drive'])) if shaped else \
+                (lambda c: np.ones(len(c)))
+            stateParams['beta_depth_mean'] = drv['depth_mean']
+            stateParams['beta_depth_base'] = drv.get('depth_base', 0.1)
+            CELL_SCALES['pd_drive_s'] = s.astype(np.float32)
         self.generator = gpeModel.GPeInputGenerator(n_stn=len(gids), dt_s=cfg.gpe_dt,
                                                     feedback_delay_s=max(0.0, cfg.gpe_feedback_delay - cfg.gpe_dt),
                                                     seed=cfg.gpe_seed, **stateParams)
+        if 'pd_drive_s' in CELL_SCALES and getattr(cfg, 'pd_drive', None) and cfg.gpe_state == 'parkinsonian':
+            CELL_SCALES['gpe_beta_depth'] = np.asarray(self.generator.beta_depth, dtype=np.float32)
+            CELL_SCALES['gpe_synapse_scale'] = (np.full(len(gids), synapseScale) if driveS is None
+                                                else 1.0 + (synapseScale - 1.0) * driveS).astype(np.float32)
         self.rng = np.random.default_rng(cfg.gpe_seed)
+
+        # GPe->STN coverage / resolution fixes (results/edge_artefacts; off by default). Per-arrival weight factor f_i:
+        #  cfg.gpe_coverage_norm (F2): f_i proportional to 1 / (number of GPe groups cell i receives), so every cell gets
+        #    the same total GPe weight up to its type factor; the population-mean total weight is kept;
+        #  cfg.gpe_drive_ref (F3, e.g. {'n_groups': 12}): the population-mean total weight is set to that of the reference
+        #    group layout ((g + 0.5)/n_ref, same sigma) in expectation at the realised positions: x E_ref / E_actual,
+        #    E = mean over cells of the sum over groups of the Gaussian affinity (the expected number of groups per cell).
+        nGroups = np.asarray(self.generator.inputs_per_stn, dtype=float)
+        axisAll = np.asarray(stateParams['stn_axis'], dtype=float) if 'stn_axis' in stateParams else None
+        baseW = np.array([gabaScale0(cfg, cellsByGid[gid].tags['cellType']) for gid in gids])  # type factor (for the mean)
+        targetTotal = (nGroups * baseW).mean()
+        ref = getattr(cfg, 'gpe_drive_ref', None)
+        if (ref or getattr(cfg, 'gpe_coverage_norm', False)) and getattr(cfg, 'gpe_gscale', None):
+            raise ValueError('cfg.gpe_coverage_norm / gpe_drive_ref are defined with cfg.gpe_gaba_scale, not cfg.gpe_gscale')
+        if ref:
+            sig = stateParams.get('topo_sigma', 0.10)
+            aff = lambda homes: np.exp(-(axisAll[None, :] - np.asarray(homes)[:, None]) ** 2 / (2 * sig ** 2)).sum(0).mean()
+            nRef = ref['n_groups']
+            targetTotal *= aff((np.arange(nRef) + 0.5) / nRef) / aff(self.generator.group_center)
+        if getattr(cfg, 'gpe_coverage_norm', False):
+            covF = targetTotal / (nGroups * baseW.mean())
+        else:
+            covF = np.full(len(gids), targetTotal / (nGroups * baseW).mean())
+        if not ref and not getattr(cfg, 'gpe_coverage_norm', False):
+            covF = None  # configuration D: weights untouched (bit-identical)
+        else:
+            got = (nGroups * baseW * covF).mean()
+            if abs(got / targetTotal - 1) > 1e-9:
+                raise RuntimeError(f'GPe coverage factor: population-mean total weight {got} != {targetTotal}')
+            CELL_SCALES['gpe_coverage_factor'] = covF.astype(np.float32)
+        CELL_SCALES['gpe_groups_cell'] = nGroups.astype(np.float32)
 
         # GABA synapses: on all dendritic sections for PV+ cells, on the soma for PV- cells (as in the previous GPe->STN rules);
         # each arrival goes to one randomly chosen synapse of the target cell
         synMech = {**synMech, **cfg.gpe_syn} # cfg.gpe_syn overrides the GABA synapse ('e', 'tau1', 'tau2')
         # per-type GPe->STN conductance factor (GABA:glutamate balance per cell type), cfg.gpe_gaba_scale
         gabaScale = {'PVP_cell': cfg.gpe_gaba_scale.get('PVP', 1.0), 'PVN_cell': cfg.gpe_gaba_scale.get('PVN', 1.0)}
+        # optional per-cell GPe->STN conductance profile (cfg.gpe_gscale, off by default); replaces gpe_gaba_scale
+        cellScale = None
+        if getattr(cfg, 'gpe_gscale', None):
+            axisAll = np.array([axis_position(cellsByGid[gid].tags) for gid in gids])
+            isPVP = np.array([cellsByGid[gid].tags['cellType'] == 'PVP_cell' for gid in gids])
+            cellScale = gpe_cell_scale(axisAll, isPVP, cfg.gpe_gscale)
+            CELL_SCALES['gpe_gscale'] = cellScale.astype(np.float32)
         self.syns, self.netcons = [], []
-        for gid in gids:
+        wCell = []
+        for k, gid in enumerate(gids):
             cell = cellsByGid[gid]
             secNames = [s for s in cell.secs if s != 'soma'] if cell.tags['cellType'] == 'PVP_cell' else ['soma']
             ncs = []
@@ -139,10 +275,20 @@ class GPeFeedback:
                 syn = h.Exp2Syn(cell.secs[secName]['hObj'](0.5))
                 syn.e, syn.tau1, syn.tau2 = synMech['e'], synMech['tau1'], synMech['tau2']
                 nc = h.NetCon(None, syn)
-                nc.weight[0] = cfg.gpe_conductance_nS * synapseScale * gabaScale[cell.tags['cellType']] * 1e-3
+                g = gabaScale[cell.tags['cellType']] if cellScale is None else cellScale[k]
+                sc = synapseScale if driveS is None else 1.0 + (synapseScale - 1.0) * driveS[k]  # change scaled, not total
+                nc.weight[0] = cfg.gpe_conductance_nS * sc * g * 1e-3 * (1.0 if covF is None else covF[k])
                 self.syns.append(syn)
                 ncs.append(nc)
             self.netcons.append(ncs)
+            wCell.append(ncs[0].weight[0] * 1e3)
+        CELL_SCALES['gpe_weight_cell_nS'] = np.array(wCell, dtype=np.float32)  # per-arrival weight of each cell (log)
+
+        # optional time-varying factor on the GPe baseline (target) rate per group (held-out validation hook,
+        # off by default: cfg.gpe_rate_mod = None); the STN->GPe feedback stays in the loop
+        self.rateMod = getattr(cfg, 'gpe_rate_mod', None)
+        self.baseline = np.array(self.generator.gpe_baseline_hz, dtype=float)
+        self.betaPhase, self.inBurst = [], []
 
         self.nSpikesRead = 0
         self.rates, self.arrivalTimes, self.arrivalCells = [], [], []
@@ -155,7 +301,14 @@ class GPeFeedback:
         newIds = [self.stnIndex[int(g)] for g in newGids if int(g) in self.stnIndex]
         self.nSpikesRead = n
 
+        if self.rateMod is not None:
+            self.generator.gpe_baseline_hz = self.baseline * input_modulation.gpe_factor(self.rateMod, t / 1000, self.generator.n_groups)
         arrivals = self.generator.step(newIds)
+        if hasattr(self.generator, 'beta_hz') and hasattr(self.generator, 'beta_phase'):
+            # phase of the pallidal beta drive (common oscillator, before the per-group jitter) and burst flag
+            tb = (self.generator.step_index - 1) * self.generator.dt_s
+            self.betaPhase.append(float(np.mod(2 * np.pi * self.generator.beta_hz * tb + np.angle(np.exp(1j * self.generator.beta_phase).mean()), 2 * np.pi)))
+            self.inBurst.append(bool(self.generator.in_burst))
         for i in arrivals:
             ncs = self.netcons[i]
             ncs[self.rng.integers(len(ncs))].event(t)

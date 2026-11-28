@@ -1,0 +1,821 @@
+{
+ "test": "H4",
+ "created": "2026-11-18T11:01:14",
+ "git": {
+  "hash": "5cced658637c2c9c2cf98b8fb7e81478944e8659",
+  "dirty": false
+ },
+ "priors": {
+  "_note": "Input-regime parameters for the held-out tests, fixed before any model run and never changed after looking at the data. They are a priori choices (round values from qualitative literature), not fits. Configuration-D parameters are untouched.",
+  "seeds": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "seed_convention": "as src/sweep.py: ctx_seed = s, gpe_seed = 100 + s; network layout (seeds['loc'], seeds['conn']) fixed, i.e. the same 58 cells (12 PV+, 46 PV-) in every seed",
+  "transient_ms": 500,
+  "H1_H2": {
+   "state": "parkinsonian (ctx_state and gpe_state)",
+   "duration_ms": 20500,
+   "why_20s": "the reference features need >= 100 spikes / 99 ISIs; 20 s gives >= ~300 spikes at the PD rates (16-33 Hz). The rat trains are ~100 s; burst_share has length-dependent false positives (Poisson ~0.1 at 300 s), reported as a caveat"
+  },
+  "H3_slow_oscillation": {
+   "ctx_rate_mod": {
+    "type": "slow_osc",
+    "freq_hz": 1.0,
+    "depth": 0.9,
+    "duty": 0.5,
+    "edge_s": 0.05,
+    "period_cv": 0.1
+   },
+   "state": "parkinsonian + slow oscillation",
+   "duration_ms": 20500,
+   "rationale": {
+    "freq_hz": "~1 Hz cortical slow oscillation under urethane / ketamine anesthesia (Steriade et al. 1993; Magill et al. 2000 in rat STN-cortex recordings). Fixed from the literature, not from the held-out EEG",
+    "depth": "0.9: cortical output in down states is near silent; down-state rate = 10% of up-state rate",
+    "duty": "0.5: up and down states of similar duration at ~1 Hz",
+    "mean_preserved": "the envelope is normalized to mean 1, so the calibrated mean cortical drive is unchanged",
+    "seed": "slow-wave timing seed = ctx_seed (differs between seeds)"
+   },
+   "beta_reference": "GPe beta drive phase (common oscillator phase, saved per 1 ms step) and, as an EEG analogue, the cortical population arrival rate band-passed 13-30 Hz; both from the H1 runs (no slow oscillation)"
+  },
+  "H4_optogenetics": {
+   "state": "healthy (ctx_state and gpe_state)",
+   "protocol": {
+    "pre_s": 1.0,
+    "on_s": 2.0,
+    "post_s": 2.0,
+    "t_start_s": 0.5,
+    "n_cycles": 10
+   },
+   "duration_ms": 50500,
+   "why_compressed": "accepted by the user: the model's slowest processes are ~1 s (Ca, HCN, 20 ms GPe rate constant), so the response to a step input settles within 1 s; the data's 20 s within-block recovery and 10-20 s after-effects are not testable with this protocol",
+   "scenarios": {
+    "D2_gpe": {
+     "label": "D2-MSN, textbook route: GPe rate reduced",
+     "gpe_rate_mod_factor": 0.5,
+     "rationale": "iSPN/D2-MSN input targets prototypic GPe neurons strongly (Ketzef & Silberberg 2021, Neuron); 50% reduction of the GPe baseline rate is an a priori round value (no quantitative in vivo value extracted); the STN->GPe feedback stays active"
+    },
+    "D2_ctx": {
+     "label": "D2-MSN, alternative route: cortical/thalamic drive reduced",
+     "ctx_rate_mod_factor": 0.8,
+     "rationale": "iSPN activation suppresses many M1 neurons within ~100-200 ms (Oldenburg & Sabatini 2015, Neuron; ~46% of units modulated); 20% reduction of the cortical arrival rate is an a priori round value"
+    },
+    "D1_ctx": {
+     "label": "D1-MSN, textbook route: cortical/thalamic drive increased",
+     "ctx_rate_mod_factor": 1.25,
+     "rationale": "dSPN activation disinhibits thalamus and excites most M1 neurons (Oldenburg & Sabatini 2015); +25% of the cortical arrival rate is an a priori round value"
+    }
+   },
+   "test": "per cell, Wilcoxon signed-rank of the 2 s stim rate vs the 1 s pre rate over the 10 cycles, p < 0.01 (as the ChR2 analysis)"
+  }
+ },
+ "runs": [
+  {
+   "label": "D2_gpe",
+   "seed": 1,
+   "spikes": "sweeps\\out\\heldout\\H4_opto\\D2_gpe_s1\\model_output_spikes.npz",
+   "spikes_sha256": "1ffcd7414df598bb87957a63864835f3b8c015c44578ca8df972aed6faf7e1ba",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 50500\ncfg.ctx_state = 'healthy'\ncfg.gpe_state = 'healthy'\ncfg.gpe_rate_mod = {'type': 'blocks', 'pre_s': 1.0, 'on_s': 2.0, 'post_s': 2.0, 't_start_s': 0.5, 'factor': 0.5}\ncfg.ctx_seed = 1\ncfg.gpe_seed = 101\ncfg.filename = 'sweeps/out/heldout/H4_opto\\\\D2_gpe_s1\\\\model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "D2_gpe",
+   "seed": 2,
+   "spikes": "sweeps\\out\\heldout\\H4_opto\\D2_gpe_s2\\model_output_spikes.npz",
+   "spikes_sha256": "16dd870fc095a5ef5f1c9eed160c37373f935c8653039bbbe1e9ad4016f8622c",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 50500\ncfg.ctx_state = 'healthy'\ncfg.gpe_state = 'healthy'\ncfg.gpe_rate_mod = {'type': 'blocks', 'pre_s': 1.0, 'on_s': 2.0, 'post_s': 2.0, 't_start_s': 0.5, 'factor': 0.5}\ncfg.ctx_seed = 2\ncfg.gpe_seed = 102\ncfg.filename = 'sweeps/out/heldout/H4_opto\\\\D2_gpe_s2\\\\model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "D2_gpe",
+   "seed": 3,
+   "spikes": "sweeps\\out\\heldout\\H4_opto\\D2_gpe_s3\\model_output_spikes.npz",
+   "spikes_sha256": "136c0289f1f1089e2e568fd71c6b5ae2f29d2f6d779f23be4c2916187fcade71",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 50500\ncfg.ctx_state = 'healthy'\ncfg.gpe_state = 'healthy'\ncfg.gpe_rate_mod = {'type': 'blocks', 'pre_s': 1.0, 'on_s': 2.0, 'post_s': 2.0, 't_start_s': 0.5, 'factor': 0.5}\ncfg.ctx_seed = 3\ncfg.gpe_seed = 103\ncfg.filename = 'sweeps/out/heldout/H4_opto\\\\D2_gpe_s3\\\\model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "D2_gpe",
+   "seed": 4,
+   "spikes": "sweeps\\out\\heldout\\H4_opto\\D2_gpe_s4\\model_output_spikes.npz",
+   "spikes_sha256": "5bbc9d2dbbb81d335d4fed45f72c8e06d507c0a6b02f9140cbc6b757fa91db5e",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 50500\ncfg.ctx_state = 'healthy'\ncfg.gpe_state = 'healthy'\ncfg.gpe_rate_mod = {'type': 'blocks', 'pre_s': 1.0, 'on_s': 2.0, 'post_s': 2.0, 't_start_s': 0.5, 'factor': 0.5}\ncfg.ctx_seed = 4\ncfg.gpe_seed = 104\ncfg.filename = 'sweeps/out/heldout/H4_opto\\\\D2_gpe_s4\\\\model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "D2_gpe",
+   "seed": 5,
+   "spikes": "sweeps\\out\\heldout\\H4_opto\\D2_gpe_s5\\model_output_spikes.npz",
+   "spikes_sha256": "e8cdf2c5e4c31fbd5ea48576453443e959bb643f244fdf35bcd493cebe76dcdd",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 50500\ncfg.ctx_state = 'healthy'\ncfg.gpe_state = 'healthy'\ncfg.gpe_rate_mod = {'type': 'blocks', 'pre_s': 1.0, 'on_s': 2.0, 'post_s': 2.0, 't_start_s': 0.5, 'factor': 0.5}\ncfg.ctx_seed = 5\ncfg.gpe_seed = 105\ncfg.filename = 'sweeps/out/heldout/H4_opto\\\\D2_gpe_s5\\\\model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "D2_ctx",
+   "seed": 1,
+   "spikes": "sweeps\\out\\heldout\\H4_opto\\D2_ctx_s1\\model_output_spikes.npz",
+   "spikes_sha256": "74a4cb903e3cc5a77469255b44694a721b3a02018543687873ed7ec06577fa84",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 50500\ncfg.ctx_state = 'healthy'\ncfg.gpe_state = 'healthy'\ncfg.ctx_rate_mod = {'type': 'blocks', 'pre_s': 1.0, 'on_s': 2.0, 'post_s': 2.0, 't_start_s': 0.5, 'factor': 0.8}\ncfg.ctx_seed = 1\ncfg.gpe_seed = 101\ncfg.filename = 'sweeps/out/heldout/H4_opto\\\\D2_ctx_s1\\\\model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "D2_ctx",
+   "seed": 2,
+   "spikes": "sweeps\\out\\heldout\\H4_opto\\D2_ctx_s2\\model_output_spikes.npz",
+   "spikes_sha256": "f835121b32287b667729c8713c580fa764b66353f90d692cb144c01c4d474343",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 50500\ncfg.ctx_state = 'healthy'\ncfg.gpe_state = 'healthy'\ncfg.ctx_rate_mod = {'type': 'blocks', 'pre_s': 1.0, 'on_s': 2.0, 'post_s': 2.0, 't_start_s': 0.5, 'factor': 0.8}\ncfg.ctx_seed = 2\ncfg.gpe_seed = 102\ncfg.filename = 'sweeps/out/heldout/H4_opto\\\\D2_ctx_s2\\\\model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "D2_ctx",
+   "seed": 3,
+   "spikes": "sweeps\\out\\heldout\\H4_opto\\D2_ctx_s3\\model_output_spikes.npz",
+   "spikes_sha256": "d7742c341689b0145be182d17bc598f4cad1314ac3ae68f4fe39bf27b0153528",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 50500\ncfg.ctx_state = 'healthy'\ncfg.gpe_state = 'healthy'\ncfg.ctx_rate_mod = {'type': 'blocks', 'pre_s': 1.0, 'on_s': 2.0, 'post_s': 2.0, 't_start_s': 0.5, 'factor': 0.8}\ncfg.ctx_seed = 3\ncfg.gpe_seed = 103\ncfg.filename = 'sweeps/out/heldout/H4_opto\\\\D2_ctx_s3\\\\model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "D2_ctx",
+   "seed": 4,
+   "spikes": "sweeps\\out\\heldout\\H4_opto\\D2_ctx_s4\\model_output_spikes.npz",
+   "spikes_sha256": "30e0f3ca1a1eac3480dc8df20cd1ab99b9ff09492b75d00a3faa6bac837d48e7",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 50500\ncfg.ctx_state = 'healthy'\ncfg.gpe_state = 'healthy'\ncfg.ctx_rate_mod = {'type': 'blocks', 'pre_s': 1.0, 'on_s': 2.0, 'post_s': 2.0, 't_start_s': 0.5, 'factor': 0.8}\ncfg.ctx_seed = 4\ncfg.gpe_seed = 104\ncfg.filename = 'sweeps/out/heldout/H4_opto\\\\D2_ctx_s4\\\\model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "D2_ctx",
+   "seed": 5,
+   "spikes": "sweeps\\out\\heldout\\H4_opto\\D2_ctx_s5\\model_output_spikes.npz",
+   "spikes_sha256": "6c8acee18e1874fe2104289a8bac7eb901d2e42cac9f6b7c819e60139deddf0a",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 50500\ncfg.ctx_state = 'healthy'\ncfg.gpe_state = 'healthy'\ncfg.ctx_rate_mod = {'type': 'blocks', 'pre_s': 1.0, 'on_s': 2.0, 'post_s': 2.0, 't_start_s': 0.5, 'factor': 0.8}\ncfg.ctx_seed = 5\ncfg.gpe_seed = 105\ncfg.filename = 'sweeps/out/heldout/H4_opto\\\\D2_ctx_s5\\\\model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "D1_ctx",
+   "seed": 1,
+   "spikes": "sweeps\\out\\heldout\\H4_opto\\D1_ctx_s1\\model_output_spikes.npz",
+   "spikes_sha256": "2fb34c91b1c294ebdf228a68a7d35044a5b694e7e6771522e9df36e6b985834f",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 50500\ncfg.ctx_state = 'healthy'\ncfg.gpe_state = 'healthy'\ncfg.ctx_rate_mod = {'type': 'blocks', 'pre_s': 1.0, 'on_s': 2.0, 'post_s': 2.0, 't_start_s': 0.5, 'factor': 1.25}\ncfg.ctx_seed = 1\ncfg.gpe_seed = 101\ncfg.filename = 'sweeps/out/heldout/H4_opto\\\\D1_ctx_s1\\\\model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "D1_ctx",
+   "seed": 2,
+   "spikes": "sweeps\\out\\heldout\\H4_opto\\D1_ctx_s2\\model_output_spikes.npz",
+   "spikes_sha256": "96347213c136369ddab50b74d84900dca2f156cfe7718bb750ac47b6f2061421",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 50500\ncfg.ctx_state = 'healthy'\ncfg.gpe_state = 'healthy'\ncfg.ctx_rate_mod = {'type': 'blocks', 'pre_s': 1.0, 'on_s': 2.0, 'post_s': 2.0, 't_start_s': 0.5, 'factor': 1.25}\ncfg.ctx_seed = 2\ncfg.gpe_seed = 102\ncfg.filename = 'sweeps/out/heldout/H4_opto\\\\D1_ctx_s2\\\\model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "D1_ctx",
+   "seed": 3,
+   "spikes": "sweeps\\out\\heldout\\H4_opto\\D1_ctx_s3\\model_output_spikes.npz",
+   "spikes_sha256": "3700d1313273b9600ed67b1c83fd70b4e4c1800df7cda11e9ae0c6847ba86837",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 50500\ncfg.ctx_state = 'healthy'\ncfg.gpe_state = 'healthy'\ncfg.ctx_rate_mod = {'type': 'blocks', 'pre_s': 1.0, 'on_s': 2.0, 'post_s': 2.0, 't_start_s': 0.5, 'factor': 1.25}\ncfg.ctx_seed = 3\ncfg.gpe_seed = 103\ncfg.filename = 'sweeps/out/heldout/H4_opto\\\\D1_ctx_s3\\\\model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "D1_ctx",
+   "seed": 4,
+   "spikes": "sweeps\\out\\heldout\\H4_opto\\D1_ctx_s4\\model_output_spikes.npz",
+   "spikes_sha256": "4ecad6696d1b8f074eb07c291cd3fba569d9309289d51596c9edba2f247bd6a2",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 50500\ncfg.ctx_state = 'healthy'\ncfg.gpe_state = 'healthy'\ncfg.ctx_rate_mod = {'type': 'blocks', 'pre_s': 1.0, 'on_s': 2.0, 'post_s': 2.0, 't_start_s': 0.5, 'factor': 1.25}\ncfg.ctx_seed = 4\ncfg.gpe_seed = 104\ncfg.filename = 'sweeps/out/heldout/H4_opto\\\\D1_ctx_s4\\\\model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  },
+  {
+   "label": "D1_ctx",
+   "seed": 5,
+   "spikes": "sweeps\\out\\heldout\\H4_opto\\D1_ctx_s5\\model_output_spikes.npz",
+   "spikes_sha256": "596da0ff04e7fb3716fe10bfd5f6587dd37b708d5e23b1da427527bb286adcad",
+   "cfg": "exec(open('src/cfg.py').read())\ncfg.duration = 50500\ncfg.ctx_state = 'healthy'\ncfg.gpe_state = 'healthy'\ncfg.ctx_rate_mod = {'type': 'blocks', 'pre_s': 1.0, 'on_s': 2.0, 'post_s': 2.0, 't_start_s': 0.5, 'factor': 1.25}\ncfg.ctx_seed = 5\ncfg.gpe_seed = 105\ncfg.filename = 'sweeps/out/heldout/H4_opto\\\\D1_ctx_s5\\\\model_output'\ncfg.recordLFP = None\ncfg.analysis = {}\ncfg.savePickle = False\n"
+  }
+ ],
+ "files": {
+  "results\\heldout\\H4\\model_responses.csv": "2b1ed4f9cadaaa5e8328b00755579255d9c980a89446f3ab2f0bee99e9af8310",
+  "results\\heldout\\H4\\model_profiles.csv": "8bea1c06713ea4e9b1bf14a4e43906dcb01a86d491a8e9acd0acceecb744091d"
+ },
+ "metrics": {
+  "D1_ctx": {
+   "summary": {
+    "frac_exc": {
+     "mean": 0.6241379310344828,
+     "sd": 0.06831590605572053,
+     "n": 5,
+     "values": [
+      0.5344827586206896,
+      0.6896551724137931,
+      0.6724137931034483,
+      0.6551724137931034,
+      0.5689655172413793
+     ]
+    },
+    "frac_inh": {
+     "mean": 0.0,
+     "sd": 0.0,
+     "n": 5,
+     "values": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "median_ratio_exc": {
+     "mean": 1.2081229395087916,
+     "sd": 0.00978649397134646,
+     "n": 5,
+     "values": [
+      1.196911196911197,
+      1.2074866310160428,
+      1.2225806451612902,
+      1.2020977629169654,
+      1.2115384615384615
+     ]
+    },
+    "median_ratio_inh": {
+     "mean": NaN,
+     "sd": NaN,
+     "n": 0,
+     "values": []
+    },
+    "pop_ratio": {
+     "mean": 1.1745320261237062,
+     "sd": 0.010380024999096706,
+     "n": 5,
+     "values": [
+      1.1695367266077414,
+      1.182992743965645,
+      1.1812899253444162,
+      1.1802950075642962,
+      1.1585457271364317
+     ]
+    },
+    "sign": "excitation",
+    "pooled": {
+     "n": 290,
+     "n_exc": 181,
+     "frac_exc": 0.6241379310344828,
+     "median_ratio_exc": 1.2078947368421051,
+     "n_inh": 0,
+     "frac_inh": 0.0,
+     "median_ratio_inh": NaN,
+     "n_ns": 109,
+     "frac_ns": 0.3758620689655172,
+     "median_ratio_ns": 1.1448598130841123
+    },
+    "onset_ratio": {
+     "mean": 1.1976271796403144,
+     "sd": 0.0195739981420064,
+     "n": 5,
+     "values": [
+      1.206683375104428,
+      1.1921589310829817,
+      1.1959595959595961,
+      1.2232754972492594,
+      1.170058498805306
+     ]
+    },
+    "late_ratio": {
+     "mean": 1.1868870419322275,
+     "sd": 0.014377585441914583,
+     "n": 5,
+     "values": [
+      1.1764866712235134,
+      1.1880759800467828,
+      1.2089545566309765,
+      1.1890515540313475,
+      1.1718664477285166
+     ]
+    },
+    "post_ratio": {
+     "mean": 1.0028841591197515,
+     "sd": 0.011025179754666827,
+     "n": 5,
+     "values": [
+      1.008043197936815,
+      1.0092922899884924,
+      1.0111586208287533,
+      1.001716247139588,
+      0.9842104397051079
+     ]
+    },
+    "type_enrichment_pooled": {
+     "table": {
+      "PV+": {
+       "ns": 25,
+       "responder": 35
+      },
+      "PV-": {
+       "ns": 84,
+       "responder": 146
+      }
+     },
+     "V": 0.04302949697565047,
+     "chi2_p": 0.4637012049509789,
+     "fisher_p": 0.4592934943276606
+    },
+    "responder_frac_by_type": {
+     "PV+": {
+      "mean": 0.5833333333333333,
+      "sd": 0.13176156917368245,
+      "n": 5,
+      "values": [
+       0.5,
+       0.75,
+       0.5833333333333334,
+       0.6666666666666666,
+       0.4166666666666667
+      ]
+     },
+     "PV-": {
+      "mean": 0.6347826086956522,
+      "sd": 0.06032363880657221,
+      "n": 5,
+      "values": [
+       0.5434782608695652,
+       0.6739130434782609,
+       0.6956521739130435,
+       0.6521739130434783,
+       0.6086956521739131
+      ]
+     }
+    },
+    "label": "D1-MSN, textbook route: cortical/thalamic drive increased"
+   },
+   "per_seed": {
+    "1": {
+     "n": 58,
+     "n_exc": 31,
+     "frac_exc": 0.5344827586206896,
+     "median_ratio_exc": 1.196911196911197,
+     "n_inh": 0,
+     "frac_inh": 0.0,
+     "median_ratio_inh": NaN,
+     "n_ns": 27,
+     "frac_ns": 0.46551724137931033,
+     "median_ratio_ns": 1.1448598130841123
+    },
+    "2": {
+     "n": 58,
+     "n_exc": 40,
+     "frac_exc": 0.6896551724137931,
+     "median_ratio_exc": 1.2074866310160428,
+     "n_inh": 0,
+     "frac_inh": 0.0,
+     "median_ratio_inh": NaN,
+     "n_ns": 18,
+     "frac_ns": 0.3103448275862069,
+     "median_ratio_ns": 1.1753547085825566
+    },
+    "3": {
+     "n": 58,
+     "n_exc": 39,
+     "frac_exc": 0.6724137931034483,
+     "median_ratio_exc": 1.2225806451612902,
+     "n_inh": 0,
+     "frac_inh": 0.0,
+     "median_ratio_inh": NaN,
+     "n_ns": 19,
+     "frac_ns": 0.3275862068965517,
+     "median_ratio_ns": 1.1525423728813557
+    },
+    "4": {
+     "n": 58,
+     "n_exc": 38,
+     "frac_exc": 0.6551724137931034,
+     "median_ratio_exc": 1.2020977629169654,
+     "n_inh": 0,
+     "frac_inh": 0.0,
+     "median_ratio_inh": NaN,
+     "n_ns": 20,
+     "frac_ns": 0.3448275862068966,
+     "median_ratio_ns": 1.1773085914669783
+    },
+    "5": {
+     "n": 58,
+     "n_exc": 33,
+     "frac_exc": 0.5689655172413793,
+     "median_ratio_exc": 1.2115384615384615,
+     "n_inh": 0,
+     "frac_inh": 0.0,
+     "median_ratio_inh": NaN,
+     "n_ns": 25,
+     "frac_ns": 0.43103448275862066,
+     "median_ratio_ns": 1.0889328063241106
+    }
+   }
+  },
+  "D2_ctx": {
+   "summary": {
+    "frac_exc": {
+     "mean": 0.0,
+     "sd": 0.0,
+     "n": 5,
+     "values": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "frac_inh": {
+     "mean": 0.4517241379310345,
+     "sd": 0.14700740515373936,
+     "n": 5,
+     "values": [
+      0.29310344827586204,
+      0.5172413793103449,
+      0.3103448275862069,
+      0.5,
+      0.6379310344827587
+     ]
+    },
+    "median_ratio_exc": {
+     "mean": NaN,
+     "sd": NaN,
+     "n": 0,
+     "values": []
+    },
+    "median_ratio_inh": {
+     "mean": 0.8319437816011973,
+     "sd": 0.01541737685362148,
+     "n": 5,
+     "values": [
+      0.856,
+      0.8142701525054467,
+      0.8351541760261385,
+      0.8284518828451883,
+      0.8258426966292135
+     ]
+    },
+    "pop_ratio": {
+     "mean": 0.8656305859301108,
+     "sd": 0.010193628778382176,
+     "n": 5,
+     "values": [
+      0.8703618167821402,
+      0.8630815888749167,
+      0.879022229131043,
+      0.864406779661017,
+      0.8512805152014379
+     ]
+    },
+    "sign": "inhibition",
+    "pooled": {
+     "n": 290,
+     "n_exc": 0,
+     "frac_exc": 0.0,
+     "median_ratio_exc": NaN,
+     "n_inh": 131,
+     "frac_inh": 0.4517241379310345,
+     "median_ratio_inh": 0.8258426966292135,
+     "n_ns": 159,
+     "frac_ns": 0.5482758620689655,
+     "median_ratio_ns": 0.8859223300970873
+    },
+    "onset_ratio": {
+     "mean": 0.8617849178178426,
+     "sd": 0.017478897464422365,
+     "n": 5,
+     "values": [
+      0.8631666320813447,
+      0.8611575905080621,
+      0.8870214752567693,
+      0.8598595929974229,
+      0.8377192982456141
+     ]
+    },
+    "late_ratio": {
+     "mean": 0.8643890528613832,
+     "sd": 0.013424333553645291,
+     "n": 5,
+     "values": [
+      0.8700654466630539,
+      0.8557658681587689,
+      0.8854513584574933,
+      0.8571428571428572,
+      0.8535197338847433
+     ]
+    },
+    "post_ratio": {
+     "mean": 1.0103825047177442,
+     "sd": 0.010133013823080057,
+     "n": 5,
+     "values": [
+      1.0183667781493868,
+      1.005698340745809,
+      1.0232745361914832,
+      0.9985632183908046,
+      1.006009650111236
+     ]
+    },
+    "type_enrichment_pooled": {
+     "table": {
+      "PV+": {
+       "ns": 30,
+       "responder": 30
+      },
+      "PV-": {
+       "ns": 129,
+       "responder": 101
+      }
+     },
+     "V": 0.0495456502836457,
+     "chi2_p": 0.398819169606069,
+     "fisher_p": 0.4667895025356185
+    },
+    "responder_frac_by_type": {
+     "PV+": {
+      "mean": 0.5,
+      "sd": 0.10206207261596574,
+      "n": 5,
+      "values": [
+       0.5,
+       0.4166666666666667,
+       0.4166666666666667,
+       0.5,
+       0.6666666666666666
+      ]
+     },
+     "PV-": {
+      "mean": 0.4391304347826087,
+      "sd": 0.17006614970093867,
+      "n": 5,
+      "values": [
+       0.2391304347826087,
+       0.5434782608695652,
+       0.2826086956521739,
+       0.5,
+       0.6304347826086957
+      ]
+     }
+    },
+    "label": "D2-MSN, alternative route: cortical/thalamic drive reduced"
+   },
+   "per_seed": {
+    "1": {
+     "n": 58,
+     "n_exc": 0,
+     "frac_exc": 0.0,
+     "median_ratio_exc": NaN,
+     "n_inh": 17,
+     "frac_inh": 0.29310344827586204,
+     "median_ratio_inh": 0.856,
+     "n_ns": 41,
+     "frac_ns": 0.7068965517241379,
+     "median_ratio_ns": 0.8669724770642201
+    },
+    "2": {
+     "n": 58,
+     "n_exc": 0,
+     "frac_exc": 0.0,
+     "median_ratio_exc": NaN,
+     "n_inh": 30,
+     "frac_inh": 0.5172413793103449,
+     "median_ratio_inh": 0.8142701525054467,
+     "n_ns": 28,
+     "frac_ns": 0.4827586206896552,
+     "median_ratio_ns": 0.900593891402715
+    },
+    "3": {
+     "n": 58,
+     "n_exc": 0,
+     "frac_exc": 0.0,
+     "median_ratio_exc": NaN,
+     "n_inh": 18,
+     "frac_inh": 0.3103448275862069,
+     "median_ratio_inh": 0.8351541760261385,
+     "n_ns": 40,
+     "frac_ns": 0.6896551724137931,
+     "median_ratio_ns": 0.896969696969697
+    },
+    "4": {
+     "n": 58,
+     "n_exc": 0,
+     "frac_exc": 0.0,
+     "median_ratio_exc": NaN,
+     "n_inh": 29,
+     "frac_inh": 0.5,
+     "median_ratio_inh": 0.8284518828451883,
+     "n_ns": 29,
+     "frac_ns": 0.5,
+     "median_ratio_ns": 0.8966942148760331
+    },
+    "5": {
+     "n": 58,
+     "n_exc": 0,
+     "frac_exc": 0.0,
+     "median_ratio_exc": NaN,
+     "n_inh": 37,
+     "frac_inh": 0.6379310344827587,
+     "median_ratio_inh": 0.8258426966292135,
+     "n_ns": 21,
+     "frac_ns": 0.3620689655172414,
+     "median_ratio_ns": 0.8681318681318682
+    }
+   }
+  },
+  "D2_gpe": {
+   "summary": {
+    "frac_exc": {
+     "mean": 0.7068965517241379,
+     "sd": 0.029862944958084104,
+     "n": 5,
+     "values": [
+      0.7241379310344828,
+      0.7241379310344828,
+      0.7068965517241379,
+      0.7241379310344828,
+      0.6551724137931034
+     ]
+    },
+    "frac_inh": {
+     "mean": 0.0,
+     "sd": 0.0,
+     "n": 5,
+     "values": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ]
+    },
+    "median_ratio_exc": {
+     "mean": 1.2302011103470594,
+     "sd": 0.023223141932399764,
+     "n": 5,
+     "values": [
+      1.2545040208079796,
+      1.2096446011937059,
+      1.2409638554216866,
+      1.2444286391654813,
+      1.2014644351464436
+     ]
+    },
+    "median_ratio_inh": {
+     "mean": NaN,
+     "sd": NaN,
+     "n": 0,
+     "values": []
+    },
+    "pop_ratio": {
+     "mean": 1.1867569942729097,
+     "sd": 0.009496827672610592,
+     "n": 5,
+     "values": [
+      1.1961247997558926,
+      1.1796422549666445,
+      1.1904325233073512,
+      1.1935727788279773,
+      1.174012614506683
+     ]
+    },
+    "sign": "excitation",
+    "pooled": {
+     "n": 290,
+     "n_exc": 205,
+     "frac_exc": 0.7068965517241379,
+     "median_ratio_exc": 1.220108695652174,
+     "n_inh": 0,
+     "frac_inh": 0.0,
+     "median_ratio_inh": NaN,
+     "n_ns": 85,
+     "frac_ns": 0.29310344827586204,
+     "median_ratio_ns": 1.1323529411764706
+    },
+    "onset_ratio": {
+     "mean": 1.195685810594832,
+     "sd": 0.011242225804447739,
+     "n": 5,
+     "values": [
+      1.192526933819757,
+      1.2021487917364795,
+      1.2071428571428573,
+      1.1986394557823132,
+      1.1779710144927535
+     ]
+    },
+    "late_ratio": {
+     "mean": 1.2025451973976493,
+     "sd": 0.012219803834325232,
+     "n": 5,
+     "values": [
+      1.2213369244005534,
+      1.1883283992182814,
+      1.1995037008514098,
+      1.2057547647158038,
+      1.197802197802198
+     ]
+    },
+    "post_ratio": {
+     "mean": 0.9981706912027558,
+     "sd": 0.0017657896974538033,
+     "n": 5,
+     "values": [
+      0.9962638076673165,
+      0.9978465581429301,
+      1.0,
+      1.0,
+      0.9967430902035321
+     ]
+    },
+    "type_enrichment_pooled": {
+     "table": {
+      "PV+": {
+       "ns": 12,
+       "responder": 48
+      },
+      "PV-": {
+       "ns": 73,
+       "responder": 157
+      }
+     },
+     "V": 0.10446939459519361,
+     "chi2_p": 0.0752316167809689,
+     "fisher_p": 0.08153240575131489
+    },
+    "responder_frac_by_type": {
+     "PV+": {
+      "mean": 0.8,
+      "sd": 0.13944333775567927,
+      "n": 5,
+      "values": [
+       1.0,
+       0.8333333333333334,
+       0.8333333333333334,
+       0.6666666666666666,
+       0.6666666666666666
+      ]
+     },
+     "PV-": {
+      "mean": 0.682608695652174,
+      "sd": 0.03637652289278587,
+      "n": 5,
+      "values": [
+       0.6521739130434783,
+       0.6956521739130435,
+       0.6739130434782609,
+       0.7391304347826086,
+       0.6521739130434783
+      ]
+     }
+    },
+    "label": "D2-MSN, textbook route: GPe rate reduced"
+   },
+   "per_seed": {
+    "1": {
+     "n": 58,
+     "n_exc": 42,
+     "frac_exc": 0.7241379310344828,
+     "median_ratio_exc": 1.2545040208079796,
+     "n_inh": 0,
+     "frac_inh": 0.0,
+     "median_ratio_inh": NaN,
+     "n_ns": 16,
+     "frac_ns": 0.27586206896551724,
+     "median_ratio_ns": 1.163828502415459
+    },
+    "2": {
+     "n": 58,
+     "n_exc": 42,
+     "frac_exc": 0.7241379310344828,
+     "median_ratio_exc": 1.2096446011937059,
+     "n_inh": 0,
+     "frac_inh": 0.0,
+     "median_ratio_inh": NaN,
+     "n_ns": 16,
+     "frac_ns": 0.27586206896551724,
+     "median_ratio_ns": 1.1226851851851851
+    },
+    "3": {
+     "n": 58,
+     "n_exc": 41,
+     "frac_exc": 0.7068965517241379,
+     "median_ratio_exc": 1.2409638554216866,
+     "n_inh": 0,
+     "frac_inh": 0.0,
+     "median_ratio_inh": NaN,
+     "n_ns": 17,
+     "frac_ns": 0.29310344827586204,
+     "median_ratio_ns": 1.1323529411764706
+    },
+    "4": {
+     "n": 58,
+     "n_exc": 42,
+     "frac_exc": 0.7241379310344828,
+     "median_ratio_exc": 1.2444286391654813,
+     "n_inh": 0,
+     "frac_inh": 0.0,
+     "median_ratio_inh": NaN,
+     "n_ns": 16,
+     "frac_ns": 0.27586206896551724,
+     "median_ratio_ns": 1.1395997915295148
+    },
+    "5": {
+     "n": 58,
+     "n_exc": 38,
+     "frac_exc": 0.6551724137931034,
+     "median_ratio_exc": 1.2014644351464436,
+     "n_inh": 0,
+     "frac_inh": 0.0,
+     "median_ratio_inh": NaN,
+     "n_ns": 20,
+     "frac_ns": 0.3448275862068966,
+     "median_ratio_ns": 1.1316937119675456
+    }
+   }
+  }
+ }
+}

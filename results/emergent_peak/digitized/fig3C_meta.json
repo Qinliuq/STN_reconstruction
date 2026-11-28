@@ -1,0 +1,77 @@
+{
+ "panel": "Fig. 3C",
+ "page": 7,
+ "colorbar_px": [
+  857,
+  1001,
+  380
+ ],
+ "stn_heatmap_px": [
+  1555,
+  53.0,
+  1690,
+  369.0
+ ],
+ "gpe_heatmap_px": [
+  1889,
+  53.0,
+  2024,
+  369.0
+ ],
+ "colormap_inversion_rms_rgb": [
+  7.719725003215312,
+  8.570497998742434
+ ],
+ "n_pixel_rows": 317,
+ "group_counts": {
+  "sensorimotor": 185,
+  "limbic": 46,
+  "associative": 32,
+  "unknown": 54
+ },
+ "groups": {
+  "sensorimotor": {
+   "n_pixel_rows": 185,
+   "stn_median": 0.6344528384023265,
+   "stn_ci95": [
+    0.6218855242177693,
+    0.6482290460294636
+   ],
+   "stn_iqr": [
+    0.5852018267619522,
+    0.7095841525152695
+   ],
+   "gpe_median": 0.49867928789452176,
+   "stn_via_gpe_mapping": 0.69660023173772
+  },
+  "associative": {
+   "n_pixel_rows": 32,
+   "stn_median": 0.7198469998728132,
+   "stn_ci95": [
+    0.6863099844937803,
+    0.7583822894669183
+   ],
+   "stn_iqr": [
+    0.6100028746563703,
+    0.7755667825960716
+   ],
+   "gpe_median": 0.674170150803328,
+   "stn_via_gpe_mapping": 0.7962263946110493
+  },
+  "limbic": {
+   "n_pixel_rows": 46,
+   "stn_median": 0.35379031659214744,
+   "stn_ci95": [
+    0.32907309923949857,
+    0.43169299587457516
+   ],
+   "stn_iqr": [
+    0.2934987917370934,
+    0.4739880985114344
+   ],
+   "gpe_median": 0.22349568130322323,
+   "stn_via_gpe_mapping": 0.5403784982758398
+  }
+ },
+ "reading_error": "axis +-1 px = +-0.0074; rows are ~1.8 px high, so neighbouring pixel rows are not independent (CI of the median is optimistic by ~sqrt(1.8))"
+}

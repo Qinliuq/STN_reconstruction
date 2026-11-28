@@ -1,0 +1,28 @@
+{
+ "panel": "Fig. 1E left (STN axis 1)",
+ "page": 3,
+ "heatmap_px": [
+  1267,
+  458,
+  1450,
+  780
+ ],
+ "colorbar_row_px": 788,
+ "n_rows": 55,
+ "row_height_px": 5.872727272727273,
+ "px_per_axis_unit": 184,
+ "colormap_inversion_rms_rgb": 4.491180889648373,
+ "sigma_all": {
+  "median": 0.21905125052928762,
+  "q25": 0.1966672188795746,
+  "q75": 0.25308977963542034
+ },
+ "sigma_r2_gt_0_5": {
+  "n": 55,
+  "median": 0.21905125052928762,
+  "q25": 0.1966672188795746,
+  "q75": 0.25308977963542034
+ },
+ "fit_r2_median": 0.9609635571379257,
+ "reading_error": "axis +-1 px = +-0.0054; value: LUT step 0.0054; row assignment assumes 55 equal rows"
+}

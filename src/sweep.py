@@ -39,7 +39,7 @@ METRICS = [('beta_pow', 'STN beta power (13-30 Hz)'), ('sync_corr10ms', 'synchro
 def load_spec(path):
     spec = runpy.run_path(path)
     spec['name'] = os.path.splitext(os.path.basename(path))[0]
-    spec['outdir'] = os.path.join('sweeps', 'out', spec['name'])
+    spec['outdir'] = spec.get('outdir', os.path.join('sweeps', 'out', spec['name'])) # a spec may set its own output folder
     return spec
 
 

@@ -1,0 +1,5 @@
+run,fixes,c1_cond2_max_in_055_080,c2_cond3_max_gt_085,c3_cond6_max_gt_085,c4_cond2_ratio_gt_cond1,rule1_2b,rule4_2b,cond1_max,cond2_max,cond3_max,cond6_max,cond2b_max,geo_max,geo_interior_max
+R0,none,True,False,False,True,False,False,0.05,0.6,0.05,0.6,0.05,0.05,0.15
+R1,F1,True,False,False,True,False,False,0.7,0.65,0.05,0.55,0.45,0.05,0.15
+R2,F2,True,False,False,True,False,False,0.55,0.55,0.5,0.55,0.15,,
+R3,F1+F2,True,False,False,False,True,False,0.55,0.55,0.05,0.5,0.65,0.05,0.15

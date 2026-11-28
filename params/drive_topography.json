@@ -1,0 +1,427 @@
+{
+ "created": "2026-11-24",
+ "git_at_creation": "bc498e40859ef6203d6be5c778d3c0859f155e9d",
+ "depth_base": 0.1,
+ "input_seeds": [
+  1,
+  2,
+  3,
+  4,
+  5
+ ],
+ "loc_seed": 1,
+ "placements": {
+  "gradient": {
+   "cfg": {},
+   "n_pvp": 12,
+   "n_cells": 58,
+   "pvp_axis": [
+    0.477,
+    0.507,
+    0.52,
+    0.523,
+    0.53,
+    0.566,
+    0.593,
+    0.656,
+    0.674,
+    0.731,
+    0.737,
+    0.891
+   ],
+   "axis_range": [
+    0.0,
+    0.9178586108180546
+   ]
+  },
+  "uniform": {
+   "cfg": {
+    "pvp_placement": "uniform"
+   },
+   "n_pvp": 12,
+   "n_cells": 58,
+   "pvp_axis": [
+    0.029,
+    0.059,
+    0.2,
+    0.251,
+    0.35,
+    0.431,
+    0.478,
+    0.586,
+    0.66,
+    0.724,
+    0.827,
+    0.974
+   ],
+   "axis_range": [
+    0.004999511069775267,
+    0.9741863699092667
+   ]
+  },
+  "monotonic": {
+   "cfg": {
+    "pvp_placement": "profile",
+    "pvp_profile": {
+     "x": [
+      0.0,
+      0.05,
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3,
+      0.35,
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65,
+      0.7,
+      0.75,
+      0.8,
+      0.85,
+      0.9,
+      0.95,
+      1.0
+     ],
+     "y": [
+      0.0153,
+      0.023,
+      0.0344,
+      0.0513,
+      0.0759,
+      0.1107,
+      0.1589,
+      0.2227,
+      0.3029,
+      0.3973,
+      0.5,
+      0.6027,
+      0.6971,
+      0.7773,
+      0.8411,
+      0.8893,
+      0.9241,
+      0.9487,
+      0.9656,
+      0.977,
+      0.9847
+     ]
+    }
+   },
+   "n_pvp": 12,
+   "n_cells": 58,
+   "pvp_axis": [
+    0.363,
+    0.392,
+    0.534,
+    0.579,
+    0.605,
+    0.649,
+    0.676,
+    0.739,
+    0.758,
+    0.814,
+    0.82,
+    0.974
+   ],
+   "axis_range": [
+    0.0,
+    0.9741863699092667
+   ]
+  },
+  "pvalb": {
+   "cfg": {
+    "pvp_placement": "profile",
+    "pvp_profile": {
+     "x": [
+      0.0,
+      0.05,
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3,
+      0.35,
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65,
+      0.7,
+      0.75,
+      0.8,
+      0.85,
+      0.9,
+      0.95,
+      1.0
+     ],
+     "y": [
+      0.0685,
+      0.0708,
+      0.0797,
+      0.0942,
+      0.1132,
+      0.1359,
+      0.1612,
+      0.1881,
+      0.2156,
+      0.2428,
+      0.2686,
+      0.2921,
+      0.3123,
+      0.3282,
+      0.3388,
+      0.3431,
+      0.3402,
+      0.3289,
+      0.3085,
+      0.2778,
+      0.2358
+     ]
+    }
+   },
+   "n_pvp": 12,
+   "n_cells": 58,
+   "pvp_axis": [
+    0.196,
+    0.226,
+    0.367,
+    0.418,
+    0.516,
+    0.566,
+    0.593,
+    0.656,
+    0.674,
+    0.731,
+    0.737,
+    0.891
+   ],
+   "axis_range": [
+    0.0,
+    0.9178586108180546
+   ]
+  }
+ },
+ "conditions": {
+  "1_uniform_control": {
+   "depth_set": "advanced",
+   "pv_placement": "gradient",
+   "drive": {
+    "uniform": true
+   },
+   "s_cell_range": [
+    1.0,
+    1.0
+   ],
+   "synapse_scale_range": [
+    2.0,
+    2.0
+   ],
+   "group_s_max_per_seed": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "2_territory_adv": {
+   "depth_set": "advanced",
+   "pv_placement": "gradient",
+   "drive": {
+    "stage": "advanced"
+   },
+   "s_cell_range": [
+    0.7027411176929663,
+    1.1431721270111683
+   ],
+   "synapse_scale_range": [
+    1.7027411176929663,
+    2.1431721270111685
+   ],
+   "group_s_max_per_seed": [
+    1.1476656506603566,
+    1.149731195204604,
+    1.1451686658597313,
+    1.1413091309287078,
+    1.144882373163951
+   ]
+  },
+  "2b_territory_adv_pvalb": {
+   "depth_set": "advanced",
+   "pv_placement": "pvalb",
+   "drive": {
+    "stage": "advanced"
+   },
+   "s_cell_range": [
+    0.7024905555606565,
+    1.142764529336108
+   ],
+   "synapse_scale_range": [
+    1.7024905555606566,
+    2.142764529336108
+   ],
+   "group_s_max_per_seed": [
+    1.1461228461750659,
+    1.1500240761270955,
+    1.1465591588031618,
+    1.1418304965243815,
+    1.1357979958418831
+   ]
+  },
+  "3_pv_uniform": {
+   "depth_set": "advanced",
+   "pv_placement": "uniform",
+   "drive": {
+    "stage": "advanced"
+   },
+   "s_cell_range": [
+    0.7055377557910876,
+    1.1439264286377018
+   ],
+   "synapse_scale_range": [
+    1.7055377557910876,
+    2.1439264286377018
+   ],
+   "group_s_max_per_seed": [
+    1.1389844271934235,
+    1.1470033336215952,
+    1.147659103922616,
+    1.144704496414218,
+    1.1425148283288533
+   ]
+  },
+  "4_mouse_map": {
+   "depth_set": "advanced",
+   "pv_placement": "gradient",
+   "drive": {
+    "stage": "advanced",
+    "intervals": {
+     "limbic": [
+      0.0,
+      0.23
+     ],
+     "assoc": [
+      0.08,
+      0.56
+     ],
+     "motor": [
+      0.33,
+      0.95
+     ]
+    }
+   },
+   "s_cell_range": [
+    0.6696170098542545,
+    1.1312244148103803
+   ],
+   "synapse_scale_range": [
+    1.6696170098542544,
+    2.1312244148103803
+   ],
+   "group_s_max_per_seed": [
+    1.136417238577296,
+    1.1377967858074618,
+    1.1335081632330306,
+    1.1290336994936918,
+    1.1327240292081844
+   ]
+  },
+  "5_territory_early": {
+   "depth_set": "early",
+   "pv_placement": "gradient",
+   "drive": {
+    "stage": "early"
+   },
+   "s_cell_range": [
+    0.4221964607362621,
+    1.5366406477188048
+   ],
+   "synapse_scale_range": [
+    1.422196460736262,
+    2.536640647718805
+   ],
+   "group_s_max_per_seed": [
+    1.5434313473171193,
+    1.5632018753202777,
+    1.5373406327892314,
+    1.531118864917282,
+    1.5471977393188312
+   ]
+  },
+  "5c_uniform_control_early": {
+   "depth_set": "early",
+   "pv_placement": "gradient",
+   "drive": {
+    "uniform": true
+   },
+   "s_cell_range": [
+    1.0,
+    1.0
+   ],
+   "synapse_scale_range": [
+    2.0,
+    2.0
+   ],
+   "group_s_max_per_seed": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "6_pv_monotonic": {
+   "depth_set": "advanced",
+   "pv_placement": "monotonic",
+   "drive": {
+    "stage": "advanced"
+   },
+   "s_cell_range": [
+    0.7024625573312471,
+    1.1432547515775622
+   ],
+   "synapse_scale_range": [
+    1.702462557331247,
+    2.143254751577562
+   ],
+   "group_s_max_per_seed": [
+    1.1452935323372666,
+    1.1493096183180775,
+    1.1455791278803509,
+    1.1428065823056626,
+    1.1422063085181258
+   ]
+  }
+ },
+ "sets": {
+  "advanced": {
+   "members": [
+    "1_uniform_control",
+    "2_territory_adv",
+    "2b_territory_adv_pvalb",
+    "3_pv_uniform",
+    "4_mouse_map",
+    "6_pv_monotonic"
+   ],
+   "binding_max_s": 1.1500240761270955,
+   "M": 0.8825,
+   "binding_condition": "2b_territory_adv_pvalb",
+   "total_beta_drive_vs_configD_uniform": 0.8825
+  },
+  "early": {
+   "members": [
+    "5_territory_early",
+    "5c_uniform_control_early"
+   ],
+   "binding_max_s": 1.5632018753202777,
+   "M": 0.6757,
+   "binding_condition": "5_territory_early",
+   "total_beta_drive_vs_configD_uniform": 0.6757
+  }
+ }
+}

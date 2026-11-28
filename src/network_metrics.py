@@ -73,6 +73,18 @@ def spike_data(sim, cfg, gpe=None):
     if gpe is not None:
         d['gpe_rate'] = np.array(gpe.rates).mean(1) # mean over GPe groups, one value per step of gpe_dt_ms
         d['gpe_dt_ms'] = gpe.dt
+        if getattr(gpe, 'betaPhase', None):
+            d['gpe_beta_phase'] = np.array(gpe.betaPhase, dtype=np.float32) # per step of gpe_dt_ms, from t = 0
+            d['gpe_in_burst'] = np.array(gpe.inBurst, dtype=bool)
+        at, ac = np.asarray(gpe.arrivalTimes), np.asarray(gpe.arrivalCells, dtype=int)
+        d['gpe_arrivals_cell'] = np.bincount(ac[at >= cfg.metrics_t0], minlength=len(stnGids)).astype(np.int32)  # delivered (log)
+    try: # cortical input signals (1 ms bins; see stn_inputs.CTX_SIGNALS)
+        from stn_inputs import CTX_SIGNALS
+        d.update({k: np.asarray(v) for k, v in CTX_SIGNALS.items()})
+        from stn_inputs import CELL_SCALES # per-cell receptor-profile scales (only when cfg.ctx_gscale / gpe_gscale are set)
+        d.update({k: np.asarray(v) for k, v in CELL_SCALES.items()})
+    except ImportError:
+        pass
     return d
 
 
@@ -183,9 +195,97 @@ def compute_metrics(d):
     m['beta_peak_axis'] = peak('beta_pow')
     m['sync_peak_axis'] = peak('sync') if R is not None else float('nan')
 
+    if 'gpe_beta_phase' in d and 'gpe_in_burst' in d:
+        m['beta_ppc'] = beta_ppc(d)
     if 'gpe_rate' in d:
         m['gpe_rate'] = float(np.asarray(d['gpe_rate'])[int(t0 / float(d['gpe_dt_ms'])):].mean())
     return m, f, P
+
+
+PPC_MIN_SPIKES = 10  # minimum spikes inside beta episodes for a cell's PPC
+PPC_SHUFFLES = 200
+PPC_MIN_SHIFT_MS = 200
+
+
+def beta_ppc(d, n_shuffle=PPC_SHUFFLES, seed=0):
+    """Per-cell locking to the IMPOSED pallidal beta (results/edge_artefacts, Step 3).
+
+    d: one run's spike data, or a list of runs of the SAME network (same cells and positions, e.g. input seeds), whose
+    in-episode spikes are then pooled per cell (PPC across runs). Phase = the GPe generator's common beta phase
+    (d['gpe_beta_phase'], one value per GPe step), only inside beta episodes (d['gpe_in_burst']), t >= t0. Per cell:
+    pairwise phase consistency over pairs of in-episode spikes from DIFFERENT beta episodes (PPC_1 of Vinck et al.
+    2012): PPC = (|sum_all|^2 - sum_e |sum_e|^2) / (N^2 - sum_e n_e^2), sum = sum of e^(i phi) (all spikes / episode e).
+    Unbiased by spike count and by within-episode spike-history dependence (regular, pacemaking firing within an
+    episode biases the all-pairs PPC negative). NaN if N < PPC_MIN_SPIKES or fewer than 2 episodes have spikes. Significance: each run's phase and episode series are rotated together by
+    a random circular shift (>= PPC_MIN_SHIFT_MS from 0), n_shuffle times; p = (1 + #(PPC_shuffled >= PPC)) /
+    (1 + n_shuffle); locked if p < 0.05. Profile along the axis with the same Gaussian kernel as the other profiles,
+    n_eff = sum of kernel weights over cells with a valid PPC (cells, not pairs).
+    """
+    runs = d if isinstance(d, (list, tuple)) else [d]
+    rng = np.random.default_rng(seed)
+    gids0 = [g for pop in STN_POPS for g in runs[0][f'gids_{pop}']]
+    nC, nP = len(gids0), len(runs[0]['gids_PVP_pop'])
+    prep = []
+    for r in runs:
+        t0, dt = float(r['t0']), float(r['gpe_dt_ms'])
+        phase, inb = np.asarray(r['gpe_beta_phase'], float), np.asarray(r['gpe_in_burst'], bool)
+        i0 = int(np.ceil(t0 / dt))
+        L = len(phase) - i0
+        gids = [g for pop in STN_POPS for g in r[f'gids_{pop}']]
+        spk, spkt = r['spkid'], r['spkt']
+        idx = [np.clip(np.floor(spkt[(spk == g) & (spkt >= t0)] / dt).astype(int) - i0, 0, L - 1) for g in gids]
+        shifts = np.concatenate([[0], rng.integers(PPC_MIN_SHIFT_MS / dt, L - PPC_MIN_SHIFT_MS / dt, n_shuffle)])
+        ib = inb[i0:]
+        ep = np.cumsum(np.diff(np.concatenate([[0], ib.astype(int)])) == 1)  # episode number (valid where ib)
+        if ib[0] and ib[-1]:  # an episode wrapping around the circular shift is one episode
+            ep[ep == ep[-1]] = ep[0]
+        prep.append((phase[i0:], ib, ep, L, idx, shifts))
+
+    def stats(c, s):  # cell c, shuffle s: resultant, sum over episodes of |episode resultant|^2, spikes, sum n_e^2
+        z, se, n, sn = 0j, 0.0, 0, 0
+        for r, (ph, ib, ep, L, idx, shifts) in enumerate(prep):
+            j = (idx[c] + shifts[s]) % L
+            j = j[ib[j]]
+            if not len(j):
+                continue
+            e = np.unique(ep[j], return_inverse=True)[1]
+            u = np.exp(1j * ph[j])
+            ze = np.bincount(e, u.real) + 1j * np.bincount(e, u.imag)
+            ne = np.bincount(e)
+            z += u.sum()
+            se += float((np.abs(ze) ** 2).sum())
+            n += len(j)
+            sn += int((ne ** 2).sum())
+        return z, se, n, sn
+
+    def ppc_f(z, se, n, sn):
+        if n < PPC_MIN_SPIKES or n * n - sn <= 0:
+            return np.nan
+        return float((abs(z) ** 2 - se) / (n * n - sn))
+
+    ppc, nsp, pval = np.full(nC, np.nan), np.zeros(nC, int), np.full(nC, np.nan)
+    for c in range(nC):
+        st = stats(c, 0)
+        ppc[c], nsp[c] = ppc_f(*st), st[2]
+        if np.isfinite(ppc[c]):
+            sh = np.array([ppc_f(*stats(c, s)) for s in range(1, n_shuffle + 1)])
+            sh = sh[np.isfinite(sh)]
+            pval[c] = (1 + (sh >= ppc[c]).sum()) / (1 + len(sh))
+    valid = np.isfinite(ppc)
+    locked = valid & (pval < 0.05)
+    axis = np.asarray(runs[0]['axis'])
+    prof, neff = [], []
+    for x in PROFILE_POSITIONS:
+        w = np.exp(-(axis - x) ** 2 / (2 * PROFILE_KERNEL ** 2)) * valid
+        neff.append(float(w.sum()))
+        prof.append(float((w * np.nan_to_num(ppc)).sum() / w.sum()) if w.sum() > 0 else float('nan'))
+    isP = np.arange(nC) < nP
+    frac = lambda m: float(locked[m & valid].sum() / (m & valid).sum()) if (m & valid).any() else float('nan')
+    mean = lambda m: float(np.nanmean(ppc[m])) if (m & valid).any() else float('nan')
+    return dict(ppc_cell=[float(v) for v in ppc], ppc_n_spikes=nsp.tolist(), ppc_p=[float(v) for v in pval],
+                ppc_mean=mean(np.ones(nC, bool)), ppc_PVP=mean(isP), ppc_PVN=mean(~isP),
+                frac_locked=frac(np.ones(nC, bool)), frac_locked_PVP=frac(isP), frac_locked_PVN=frac(~isP),
+                n_valid=int(valid.sum()), profile_ppc=prof, profile_ppc_n_eff=neff)
 
 
 def write_metrics(d, filename):
