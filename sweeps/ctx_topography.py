@@ -18,7 +18,9 @@ FIX = {'loc_grid': 'centred', 'gpe_coverage_norm': True}
 PD = {'ctx_state': 'parkinsonian', 'gpe_state': 'parkinsonian'}
 HEALTHY = {'ctx_state': 'healthy', 'gpe_state': 'healthy'}
 DEPTH = {'graded': {}, 'uniform': {'gpe_params': {'beta_width': 1e9}}}
-VARIANTS = ['T0', 'T1', 'T2', 'T3']
+# T3 HELD: its seed-1 smoke runs (CTX_TOPO_SEEDS=1) shifted mean PV+ / PV- rate vs T0 by +21% / -11% (healthy),
+# +20% / -9% (graded PD), +20% / -13% (uniform PD); limit 10%; not retuned (results/ctx_topography)
+VARIANTS = ['T0', 'T1', 'T2']  # + 'T3' (held)
 
 conditions = []
 for i, v in enumerate(VARIANTS):
