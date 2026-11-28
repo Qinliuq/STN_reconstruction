@@ -58,6 +58,9 @@ cfg.ctx_overrides = {'conductance_nS': 0.8}
 # topography: per-cell rate scale = intercept + slope * position along the STN axis (0..1), normalized to mean 1;
 # None for uniform input. Jeon et al. Fig 7H.2 (Gria): 0.55 - 0.3x; default is the previous, exaggerated rule 0.65 - 0.5x
 cfg.ctx_topography = (0.65, -0.5)
+# cortical topography variants T0-T3 (src/ctx_topography.py, results/ctx_topography); None = off (cfg.ctx_topography
+# applies). When set, replaces cfg.ctx_topography; rate and conductance scales are mean 1, same in healthy and PD
+cfg.ctx_topo_variant = None
 cfg.ctx_cells_per_assembly = 31 # STN cells sharing one cortical assembly (2000 cells / 64 assemblies in cortical_arrivals.py)
 cfg.ctx_dt = 0.001 # s, time bin of the arrival generator
 cfg.ctx_delay = 1 # ms, synaptic delay

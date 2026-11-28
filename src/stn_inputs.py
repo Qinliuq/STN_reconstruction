@@ -57,6 +57,10 @@ def topography_scale(cellLocs, cfg):
     # per-cell cortical rate scale from the position along the STN axis: scale = intercept + slope * axis,
     # normalized to mean 1
     axis = np.array([axis_position(loc) for loc in cellLocs])
+    variant = getattr(cfg, 'ctx_topo_variant', None)
+    if variant is not None: # results/ctx_topography; replaces cfg.ctx_topography
+        import ctx_topography
+        return axis, ctx_topography.rate_scale(axis, variant)
     if cfg.ctx_topography is None:
         return axis, np.ones(len(axis))
     intercept, slope = cfg.ctx_topography
@@ -136,6 +140,12 @@ def add_cortical_input(netParams, cfg, cellLocsPerPop):
 
     # optional per-cell cortical conductance profile (cfg.ctx_gscale, off by default): weight x profile(axis), mean 1
     gScale = profile_scale(axis, cfg.ctx_gscale) if getattr(cfg, 'ctx_gscale', None) else None
+    variant = getattr(cfg, 'ctx_topo_variant', None)
+    if variant is not None:
+        import ctx_topography
+        if gScale is not None:
+            raise ValueError('cfg.ctx_topo_variant cannot be combined with cfg.ctx_gscale')
+        gScale = ctx_topography.g_scale(axis, variant)
     CELL_SCALES.clear()
     if gScale is not None:
         CELL_SCALES['ctx_gscale'] = gScale.astype(np.float32)
@@ -154,7 +164,10 @@ def add_cortical_input(netParams, cfg, cellLocsPerPop):
     rates = np.bincount(neuron_id, minlength=nSTN) / (cfg.duration / 1000)
     print(f"Cortical input (v{cfg.input_version}, {cfg.ctx_state}): {len(time_ms)} arrivals to {nSTN} STN cells "
           f"({rates.mean():.1f} /s per cell, {nAssemblies} assemblies)")
-    if cfg.ctx_topography is not None:
+    if getattr(cfg, 'ctx_topo_variant', None) is not None:
+        print(f"  topography variant {cfg.ctx_topo_variant}: rate scale {scale.min():.2f}-{scale.max():.2f}, conductance scale "
+              f"{'uniform' if gScale is None else f'{gScale.min():.2f}-{gScale.max():.2f}'} (arrivals {rates.min():.0f}-{rates.max():.0f} /s)")
+    elif cfg.ctx_topography is not None:
         print(f"  topography {cfg.ctx_topography}: rate scale {scale.min():.2f}-{scale.max():.2f} along the STN axis "
               f"(arrivals {rates.min():.0f}-{rates.max():.0f} /s; corr(axis, arrivals) = {np.corrcoef(axis, rates)[0, 1]:.2f})")
 
